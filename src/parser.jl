@@ -14,21 +14,36 @@ OBJECT_TO_TYPES = Dict(
 pascal_case(str::AbstractString) = 
     replace(titlecase(replace(str, r"-|_|\." => " ")), " " => "")
 
-function generate_type_module(json_schema::JSON3.Object)
+function generate_type_module(json_schema::JSON3.Object,
+        module_dir::String, module_name::String="")
+
+    if module_name == ""
+        module_name = "Module"*prod(rand('a':'z', 4))
+    end
 
     if Symbol("\$id") ∉ keys(json_schema)
         throw(ArgumentError("json schema missing `:\$id` keyword. No module created."))
     end
 
-    module_name = pascal_case(
+#=     struct_name = pascal_case(
         replace(split(json_schema[Symbol("\$id")], '/')[end], ".json" => "")
-    )
+    ) =#
+    struct_name =
+        :title ∈ keys(json_schema) ? 
+            json_schema[:title] :
+            "Struct$(rand(1000:9999))"
 
-    generated_string = "module $module_name\n\n"
-    generated_string *= generate_types(module_name, json_schema)
-    generated_string *= "\n\nend # end module"
+    generated_string = "module $module_name\n"
+    generated_string *= generate_types(struct_name, json_schema)
+    generated_string *= "\nend # end module"
 
-    return generated_string
+    module_filename = "$module_name.jl"
+    open(joinpath(module_dir, module_filename), "w") do io
+        write(io, generated_string)
+    end
+    @info "Module $module_name succesfully created in " * 
+        "$(joinpath(module_dir, module_filename))"
+    return nothing
 end
 
 function generate_types(object_type::String, json_schema::JSON3.Object,

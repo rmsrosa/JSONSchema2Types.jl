@@ -104,7 +104,6 @@ This is my main motivation for doing this. I would like to map all [beerjson](ht
 
 ## Design
 
-
 ## License
 
 This is licensed under the [MIT License](https://opensource.org/licenses/MIT); see [LICENSE](LICENSE).
