@@ -1,6 +1,6 @@
-# JSONSchema.jl
+# JSONSchema2Types
 
-Parse jsonschema to Julia composite types and, maybe, one day, the other way around.
+Parse a JSON Schema to Julia types and, maybe, one day, the other way around.
 
 ## Examples
 
