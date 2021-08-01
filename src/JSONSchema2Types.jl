@@ -1,4 +1,4 @@
-module JSONSchema
+module JSONSchema2Types
 
 using JSON3
 

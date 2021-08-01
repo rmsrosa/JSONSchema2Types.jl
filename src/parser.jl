@@ -1,5 +1,3 @@
-using JSON3
-
 # default translation table (user should be able to use different one to specialize types)
 # It will be a `const` when packaged
 # It does not include types `array` and `object`, which are handled differently
