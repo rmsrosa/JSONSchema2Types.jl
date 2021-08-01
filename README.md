@@ -10,9 +10,9 @@ The examples here were taken from [Getting Started Step-By-Step](https://json-sc
 
 #### Nested schema
 
-Parser is already working partially on nested schemas.
+Parser is already working (partially) on nested schemas.
 
-For example, suppose we have a file `acme_flatschema.json` with the following  `jsonschema`:
+For example, suppose we have a file `acme_nestedschema.json` with the following  `jsonschema`:
 
 ```json
 {
@@ -67,16 +67,15 @@ For example, suppose we have a file `acme_flatschema.json` with the following  `
 We can parse it with
 
 ```julia
-julia> json_schema = JSON3.read(read("acme_flatschema.json", String))
+julia> generate_type_module(json_schema, generated_module_dir, "AcmeNested")
 ```
 
-This currently returns a string (which can be saved to file, but in the future this will be made programatically) with the following contents:
+This creates a module named `AcmeNested` and saves it to file `AcmeNested.jl`
 
 ```julia
-module ProductSchema
+module AcmeNested
 
-
-mutable struct ProductSchema
+mutable struct Product
     productId::Int
     productName::String
     price::Number
@@ -89,7 +88,6 @@ mutable struct Dimensions
     width::Number
     height::Number
 end
-
 
 end # end module
 ```

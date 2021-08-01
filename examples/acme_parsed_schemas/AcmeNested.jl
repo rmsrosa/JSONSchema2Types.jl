@@ -1,4 +1,4 @@
-module AcmeNestedSchema
+module AcmeNested
 
 mutable struct Product
     productId::Int
