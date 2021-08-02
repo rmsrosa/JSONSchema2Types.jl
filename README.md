@@ -10,7 +10,7 @@ The examples here were taken from [Getting Started Step-By-Step](https://json-sc
 
 #### Nested schema
 
-Parser is already working (partially) on nested schemas.
+Parser is already working on nested schemas.
 
 For example, suppose we have a file `acme_nestedschema.json` with the following  `jsonschema`:
 
@@ -70,11 +70,23 @@ We can parse it with
 julia> generate_type_module(json_schema, generated_module_dir, "AcmeNested")
 ```
 
-This creates a module named `AcmeNested` and saves it to file `AcmeNested.jl`
+This creates a module named `AcmeNested` and saves it to a file named `AcmeNested.jl`:
 
 ```julia
 module AcmeNested
 
+"""
+    mutable struct Product
+
+A product from Acme's catalog
+
+Fields:
+   `productId`: The unique identifier for a product
+   `productName`: Name of the product
+   `price`: The price of the product
+   `tags`: Tags for the product
+   `dimensions`: Dimensions of a product
+"""
 mutable struct Product
     productId::Int
     productName::String
@@ -83,6 +95,11 @@ mutable struct Product
     dimensions::Dimensions
 end
 
+"""
+    mutable struct Dimensions
+
+Dimensions of a product
+"""
 mutable struct Dimensions
     length::Number
     width::Number
@@ -94,7 +111,7 @@ end # end module
 
 Notice the requirements and conditions are not yet enforced, but they will be, via inner constructors.
 
-The descriptions are not used either, but they will be, for constructing a minimal docstring.
+The docstrings are created from the "description" fields in the JSON Schema.
 
 ### Beerjson
 

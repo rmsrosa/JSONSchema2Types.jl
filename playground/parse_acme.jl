@@ -11,3 +11,7 @@ generate_type_module(json_schema, generated_module_dir, "AcmeFlat")
 filename = "../examples/acme_schemas/acme_nestedschema.json"
 json_schema = JSON3.read(read(filename, String))
 generate_type_module(json_schema, generated_module_dir, "AcmeNested")
+
+filename = "../examples/acme_schemas/acme_nestedschema_mod.json"
+json_schema = JSON3.read(read(filename, String))
+generate_type_module(json_schema, generated_module_dir, "AcmeNestedMod")

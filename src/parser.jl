@@ -54,15 +54,17 @@ function generate_types(object_type::String, json_schema::JSON3.Object,
 
     inner_objects = Dict{String, JSON3.Object}()
 
+    include_docstring = false
+    generated_docstring = "\n\"\"\"\n    mutable struct $object_type\n"
     if haskey(json_schema, :description)
-        generated_docstring = "\n\"\"\"\n    mutable struct $object_type\n\n" *
-            "$(json_schema[:description])\n\"\"\""
-    else
-        generated_docstring = ""
+        include_docstring = true
+        generated_docstring *= "\n$(json_schema[:description])\n"
     end
-    println(generated_docstring)
+
     generated_struct = "\nmutable struct $object_type\n"
 
+    include_docstring_fields = false
+    generated_docstring_fields = ""
     for (k, v) in json_schema[:properties]
         if v[:type] in keys(object_to_types)
             generated_struct *= "    $(string(k))::$(object_to_types[v[:type]])\n"
@@ -73,10 +75,23 @@ function generate_types(object_type::String, json_schema::JSON3.Object,
             generated_struct *= "    $(string(k))::$(object_type)\n"
             push!(inner_objects, object_type => v)
         end
+        generated_docstring_fields *= "   `$(string(k))`:"
+        if haskey(v, :description)
+            include_docstring_fields = true
+            generated_docstring_fields *= " $(v[:description])\n"
+        else
+            generated_docstring_fields *= "\n"
+        end
     end
     generated_struct *= "end\n" # end mutable struct
 
-    generated_struct = generated_docstring * generated_struct
+    if include_docstring_fields == true
+        include_docstring == true
+        generated_docstring *= "\nFields:\n" * generated_docstring_fields
+    end
+    if include_docstring == true
+        generated_struct = generated_docstring * "\"\"\"" * generated_struct
+    end    
 
     if length(inner_objects) > 0
         for (k,v) in inner_objects
