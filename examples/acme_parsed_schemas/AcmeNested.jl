@@ -1,5 +1,10 @@
 module AcmeNested
 
+"""
+    mutable struct Product
+
+A product from Acme's catalog
+"""
 mutable struct Product
     productId::Int
     productName::String
@@ -8,6 +13,11 @@ mutable struct Product
     dimensions::Dimensions
 end
 
+"""
+    mutable struct Dimensions
+
+Dimensions of a product
+"""
 mutable struct Dimensions
     length::Number
     width::Number

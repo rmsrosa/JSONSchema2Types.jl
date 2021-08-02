@@ -28,6 +28,7 @@
         "uniqueItems": true
       },
       "dimensions": {
+        "description": "Dimensions of a product",
         "type": "object",
         "properties": {
           "length": {

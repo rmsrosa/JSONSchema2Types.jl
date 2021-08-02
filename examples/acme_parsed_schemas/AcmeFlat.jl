@@ -1,5 +1,10 @@
 module AcmeFlat
 
+"""
+    mutable struct Product
+
+A product from Acme's catalog
+"""
 mutable struct Product
     productId::Int
     productName::String
