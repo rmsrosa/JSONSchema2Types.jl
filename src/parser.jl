@@ -62,8 +62,30 @@ function set_translation(pairs::Pair{String, String}...)
     return _type_translator
 end
 
+"""
+    pascal_case(s::AbstractString)
+
+Return a Pascal case version of the string `s`.
+
+Pascal case changes, if necessary, every initial word character to uppercase, removes
+every word separator ` `, `-`, `_`, and `.`, and does not change the case of the remaining
+characters.
+
+# Example
+
+```jldoctest
+julia> pascal_case("foo_bar")
+"FooBar"
+
+julia> pascal_case("foo_bar.baz")
+"FooBarBaz"
+
+julia> pascal_case("fOO Bar-bAz")
+"FOOBarBAz"
+```
+"""
 pascal_case(s::AbstractString) = 
-    replace(titlecase(s, strict=false), r"-|_|\.| " => "")
+    replace(titlecase(s, strict=false), r" |-|_|\." => "")
 
 function generate_constructor(json_schema::JSON3.Object, ::Val{:oneOf})
     nothing
