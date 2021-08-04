@@ -15,15 +15,15 @@ Fields:
 mutable struct Product
     productId::Int
     productName::String
-    price::Number
+    price::Float64
     tags::Array{String}
     dimensions::Dimensions
 end
 
 mutable struct Dimensions
-    length::Number
-    width::Number
-    height::Number
+    length::Float64
+    width::Float64
+    height::Float64
 end
 
 end # end module

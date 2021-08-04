@@ -14,7 +14,7 @@ Fields:
 mutable struct Product
     productId::Int
     productName::String
-    price::Number
+    price::Float64
     tags::Array{String}
 end
 

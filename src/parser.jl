@@ -1,20 +1,66 @@
-# Default translation table for the types
-#
-# User should be able to use a different one to specialize types:
-# 1) The table might be a `const` when packaged and the user provides an optional different
-# table when running `generate_type_module()`
-# 2) And/or we leave it as a variable and let the user change only some of the values
-# before running `generate_type_module()`, like in 
-# `JSONSchema2Types.object_to_types["integer] = "Int32"`
+# Translation table for the types
 #
 # The table does not include types `array` and `object`, which are handled differently
-OBJECT_TO_TYPES = Dict(
+_type_translator = Dict{String,String}(
     "integer" => "Int",
     "string" => "String",
-    "number" => "Number",
+    "number" => string(typeof(1.0)),
     "boolean" => "Bool",
     "null" => "Nothing",
 )
+"""
+    set_translation(pairs::Pair{String, String}...)
+
+The translation table from JSONSchema type to Julia type is defined initially by
+
+    Dict{String,String}(
+        "integer" => "Int",
+        "string" => "String",
+        "number" => string(typeof(1.0)),
+        "boolean" => "Bool",
+        "null" => "Nothing",
+    )
+
+The function `set_translation()` can be used to change one or more translations.
+
+# Example
+
+```jldoctest
+julia> set_translation("integer" => "Int16")
+Dict{String, String} with 5 entries:
+  "string"  => "String"
+  "number"  => "Float64"
+  "integer" => "Int16"
+  "null"    => "Nothing"
+  "boolean" => "Bool"
+
+julia> set_translation("integer" => "Int32", "number" => "Float32")
+Dict{String, String} with 5 entries:
+  "string"  => "String"
+  "number"  => "Float32"
+  "integer" => "Int32"
+  "null"    => "Nothing"
+  "boolean" => "Bool"
+
+julia> set_translation("integer" => "Integer", "number" => "Number", "string" => "AbstractString")
+  Dict{String, String} with 5 entries:
+    "string"  => "AbstractString"
+    "number"  => "Number"
+    "integer" => "Integer"
+    "null"    => "Nothing"
+    "boolean" => "Bool"
+```
+"""
+function set_translation(pairs::Pair{String, String}...)
+    for (k,v) in pairs
+        if haskey(_type_translator, k)
+            _type_translator[k] = v
+        else
+            push!(_type_translator, k => v)
+        end
+    end
+    return _type_translator
+end
 
 pascal_case(s::AbstractString) = 
     replace(titlecase(s, strict=false), r"-|_|\.| " => "")
@@ -36,8 +82,7 @@ function generate_constructor(json_schema::JSON3.Object, ::Val{:enum})
 end
 
 function generate_types(json_schema::JSON3.Object;
-        gen_folder::String=".", module_name::String="", filename::String="",
-        object_to_types::Dict{String,String}=OBJECT_TO_TYPES)
+        gen_folder::String=".", module_name::String="", filename::String="")
 
     if Symbol("\$id") ∉ keys(json_schema)
         throw(ArgumentError("json schema missing `:\$id` keyword. No module created."))
@@ -73,8 +118,7 @@ function generate_types(json_schema::JSON3.Object;
     return nothing
 end
 
-function generate_types(object_name::String, json_schema::JSON3.Object;
-        object_to_types::Dict{String,String}=OBJECT_TO_TYPES)
+function generate_types(object_name::String, json_schema::JSON3.Object)
 
     if (:type, :properties) ⊈ keys(json_schema)
         throw(ArgumentError("Empty schema, with no `:properties` and `:type` keywords."))
@@ -105,10 +149,10 @@ function generate_types(object_name::String, json_schema::JSON3.Object;
     include_docstring_fields = false
     generated_docstring_fields = ""
     for (k, v) in json_schema[:properties]
-        if v[:type] in keys(object_to_types)
-            generated_struct *= "    $(string(k))::$(object_to_types[v[:type]])\n"
+        if v[:type] in keys(_type_translator)
+            generated_struct *= "    $(string(k))::$(_type_translator[v[:type]])\n"
         elseif v[:type] == "array"
-            generated_struct *= "    $(string(k))::Array{$(object_to_types[v[:items][:type]])}\n"
+            generated_struct *= "    $(string(k))::Array{$(_type_translator[v[:items][:type]])}\n"
         elseif v[:type] == "object"
             object_name = pascal_case(string(k))
             generated_struct *= "    $(string(k))::$(object_name)\n"
