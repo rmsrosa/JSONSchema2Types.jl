@@ -1,6 +1,13 @@
-# default translation table (user should be able to use different one to specialize types)
-# It will be a `const` when packaged
-# It does not include types `array` and `object`, which are handled differently
+# Default translation table for the types
+#
+# User should be able to use a different one to specialize types:
+# 1) The table might be a `const` when packaged and the user provides an optional different
+# table when running `generate_type_module()`
+# 2) And/or we leave it as a variable and let the user change only some of the values
+# before running `generate_type_module()`, like in 
+# `JSONSchema2Types.object_to_types["integer] = "Int32"`
+#
+# The table does not include types `array` and `object`, which are handled differently
 OBJECT_TO_TYPES = Dict(
     "integer" => "Int",
     "string" => "String",
@@ -12,36 +19,61 @@ OBJECT_TO_TYPES = Dict(
 pascal_case(s::AbstractString) = 
     replace(titlecase(s, strict=false), r"-|_|\.| " => "")
 
-function generate_type_module(json_schema::JSON3.Object,
-        module_dir::String, module_name::String="")
+function generate_constructor(json_schema::JSON3.Object, ::Val{:oneOf})
+    nothing
+end
 
-    if module_name == ""
-        module_name = "Module"*prod(rand('a':'z', 4))
-    end
+function generate_constructor(json_schema::JSON3.Object, ::Val{:allOf})
+    nothing
+end
+
+function generate_constructor(json_schema::JSON3.Object, ::Val{:anyOf})
+    nothing
+end
+
+function generate_constructor(json_schema::JSON3.Object, ::Val{:enum})
+    nothing
+end
+
+function generate_types(json_schema::JSON3.Object;
+        gen_folder::String=".", module_name::String="", filename::String="",
+        object_to_types::Dict{String,String}=OBJECT_TO_TYPES)
 
     if Symbol("\$id") ∉ keys(json_schema)
         throw(ArgumentError("json schema missing `:\$id` keyword. No module created."))
     end
 
-    struct_name =
-        :title ∈ keys(json_schema) ? 
-            json_schema[:title] :
-            "Struct$(rand(1000:9999))"
+    if module_name == ""
+        generated_string = generate_types("", json_schema)
+    else
+        generated_string = "module $module_name\n"
+        generated_string *= generate_types("", json_schema)
+        generated_string *= "\nend # end module"
+    end
 
-    generated_string = "module $module_name\n"
-    generated_string *= generate_types(struct_name, json_schema)
-    generated_string *= "\nend # end module"
+    if filename == ""
+        if module_name != ""
+            filename = "$module_name.jl"
+        else
+            filename = "JSONSchemaTypes.jl"
+        end
+    end
 
-    module_filename = "$module_name.jl"
-    open(joinpath(module_dir, module_filename), "w") do io
+    open(joinpath(gen_folder, filename), "w") do io
         write(io, generated_string)
     end
-    @info "Module $module_name succesfully created in " * 
-        "$(joinpath(module_dir, module_filename))"
+
+    if module_name == ""
+        @info "Types succesfully created in " * 
+        "$(joinpath(gen_folder, filename))"
+    else
+        @info "Module $module_name succesfully created in " * 
+            "$(joinpath(gen_folder, filename))"
+    end
     return nothing
 end
 
-function generate_types(object_type::String, json_schema::JSON3.Object,
+function generate_types(object_name::String, json_schema::JSON3.Object;
         object_to_types::Dict{String,String}=OBJECT_TO_TYPES)
 
     if (:type, :properties) ⊈ keys(json_schema)
@@ -54,14 +86,21 @@ function generate_types(object_type::String, json_schema::JSON3.Object,
 
     inner_objects = Dict{String, JSON3.Object}()
 
+    if object_name == ""
+        object_name =
+            :title ∈ keys(json_schema) ? 
+                json_schema[:title] :
+                "Struct$(rand(1000:9999))"
+    end
+
     include_docstring = false
-    generated_docstring = "\n\"\"\"\n    mutable struct $object_type\n"
+    generated_docstring = "\n\"\"\"\n    mutable struct $object_name\n"
     if haskey(json_schema, :description)
         include_docstring = true
         generated_docstring *= "\n$(json_schema[:description])\n"
     end
 
-    generated_struct = "\nmutable struct $object_type\n"
+    generated_struct = "\nmutable struct $object_name\n"
 
     include_docstring_fields = false
     generated_docstring_fields = ""
@@ -71,9 +110,9 @@ function generate_types(object_type::String, json_schema::JSON3.Object,
         elseif v[:type] == "array"
             generated_struct *= "    $(string(k))::Array{$(object_to_types[v[:items][:type]])}\n"
         elseif v[:type] == "object"
-            object_type = pascal_case(string(k))
-            generated_struct *= "    $(string(k))::$(object_type)\n"
-            push!(inner_objects, object_type => v)
+            object_name = pascal_case(string(k))
+            generated_struct *= "    $(string(k))::$(object_name)\n"
+            push!(inner_objects, object_name => v)
         end
         generated_docstring_fields *= "   `$(string(k))`:"
         if haskey(v, :description)
