@@ -169,9 +169,7 @@ function generate_types(object_name::String, json_schema::JSON3.Object)
 
         julia_type =
             if haskey(v, Symbol("\$ref"))
-                "Ref"
-            elseif !haskey(v, :type)
-                "NoType"
+                basename(v[Symbol("\$ref")])
             elseif v[:type] in keys(_type_translator)
                 _type_translator[v[:type]]
             elseif v[:type] == "array"

@@ -1,12 +1,12 @@
 module FermentationJSON
 
 """
-    mutable struct Struct3973
+    mutable struct Struct5462
 
 Fields:
    `FermentationProcedureType`: FermentationProcedureType defines the procedure for performing fermentation.
 """
-mutable struct Struct3973
+mutable struct Struct5462
     FermentationProcedureType::Union{Nothing,FermentationProcedureType}
 end
 

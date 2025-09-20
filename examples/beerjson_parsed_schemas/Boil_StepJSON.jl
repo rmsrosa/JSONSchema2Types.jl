@@ -1,12 +1,12 @@
 module Boil_StepJSON
 
 """
-    mutable struct Struct3186
+    mutable struct Struct5437
 
 Fields:
    `BoilStepType`: BoilStepType - a per step representation of a boil process, can be used to support preboil steps, non-boiling pasteurization steps, boiling, whirlpool steps, and chilling.
 """
-mutable struct Struct3186
+mutable struct Struct5437
     BoilStepType::Union{Nothing,BoilStepType}
 end
 
@@ -31,14 +31,14 @@ Fields:
 mutable struct BoilStepType
     name::String
     description::Union{Nothing,String}
-    start_temperature::Union{Nothing,Ref}
-    end_temperature::Union{Nothing,Ref}
-    ramp_time::Union{Nothing,Ref}
-    step_time::Union{Nothing,Ref}
-    start_gravity::Union{Nothing,Ref}
-    end_gravity::Union{Nothing,Ref}
-    start_ph::Union{Nothing,Ref}
-    end_ph::Union{Nothing,Ref}
+    start_temperature::Union{Nothing,TemperatureType}
+    end_temperature::Union{Nothing,TemperatureType}
+    ramp_time::Union{Nothing,TimeType}
+    step_time::Union{Nothing,TimeType}
+    start_gravity::Union{Nothing,GravityType}
+    end_gravity::Union{Nothing,GravityType}
+    start_ph::Union{Nothing,AcidityType}
+    end_ph::Union{Nothing,AcidityType}
     chilling_type::Union{Nothing,String}
 end
 

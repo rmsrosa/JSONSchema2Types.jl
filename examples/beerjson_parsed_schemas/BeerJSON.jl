@@ -1,12 +1,12 @@
 module BeerJSON
 
 """
-    mutable struct Struct9447
+    mutable struct Struct3033
 
 Fields:
    `beerjson`: Root element of all beerjson documents.
 """
-mutable struct Struct9447
+mutable struct Struct3033
     beerjson::Beerjson
 end
 
@@ -31,7 +31,7 @@ Fields:
    `packaging`: A collection of steps providing process information for common packaging procedures.
 """
 mutable struct Beerjson
-    version::Ref
+    version::VersionType
     fermentables::Union{Nothing,Vector{NoType}}
     miscellaneous_ingredients::Union{Nothing,Vector{NoType}}
     hop_varieties::Union{Nothing,Vector{NoType}}
