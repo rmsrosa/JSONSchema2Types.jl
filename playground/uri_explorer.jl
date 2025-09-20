@@ -3,7 +3,7 @@
 #
 using HTTP
 
-u = URI("http://a/b/c/d;p?q")
+u = HTTP.URI("http://a/b/c/d;p?q")
 @show isvalid(u);
 
 T = typeof(u)
@@ -16,14 +16,14 @@ for name in fieldnames(T)
     println("field $name: $(getfield(u, name))")
 end
 
-u = URI("https://raw.githubusercontent.com/beerjson/beerjson/master/json/beer.json")
+u = HTTP.URI("https://raw.githubusercontent.com/beerjson/beerjson/master/json/beer.json")
 for name in fieldnames(T)
     println("field $name: $(getfield(u, name))")
 end
 
-u = URI("https://raw.githubusercontent.com/beerjson/beerjson/master/json/measureable_units.json")
+u = HTTP.URI("https://raw.githubusercontent.com/beerjson/beerjson/master/json/measureable_units.json")
 @show isvalid(u);
-#r=URI("#/definitions/VolumeUnitType")
+#r=HTTP.URI("#/definitions/VolumeUnitType")
 #@show isvalid(r);
 s = "https://raw.githubusercontent.com/beerjson/beerjson/master/json/measureable_units.json" *
     "#/definitions/VolumeUnitType"
@@ -32,7 +32,7 @@ s = "https://raw.githubusercontent.com/beerjson/beerjson/master/json/measureable
 path = "https://raw.githubusercontent.com/beerjson/beerjson/master/json/misc.json"
 rel = "measureable_units.json#/definitions/VolumeType"
 resolved = joinpath(dirname(path), rel)
-ur = URI(resolved)
+ur = HTTP.URI(resolved)
 @show isvalid(u);
 
 for name in fieldnames(T)
@@ -62,12 +62,12 @@ function update_id(uri::HTTP.URI, s::String)
     return HTTP.URI(; els...)
 end
 
-u = URI("https://raw.githubusercontent.com/beerjson/beerjson/master/json/beer.json")
+u = HTTP.URI("https://raw.githubusercontent.com/beerjson/beerjson/master/json/beer.json")
 rel = "measureable_units.json#/definitions/VolumeType"
 update_id(u, rel)
 isvalid(update_id(u, rel))
 
-u = URI("https://raw.githubusercontent.com/beerjson/beerjson/master/json/measureable_units.json")
+u = HTTP.URI("https://raw.githubusercontent.com/beerjson/beerjson/master/json/measureable_units.json")
 rel = "#/definitions/VolumeUnitType"
 update_id(u, rel)
 isvalid(update_id(u, rel))
