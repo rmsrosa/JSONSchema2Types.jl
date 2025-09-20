@@ -163,10 +163,18 @@ function generate_types(object_name::String, json_schema::JSON3.Object)
         fieldname = string(k)
 
         julia_type =
-            if v[:type] in keys(_type_translator)
+            if haskey(v, Symbol("\$ref"))
+                "Ref"
+            elseif !haskey(v, :type)
+                "NoType"
+            elseif v[:type] in keys(_type_translator)
                 _type_translator[v[:type]]
             elseif v[:type] == "array"
-                "Vector{$(_type_translator[v[:items][:type]])}"
+                if haskey(v[:items], :type)
+                    "Vector{$(_type_translator[v[:items][:type]])}"
+                else
+                    "Vector{NoType}"
+                end
             elseif v[:type] == "object"
                 inner_name = pascal_case(fieldname)
                 push!(inner_objects, inner_name => v)
