@@ -1,7 +1,7 @@
 using JSON3
 using HTTP
 
-json_string = read("jsonschema_examples/beerjson-1.0.1/json/beer.json", String)
+json_string = read("../examples/beerjson-1.0.1/json/beer.json", String)
 json_schema = JSON3.read(json_string)
 
 @show keys(json_schema)
