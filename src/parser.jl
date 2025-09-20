@@ -129,12 +129,16 @@ function generate_types(json_schema::JSON3.Object;
 end
 
 function generate_types(object_name::String, json_schema::JSON3.Object)
-    if (:type, :properties) ⊈ keys(json_schema)
-        throw(ArgumentError("Schema missing `:properties` or `:type`."))
-    end
-    if json_schema[:type] != "object"
+    
+    haskey(json_schema, :type) ||
+        throw(ArgumentError("Schema missing `:type`."))
+
+    json_schema[:type] == "object" ||
         throw(ArgumentError("Expecting `object` type; got `$(json_schema[:type])`."))
-    end        
+
+    haskey(json_schema, :properties) ||
+        haskey(json_schema, :definitions) ||
+        throw(ArgumentError("Schema missing `:properties` or `:definitions`."))
 
     inner_objects = Dict{String, JSON3.Object}()
 
@@ -159,7 +163,8 @@ function generate_types(object_name::String, json_schema::JSON3.Object)
     include_docstring_fields = false
     generated_docstring_fields = ""
 
-    for (k, v) in json_schema[:properties]
+    properties_or_definitions = haskey(json_schema, :properties) ? :properties : :definitions
+    for (k, v) in json_schema[properties_or_definitions]
         fieldname = string(k)
 
         julia_type =
