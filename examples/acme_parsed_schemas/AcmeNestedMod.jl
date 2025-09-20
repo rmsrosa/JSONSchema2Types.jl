@@ -16,8 +16,8 @@ mutable struct Product
     productId::Int
     productName::String
     price::Float64
-    tags::Array{String}
-    dimensions::Dimensions
+    tags::Union{Nothing,Vector{String}}
+    dimensions::Union{Nothing,Dimensions}
 end
 
 mutable struct Dimensions
@@ -26,4 +26,4 @@ mutable struct Dimensions
     height::Float64
 end
 
-end # end module
+end # module AcmeNestedMod

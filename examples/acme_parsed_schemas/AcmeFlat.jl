@@ -15,7 +15,7 @@ mutable struct Product
     productId::Int
     productName::String
     price::Float64
-    tags::Array{String}
+    tags::Union{Nothing,Vector{String}}
 end
 
-end # end module
+end # module AcmeFlat
