@@ -37,6 +37,31 @@ function load_schema(filepath::String)::Any
     return schema
 end
 
+"""
+    pascal_case(s::AbstractString)
+
+Return a Pascal case version of the string `s`.
+
+Pascal case changes, if necessary, every initial word character to uppercase, removes
+every word separator ` `, `-`, `_`, and `.`, and does not change the case of the remaining
+characters.
+
+# Example
+
+```jldoctest
+julia> pascal_case("foo_bar")
+"FooBar"
+
+julia> pascal_case("foo_bar.baz")
+"FooBarBaz"
+
+julia> pascal_case("fOO Bar-bAz")
+"FOOBarBAz"
+```
+"""
+pascal_case(s::AbstractString) = 
+    replace(titlecase(s, strict=false), r" |-|_|\." => "")
+
 # Recursively generates Julia struct definitions
 function generate_structs(schema, struct_name::String, base_path::String, indent::String="")::String
     ref = get(schema, "\$ref", nothing)
@@ -87,11 +112,11 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
             uri = URI(ref)
             if isempty(uri.path)
                 def_name = split(uri.fragment, "/")[end]
-                julia_type = titlecase(def_name)
+                julia_type = pascal_case(def_name)
             else
                 ext_path = normpath(joinpath(dirname(base_path), uri.path))
                 def_name = split(uri.fragment, "/")[end]
-                julia_type = titlecase(def_name)
+                julia_type = pascal_case(def_name)
                 load_schema(ext_path)
                 definitions = get(SCHEMA_CACHE[ext_path], "\$defs", get(SCHEMA_CACHE[ext_path], "definitions", Dict()))
                 struct_definition = "# Depends on struct $(julia_type) from $(basename(ext_path))\n" * struct_definition
@@ -99,7 +124,7 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
         elseif haskey(TYPE_MAP, prop_type)
             julia_type = TYPE_MAP[prop_type]
         elseif prop_type == "object"
-            nested_struct_name = titlecase(prop_name)
+            nested_struct_name = pascal_case(prop_name)
             struct_definition = generate_structs(prop_schema, nested_struct_name, base_path, indent) * "\n" * struct_definition
             julia_type = nested_struct_name
         elseif prop_type == "array"
@@ -110,11 +135,11 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
             if ref !== nothing
                 uri = URI(ref)
                 def_name = split(uri.fragment, "/")[end]
-                julia_type = "Vector{$(titlecase(def_name))}"
+                julia_type = "Vector{$(pascal_case(def_name))}"
             elseif haskey(TYPE_MAP, items_type)
                 julia_type = "Vector{$(TYPE_MAP[items_type])}"
             elseif items_type == "object"
-                nested_struct_name = titlecase(prop_name)
+                nested_struct_name = pascal_case(prop_name)
                 struct_definition = generate_structs(items_schema, nested_struct_name, base_path, indent) * "\n" * struct_definition
                 julia_type = "Vector{$(nested_struct_name)}"
             else
@@ -155,7 +180,7 @@ function generate_julia_types(main_schema_path::String, output_file::String)
     for (path, s) in SCHEMA_CACHE
         definitions = get(s, "\$defs", get(s, "definitions", Dict()))
         for (def_name, def_schema) in definitions
-            def_struct_name = titlecase(def_name)
+            def_struct_name = pascal_case(def_name)
             generated_code *= generate_structs(def_schema, def_struct_name, path) * "\n"
         end
     end
