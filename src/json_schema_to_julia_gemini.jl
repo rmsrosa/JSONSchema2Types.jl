@@ -166,6 +166,8 @@ function generate_julia_types(main_schema_path::String, output_file::String)
 
     println("Starting schema generation from: $(main_schema_path)\n")
 
+    empty!(SCHEMA_CACHE)
+
     schema = load_schema(main_schema_path)
     
     all_refs = find_all_refs(schema)
