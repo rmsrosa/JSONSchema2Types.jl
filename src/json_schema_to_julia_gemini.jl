@@ -98,15 +98,25 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
         return ""
     end
 
+    struct_docstring = ""
+    schema_docstring = get(schema, "description", "")
+    include_docstring = !isempty(schema_docstring)
+
     struct_definition = "$(indent)struct $(struct_name)\n"
     
     properties = get(schema, "properties", Dict())
     required_fields = get(schema, "required", [])
 
+    include_docstring_fields = false
+    generated_docstring_fields = ""
+
     for (prop_name, prop_schema) in properties
+        @info prop_name
+
         julia_type = ""
         prop_type = get(prop_schema, "type", "")
         ref = get(prop_schema, "\$ref", nothing)
+        @info prop_type
 
         if ref !== nothing
             uri = URI(ref)
@@ -153,11 +163,28 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
             julia_type = "Union{Nothing, $(julia_type)}"
         end
 
+        field_docstring = get(prop_schema, "description", "")
+        @info field_docstring
+        if !isempty(field_docstring)
+            include_docstring_fields = true
+            generated_docstring_fields *= "$(indent)   `$(prop_name)`:  $(field_docstring)\n"
+        end
+        
         struct_definition *= "$(indent)    $(prop_name)::$(julia_type)\n"
+        
     end
     
     struct_definition *= "$(indent)end\n"
     
+    if include_docstring_fields
+        include_docstring = true
+        struct_docstring *= "\nFields:\n" * generated_docstring_fields
+    end
+
+    if include_docstring
+        struct_definition = "\n\"\"\"\n$(indent)    struct $struct_name\n\n$(schema_docstring)\n" * struct_docstring * "\"\"\"\n" * struct_definition
+    end    
+
     return struct_definition
 end
 
