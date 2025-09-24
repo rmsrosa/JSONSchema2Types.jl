@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CombinedSchemaExample",
+  "description": "A single schema demonstrating oneOf, anyOf, allOf, and not.",
+  "type": "object",
+  "properties": {
+    "one_of_user": {
+      "description": "Demonstrates 'oneOf' for a user that is either a Person or a Company.",
+      "oneOf": [
+        {
+          "title": "Person",
+          "type": "object",
+          "properties": {
+            "user_type": {
+              "type": "string",
+              "const": "person"
+            },
+            "first_name": {
+              "type": "string"
+            },
+            "last_name": {
+              "type": "string"
+            }
+          },
+          "required": ["user_type", "first_name", "last_name"]
+        },
+        {
+          "title": "Company",
+          "type": "object",
+          "properties": {
+            "user_type": {
+              "type": "string",
+              "const": "company"
+            },
+            "company_name": {
+              "type": "string"
+            }
+          },
+          "required": ["user_type", "company_name"]
+        }
+      ]
+    },
+    "any_of_identifier": {
+      "description": "Demonstrates 'anyOf' for a product identifier.",
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "sku": {
+              "type": "string"
+            }
+          },
+          "required": ["sku"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "product_code": {
+              "type": "string"
+            }
+          },
+          "required": ["product_code"]
+        }
+      ]
+    },
+    "all_of_request": {
+      "description": "Demonstrates 'allOf' to combine schemas for a request with authentication.",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "type": "object"
+            }
+          },
+          "required": ["payload"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "api_key": {
+              "type": "string"
+            },
+            "timestamp": {
+              "type": "string"
+            }
+          },
+          "required": ["api_key", "timestamp"]
+        }
+      ]
+    },
+    "not_a_password": {
+      "description": "A password that cannot be the literal string 'password'.",
+      "type": "string",
+      "not": {
+        "const": "password"
+      }
+    }
+  },
+  "required": [
+    "one_of_user",
+    "any_of_identifier",
+    "all_of_request",
+    "not_a_password"
+  ]
+}
