@@ -5,7 +5,8 @@ using Dates
 """
 A Julia module to generate Julia structs from a JSON Schema.
 This version handles 'definitions' and '\$ref' keywords, including external file references,
-and generates docstrings from schema descriptions.
+and generates docstrings from schema descriptions. It also adds support for
+'oneOf', 'anyOf', 'allOf', and 'not' keywords.
 """
 #module SchemaGenerator
 
@@ -82,99 +83,94 @@ $(indent)\"\"\"
     return docstring
 end
 
-# Recursively generates Julia struct definitions
-function generate_structs(schema, struct_name::String, base_path::String, indent::String="")::String
+# Generates the Julia type string from a schema snippet
+function generate_type_string(schema, base_path::String, parent_struct_name::String, prop_name::String="")::String
     ref = get(schema, "\$ref", nothing)
     if ref !== nothing
         uri = URI(ref)
         if isempty(uri.path)
-            # Local reference within the same file (e.g., "#/$defs/MyType")
-            def_path = split(uri.fragment, "/")[2:end]
-            sub_schema = SCHEMA_CACHE[base_path]
-            for key in def_path
-                sub_schema = get(sub_schema, key, nothing)
-                if sub_schema === nothing
-                    error("Reference not found in local schema: $(ref)")
-                end
-            end
-            return generate_structs(sub_schema, struct_name, base_path, indent)
+            # Local reference
+            def_name = split(uri.fragment, "/")[end]
+            return pascal_case(def_name)
         else
             # External reference
             ext_path = normpath(joinpath(dirname(base_path), uri.path))
-            ext_schema = load_schema(ext_path)
-            def_path = split(uri.fragment, "/")[2:end]
-            sub_schema = ext_schema
-            for key in def_path
-                sub_schema = get(sub_schema, key, nothing)
-                if sub_schema === nothing
-                    error("Reference not found in external schema: $(ref)")
-                end
-            end
-            return generate_structs(sub_schema, struct_name, ext_path, indent)
+            load_schema(ext_path)
+            def_name = split(uri.fragment, "/")[end]
+            return pascal_case(def_name)
         end
     end
+
+    if haskey(schema, "oneOf")
+        types = [generate_type_string(s, base_path, parent_struct_name, prop_name) for s in schema["oneOf"]]
+        return "Union{" * join(types, ", ") * "}"
+    elseif haskey(schema, "anyOf")
+        types = [generate_type_string(s, base_path, parent_struct_name, prop_name) for s in schema["anyOf"]]
+        return "Union{" * join(types, ", ") * "}"
+    elseif haskey(schema, "not")
+        return "Any # The type of this field is constrained by a 'not' keyword and must be validated at runtime."
+    end
     
+    prop_type = get(schema, "type", "")
+    if haskey(TYPE_MAP, prop_type)
+        return TYPE_MAP[prop_type]
+    elseif prop_type == "object"
+        return pascal_case(parent_struct_name * pascal_case(prop_name))
+    elseif prop_type == "array"
+        items_schema = get(schema, "items", Dict())
+        items_type_str = generate_type_string(items_schema, base_path, parent_struct_name, prop_name)
+        if get(items_schema, "type", "") == "object"
+            items_type_str = pascal_case(parent_struct_name * pascal_case(prop_name)) |> x -> endswith(x, "s") ? x[1:end-1] : x
+        end
+        return "Vector{$(items_type_str)}"
+    else
+        return "Any"
+    end
+end
+
+
+# Recursively generates Julia struct definitions
+function generate_structs(schema, struct_name::String, base_path::String, indent::String="")::String
     if get(schema, "type", "") != "object"
+        # This function should only be called for object types
         return ""
     end
 
     properties = get(schema, "properties", Dict())
+    if haskey(schema, "allOf")
+        for sub_schema in schema["allOf"]
+            merge!(properties, get(sub_schema, "properties", Dict()))
+        end
+    end
     required_fields = get(schema, "required", [])
-
-    struct_definition = create_docstring(schema, properties, struct_name)
+    
+    generated_nested_structs = ""
+    for (prop_name, prop_schema) in properties
+        prop_type = get(prop_schema, "type", "")
+        if prop_type == "object"
+            nested_struct_name = pascal_case(struct_name * pascal_case(prop_name))
+            generated_nested_structs *= generate_structs(prop_schema, nested_struct_name, base_path, indent) * "\n"
+        elseif prop_type == "array"
+            items_schema = get(prop_schema, "items", Dict())
+            if get(items_schema, "type", "") == "object"
+                nested_struct_name = pascal_case(struct_name * pascal_case(prop_name)) |> x -> endswith(x, "s") ? x[1:end-1] : x
+                generated_nested_structs *= generate_structs(items_schema, nested_struct_name, base_path, indent) * "\n"
+            end
+        end
+    end
+    
+    struct_definition = generated_nested_structs
+    struct_definition *= create_docstring(schema, properties, struct_name, indent)
     struct_definition *= "$(indent)struct $(struct_name)\n"
     
     for (prop_name, prop_schema) in properties
-        julia_type = ""
-        prop_type = get(prop_schema, "type", "")
-        ref = get(prop_schema, "\$ref", nothing)
-
-        if ref !== nothing
-            uri = URI(ref)
-            if isempty(uri.path)
-                def_name = split(uri.fragment, "/")[end]
-                julia_type = pascal_case(def_name)
-            else
-                ext_path = normpath(joinpath(dirname(base_path), uri.path))
-                def_name = split(uri.fragment, "/")[end]
-                julia_type = pascal_case(def_name)
-                load_schema(ext_path)
-                struct_definition = "# The field `$(prop_name)` in this struct depends on a type `$(julia_type)` from `$(basename(ext_path))`\n" * struct_definition
-            end
-        elseif haskey(TYPE_MAP, prop_type)
-            julia_type = TYPE_MAP[prop_type]
-        elseif prop_type == "object"
-            nested_struct_name = pascal_case(prop_name)
-            struct_definition = generate_structs(prop_schema, nested_struct_name, base_path, indent) * "\n" * struct_definition
-            julia_type = nested_struct_name
-        elseif prop_type == "array"
-            items_schema = get(prop_schema, "items", Dict())
-            ref = get(items_schema, "\$ref", nothing)
-            items_type = get(items_schema, "type", "")
-
-            if ref !== nothing
-                uri = URI(ref)
-                def_name = split(uri.fragment, "/")[end]
-                julia_type = "Vector{$(pascal_case(def_name))}"
-            elseif haskey(TYPE_MAP, items_type)
-                julia_type = "Vector{$(TYPE_MAP[items_type])}"
-            elseif items_type == "object"
-                nested_struct_name = pascal_case(prop_name)
-                struct_definition = generate_structs(items_schema, nested_struct_name, base_path, indent) * "\n" * struct_definition
-                julia_type = "Vector{$(nested_struct_name)}"
-            else
-                julia_type = "Vector{Any}"
-            end
-        else
-            julia_type = "Any"
-        end
+        julia_type = generate_type_string(prop_schema, base_path, struct_name, prop_name)
 
         if !(prop_name in required_fields)
             julia_type = "Union{Nothing, $(julia_type)}"
         end
 
         struct_definition *= "$(indent)    $(prop_name)::$(julia_type)\n"
-        
     end
     
     struct_definition *= "$(indent)end\n"
@@ -245,3 +241,4 @@ function find_all_refs(schema::Dict)
 end
 
 #end # module SchemaGenerator
+
