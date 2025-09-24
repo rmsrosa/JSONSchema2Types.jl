@@ -3,8 +3,9 @@ using URIs
 using Dates
 
 """
-A Julia module to generate Julia structs from a JSON Schema using JSON.jl.
-This version correctly handles 'definitions' and '\$ref' keywords, including external file references.
+A Julia module to generate Julia structs from a JSON Schema.
+This version handles 'definitions' and '\$ref' keywords, including external file references,
+and generates docstrings from schema descriptions.
 """
 #module SchemaGenerator
 
@@ -45,22 +46,41 @@ Return a Pascal case version of the string `s`.
 Pascal case changes, if necessary, every initial word character to uppercase, removes
 every word separator ` `, `-`, `_`, and `.`, and does not change the case of the remaining
 characters.
-
-# Example
-
-```jldoctest
-julia> pascal_case("foo_bar")
-"FooBar"
-
-julia> pascal_case("foo_bar.baz")
-"FooBarBaz"
-
-julia> pascal_case("fOO Bar-bAz")
-"FOOBarBAz"
-```
 """
 pascal_case(s::AbstractString) = 
     replace(titlecase(s, strict=false), r" |-|_|\." => "")
+
+# Helper function to create docstrings from a schema description and field descriptions
+function create_docstring(schema, properties::Dict, struct_name::String, indent::String="")::String
+    description = get(schema, "description", "")
+    has_field_docs = any(haskey(p, "description") for p in values(properties))
+    
+    docstring_content = "$(indent)    $(struct_name)\n\n"
+    if !isempty(description)
+        docstring_content *= description
+    end
+
+    if has_field_docs
+        field_docs = "\n\nFields:\n"
+        for (prop_name, prop_schema) in properties
+            field_description = get(prop_schema, "description", "")
+            if !isempty(field_description)
+                field_docs *= "$(indent)    `$(prop_name)`: $(field_description)\n"
+            end
+        end
+        docstring_content *= field_docs
+    end
+
+    if isempty(docstring_content)
+        return ""
+    end
+
+    docstring = "$(indent)\"\"\"
+$(indent)$(docstring_content)
+$(indent)\"\"\"
+"
+    return docstring
+end
 
 # Recursively generates Julia struct definitions
 function generate_structs(schema, struct_name::String, base_path::String, indent::String="")::String
@@ -98,19 +118,12 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
         return ""
     end
 
-    struct_docstring = ""
-    schema_docstring = get(schema, "description", "")
-    include_docstring = !isempty(schema_docstring)
-
-    struct_dependence = ""
-    struct_definition = "$(indent)struct $(struct_name)\n"
-    
     properties = get(schema, "properties", Dict())
     required_fields = get(schema, "required", [])
 
-    include_docstring_fields = false
-    generated_docstring_fields = ""
-
+    struct_definition = create_docstring(schema, properties, struct_name)
+    struct_definition *= "$(indent)struct $(struct_name)\n"
+    
     for (prop_name, prop_schema) in properties
         julia_type = ""
         prop_type = get(prop_schema, "type", "")
@@ -126,7 +139,7 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
                 def_name = split(uri.fragment, "/")[end]
                 julia_type = pascal_case(def_name)
                 load_schema(ext_path)
-                struct_dependence = "# $(prop_name) depends on struct $(julia_type) from $(basename(ext_path))\n" * struct_dependence
+                struct_definition = "# The field `$(prop_name)` in this struct depends on a type `$(julia_type)` from `$(basename(ext_path))`\n" * struct_definition
             end
         elseif haskey(TYPE_MAP, prop_type)
             julia_type = TYPE_MAP[prop_type]
@@ -160,35 +173,17 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
             julia_type = "Union{Nothing, $(julia_type)}"
         end
 
-        field_docstring = get(prop_schema, "description", "")
-        if !isempty(field_docstring)
-            include_docstring_fields = true
-            generated_docstring_fields *= "$(indent)   `$(prop_name)`:  $(field_docstring)\n"
-        end
-        
         struct_definition *= "$(indent)    $(prop_name)::$(julia_type)\n"
         
     end
     
     struct_definition *= "$(indent)end\n"
-    
-    if include_docstring_fields
-        include_docstring = true
-        struct_docstring *= "\nFields:\n" * generated_docstring_fields
-    end
-
-    if include_docstring
-        struct_definition = "\"\"\"\n$(indent)    struct $struct_name\n\n$(schema_docstring)\n" * struct_docstring * "\"\"\"\n" * struct_definition
-    end    
-
-    struct_definition = struct_dependence * struct_definition
 
     return struct_definition
 end
 
 # Main function to generate and write the file
 function generate_julia_types(main_schema_path::String, output_file::String)
-
     println("Starting schema generation from: $(main_schema_path)\n")
 
     empty!(SCHEMA_CACHE)
@@ -249,8 +244,4 @@ function find_all_refs(schema::Dict)
     return refs
 end
 
-
 #end # module SchemaGenerator
-
-
-
