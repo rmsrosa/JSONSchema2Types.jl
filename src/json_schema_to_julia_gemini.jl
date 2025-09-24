@@ -101,11 +101,14 @@ function generate_type_string(schema, base_path::String, parent_struct_name::Str
         end
     end
 
-    if haskey(schema, "oneOf")
-        types = [generate_type_string(s, base_path, parent_struct_name, prop_name) for s in schema["oneOf"]]
+    if haskey(schema, "enum")
+        julia_type = typeof(schema["enum"][1])
+        return string(julia_type)
+    elseif haskey(schema, "oneOf")
+        types = [generate_type_string(s, base_path, parent_struct_name, prop_name * "OneOf" * string(i)) for (i,s) in enumerate(schema["oneOf"])]
         return "Union{" * join(types, ", ") * "}"
     elseif haskey(schema, "anyOf")
-        types = [generate_type_string(s, base_path, parent_struct_name, prop_name) for s in schema["anyOf"]]
+        types = [generate_type_string(s, base_path, parent_struct_name, prop_name * "AnyOf" * string(i)) for (i,s) in enumerate(schema["anyOf"])]
         return "Union{" * join(types, ", ") * "}"
     elseif haskey(schema, "not")
         return "Any # The type of this field is constrained by a 'not' keyword and must be validated at runtime."
@@ -129,38 +132,73 @@ function generate_type_string(schema, base_path::String, parent_struct_name::Str
 end
 
 
-# Recursively generates Julia struct definitions
-function generate_structs(schema, struct_name::String, base_path::String, indent::String="")::String
-    if get(schema, "type", "") != "object"
-        # This function should only be called for object types
-        return ""
-    end
+# Recursively finds all nested object schemas and their suggested names
+function find_all_objects(schema, parent_name::String, base_path::String)
+    objects_to_generate = Dict{String, Any}()
+    anon_counter = 0
+    function traverse(sub_schema, sub_name::String, is_root=false)
+        if isa(sub_schema, Dict) && get(sub_schema, "type", "") == "object" && !is_root
+            if !haskey(objects_to_generate, sub_name)
+                objects_to_generate[sub_name] = sub_schema
+            end
+        end
+        
+        properties = get(sub_schema, "properties", Dict())
+        if haskey(sub_schema, "allOf")
+            for s in sub_schema["allOf"]
+                merge!(properties, get(s, "properties", Dict()))
+            end
+        end
 
+        for (prop_name, prop_schema) in properties
+            prop_type = get(prop_schema, "type", "")
+            if prop_type == "object"
+                nested_struct_name = pascal_case(sub_name * pascal_case(prop_name))
+                traverse(prop_schema, nested_struct_name)
+            elseif prop_type == "array"
+                items_schema = get(prop_schema, "items", Dict())
+                if get(items_schema, "type", "") == "object"
+                    nested_struct_name = pascal_case(sub_name * pascal_case(prop_name)) |> x -> endswith(x, "s") ? x[1:end-1] : x
+                    traverse(items_schema, nested_struct_name)
+                end
+            elseif haskey(prop_schema, "oneOf")
+                for (i,s) in enumerate(prop_schema["oneOf"])
+                    if get(s, "type", "") == "object"
+                        obj_name = get(s, "title", pascal_case(prop_name * "OneOf" * string(i)))
+                        traverse(s, obj_name)
+                    end
+                end
+            elseif haskey(prop_schema, "anyOf")
+                for (i,s) in enumerate(prop_schema["anyOf"])
+                    if get(s, "type", "") == "object"
+                        obj_name = get(s, "title", pascal_case(prop_name * "AnyOf" * string(i)))
+                        traverse(s, obj_name)
+                    end
+                end
+            end
+        end
+    end
+    
+    traverse(schema, parent_name, true)
+    
+    return objects_to_generate
+end
+
+
+# Generates a Julia struct definition from a schema
+function generate_structs(schema, struct_name::String, base_path::String, indent::String="")::String
     properties = get(schema, "properties", Dict())
+    
+    # Merge properties from allOf
     if haskey(schema, "allOf")
         for sub_schema in schema["allOf"]
             merge!(properties, get(sub_schema, "properties", Dict()))
         end
     end
+    
     required_fields = get(schema, "required", [])
     
-    generated_nested_structs = ""
-    for (prop_name, prop_schema) in properties
-        prop_type = get(prop_schema, "type", "")
-        if prop_type == "object"
-            nested_struct_name = pascal_case(struct_name * pascal_case(prop_name))
-            generated_nested_structs *= generate_structs(prop_schema, nested_struct_name, base_path, indent) * "\n"
-        elseif prop_type == "array"
-            items_schema = get(prop_schema, "items", Dict())
-            if get(items_schema, "type", "") == "object"
-                nested_struct_name = pascal_case(struct_name * pascal_case(prop_name)) |> x -> endswith(x, "s") ? x[1:end-1] : x
-                generated_nested_structs *= generate_structs(items_schema, nested_struct_name, base_path, indent) * "\n"
-            end
-        end
-    end
-    
-    struct_definition = generated_nested_structs
-    struct_definition *= create_docstring(schema, properties, struct_name, indent)
+    struct_definition = create_docstring(schema, properties, struct_name, indent)
     struct_definition *= "$(indent)struct $(struct_name)\n"
     
     for (prop_name, prop_schema) in properties
@@ -170,6 +208,14 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
             julia_type = "Union{Nothing, $(julia_type)}"
         end
 
+        # Add comment for external dependencies
+        ref = get(prop_schema, "\$ref", nothing)
+        if ref !== nothing && !isempty(URI(ref).path)
+            ext_path = basename(URI(ref).path)
+            ext_type = pascal_case(split(URI(ref).fragment, "/")[end])
+            struct_definition *= "$(indent)    # Depends on $(ext_type) from $(ext_path)\n"
+        end
+        
         struct_definition *= "$(indent)    $(prop_name)::$(julia_type)\n"
     end
     
@@ -195,6 +241,20 @@ function generate_julia_types(main_schema_path::String, output_file::String)
     
     generated_code = ""
 
+    root_struct_name = get(schema, "title", "Schema") |>
+                       x -> replace(x, r"\s" => "") |>
+                       x -> replace(x, r"[^A-Za-z0-9_]" => "")
+    
+    root_struct_name = isempty(root_struct_name) ? "Schema" : root_struct_name
+    
+    all_objects = find_all_objects(schema, root_struct_name, main_schema_path)
+    
+    # Generate structs for all internal and nested objects first
+    for (obj_name, obj_schema) in all_objects
+        generated_code *= generate_structs(obj_schema, obj_name, main_schema_path) * "\n"
+    end
+    
+    # Generate structs for all root definitions
     for (path, s) in SCHEMA_CACHE
         definitions = get(s, "\$defs", get(s, "definitions", Dict()))
         for (def_name, def_schema) in definitions
@@ -203,11 +263,7 @@ function generate_julia_types(main_schema_path::String, output_file::String)
         end
     end
 
-    root_struct_name = get(schema, "title", "Schema") |>
-                       x -> replace(x, r"\s" => "") |>
-                       x -> replace(x, r"[^A-Za-z0-9_]" => "")
-    
-    root_struct_name = isempty(root_struct_name) ? "Schema" : root_struct_name
+    # Finally, generate the root struct
     generated_code *= generate_structs(schema, root_struct_name, main_schema_path)
     
     open(output_file, "w") do f
