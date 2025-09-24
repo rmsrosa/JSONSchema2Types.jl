@@ -126,7 +126,6 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
                 def_name = split(uri.fragment, "/")[end]
                 julia_type = pascal_case(def_name)
                 load_schema(ext_path)
-                definitions = get(SCHEMA_CACHE[ext_path], "\$defs", get(SCHEMA_CACHE[ext_path], "definitions", Dict()))
                 struct_dependence = "# $(prop_name) depends on struct $(julia_type) from $(basename(ext_path))\n" * struct_dependence
             end
         elseif haskey(TYPE_MAP, prop_type)
