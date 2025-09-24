@@ -102,6 +102,7 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
     schema_docstring = get(schema, "description", "")
     include_docstring = !isempty(schema_docstring)
 
+    struct_dependence = ""
     struct_definition = "$(indent)struct $(struct_name)\n"
     
     properties = get(schema, "properties", Dict())
@@ -111,12 +112,9 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
     generated_docstring_fields = ""
 
     for (prop_name, prop_schema) in properties
-        @info prop_name
-
         julia_type = ""
         prop_type = get(prop_schema, "type", "")
         ref = get(prop_schema, "\$ref", nothing)
-        @info prop_type
 
         if ref !== nothing
             uri = URI(ref)
@@ -129,7 +127,7 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
                 julia_type = pascal_case(def_name)
                 load_schema(ext_path)
                 definitions = get(SCHEMA_CACHE[ext_path], "\$defs", get(SCHEMA_CACHE[ext_path], "definitions", Dict()))
-                struct_definition = "# Depends on struct $(julia_type) from $(basename(ext_path))\n" * struct_definition
+                struct_dependence = "# $(prop_name) depends on struct $(julia_type) from $(basename(ext_path))\n" * struct_dependence
             end
         elseif haskey(TYPE_MAP, prop_type)
             julia_type = TYPE_MAP[prop_type]
@@ -164,7 +162,6 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
         end
 
         field_docstring = get(prop_schema, "description", "")
-        @info field_docstring
         if !isempty(field_docstring)
             include_docstring_fields = true
             generated_docstring_fields *= "$(indent)   `$(prop_name)`:  $(field_docstring)\n"
@@ -182,8 +179,10 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
     end
 
     if include_docstring
-        struct_definition = "\n\"\"\"\n$(indent)    struct $struct_name\n\n$(schema_docstring)\n" * struct_docstring * "\"\"\"\n" * struct_definition
+        struct_definition = "\"\"\"\n$(indent)    struct $struct_name\n\n$(schema_docstring)\n" * struct_docstring * "\"\"\"\n" * struct_definition
     end    
+
+    struct_definition = struct_dependence * struct_definition
 
     return struct_definition
 end
