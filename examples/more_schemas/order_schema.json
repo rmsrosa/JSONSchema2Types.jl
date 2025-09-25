@@ -10,7 +10,12 @@
         "type": "object",
         "properties": {
           "productId": { "type": "string" },
-          "quantity": { "type": "integer" }
+          "quantity": {
+              "type": "integer",
+              "exclusiveMaximum": 20,
+              "multipleOf": 2,
+              "minimum": 4
+            }
         },
         "required": ["productId", "quantity"]
       }

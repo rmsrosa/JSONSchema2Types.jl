@@ -195,10 +195,16 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
     struct_definition = create_docstring(schema, properties, struct_name, indent)
     struct_definition *= "$(indent)struct $(struct_name)\n"
     
+    # Collect field definitions and names for the inner constructor
+    field_defs = String[]
+    field_names = String[]
+    field_types = String[]
+    
     for (prop_name, prop_schema) in properties
         julia_type = generate_type_string(prop_schema, base_path, struct_name, prop_name)
+        is_required = prop_name in required_fields
 
-        if !(prop_name in required_fields)
+        if !is_required
             julia_type = "Union{Nothing, $(julia_type)}"
         end
 
@@ -207,10 +213,67 @@ function generate_structs(schema, struct_name::String, base_path::String, indent
         if ref !== nothing && !isempty(URI(ref).path)
             ext_path = basename(URI(ref).path)
             ext_type = pascal_case(split(URI(ref).fragment, "/")[end])
-            struct_definition *= "$(indent)    # Depends on $(ext_type) from $(ext_path)\n"
+            push!(field_defs, "$(indent)    # Depends on $(ext_type) from $(ext_path)\n")
         end
         
-        struct_definition *= "$(indent)    $(prop_name)::$(julia_type)\n"
+        push!(field_defs, "$(indent)    $(prop_name)::$(julia_type)\n")
+        push!(field_names, prop_name)
+        push!(field_types, julia_type)
+    end
+    
+    # Add the field definitions to the struct
+    struct_definition *= join(field_defs)
+    
+    # Generate inner constructor with validation checks
+    validation_checks = ""
+    for (prop_name, prop_schema) in properties
+        is_required = prop_name in required_fields
+        
+        has_numeric_constraint = any(k -> haskey(prop_schema, k), ["minimum", "exclusiveMinimum", "maximum", "exclusiveMaximum", "multipleOf"])
+
+        if has_numeric_constraint
+            # Add a check to only validate if the value is not nothing
+            if !is_required
+                validation_checks *= "$(indent)    if $(prop_name) !== nothing\n"
+                indent_level = "$(indent)        "
+            else
+                indent_level = "$(indent)    "
+            end
+
+            if haskey(prop_schema, "minimum")
+                min_val = prop_schema["minimum"]
+                validation_checks *= "$(indent_level)    @assert $(prop_name) >= $(min_val) \"'$(prop_name)' must be at least $(min_val)\"\n"
+            end
+            if haskey(prop_schema, "exclusiveMinimum")
+                excl_min_val = prop_schema["exclusiveMinimum"]
+                validation_checks *= "$(indent_level)    @assert $(prop_name) > $(excl_min_val) \"'$(prop_name)' must be greater than $(excl_min_val)\"\n"
+            end
+            if haskey(prop_schema, "maximum")
+                max_val = prop_schema["maximum"]
+                validation_checks *= "$(indent_level)    @assert $(prop_name) <= $(max_val) \"'$(prop_name)' must be at most $(max_val)\"\n"
+            end
+            if haskey(prop_schema, "exclusiveMaximum")
+                excl_max_val = prop_schema["exclusiveMaximum"]
+                validation_checks *= "$(indent_level)    @assert $(prop_name) < $(excl_max_val) \"'$(prop_name)' must be less than $(excl_max_val)\"\n"
+            end
+            if haskey(prop_schema, "multipleOf")
+                mult_of_val = prop_schema["multipleOf"]
+                validation_checks *= "$(indent_level)    @assert $(prop_name) % $(mult_of_val) == 0 \"'$(prop_name)' must be a multiple of $(mult_of_val)\"\n"
+            end
+            
+            if !is_required
+                validation_checks *= "$(indent)    end\n"
+            end
+        end
+    end
+
+    # Only create inner constructor if there's something to validate
+    if !isempty(validation_checks)
+        inner_constructor_args = join([ "$(name)::$(type)" for (name, type) in zip(field_names, field_types)], ", ")
+        struct_definition *= "\n$(indent)    function $(struct_name)($(inner_constructor_args))\n"
+        struct_definition *= validation_checks
+        struct_definition *= "$(indent)        new($(join(field_names, ", ")))\n"
+        struct_definition *= "$(indent)    end\n"
     end
     
     struct_definition *= "$(indent)end\n"
