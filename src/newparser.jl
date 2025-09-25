@@ -1,7 +1,3 @@
-using JSON
-using URIs
-using Dates
-
 # Mapping of JSON Schema types to Julia types
 const TYPE_MAP = Dict(
     "string" => "String",

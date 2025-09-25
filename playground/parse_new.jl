@@ -1,3 +1,7 @@
+using JSON
+using URIs
+using Dates
+
 include("../src/newparser.jl")
 
 generate_julia_types("examples/more_schemas/order_schema.json", "examples/more_parsed_schemas/schema_types.jl")
