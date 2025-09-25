@@ -1,14 +1,33 @@
 {
   "$id": "https://example.com/customer.schema.json",
+  "description": "A customer who has placed an order.",
   "$defs": {
     "Customer": {
       "type": "object",
       "properties": {
-        "id": { "type": "integer" },
-        "name": { "type": "string" },
-        "email": { "type": "string", "format": "email" }
+        "id": {
+          "type": "integer",
+          "multipleOf": 7,
+          "description": "The unique identifier for the customer."
+        },
+        "name": {
+          "type": "string",
+          "description": "The customer's full name.",
+          "minLength": 2,
+          "maxLength": 50
+        },
+        "email": {
+          "type": "string",
+          "description": "The customer's email address.",
+          "minLength": 5,
+          "maxLength": 100,
+          "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+        }
       },
-      "required": ["id", "name"]
+      "required": [
+        "id",
+        "name"
+      ]
     }
   }
 }

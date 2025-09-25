@@ -182,8 +182,9 @@ end
 function generate_inner_constructor(schema, struct_name::String, base_path::String, indent::String="")::String
     properties = get(schema, "properties", Dict())
     
-    # Check for any numeric validation constraints
-    has_constraints = any(p -> haskey(p, "minimum") || haskey(p, "maximum") || haskey(p, "exclusiveMinimum") || haskey(p, "exclusiveMaximum") || haskey(p, "multipleOf"), values(properties))
+    # Check for any numeric or string validation constraints
+    has_constraints = any(p -> (haskey(p, "minimum") || haskey(p, "exclusiveMinimum") || haskey(p, "multipleOf") ||
+                                haskey(p, "maxLength") || haskey(p, "minLength") || haskey(p, "pattern")), values(properties))
     
     if !has_constraints
         return ""
@@ -201,6 +202,8 @@ function generate_inner_constructor(schema, struct_name::String, base_path::Stri
     
     for (prop_name, prop_schema) in properties
         prop_type = get(prop_schema, "type", "")
+        
+        # Numeric constraints
         if prop_type == "integer" || prop_type == "number"
             if haskey(prop_schema, "minimum")
                 min_val = prop_schema["minimum"]
@@ -221,6 +224,23 @@ function generate_inner_constructor(schema, struct_name::String, base_path::Stri
             if haskey(prop_schema, "multipleOf")
                 multiple_of = prop_schema["multipleOf"]
                 constructor *= "$(indent)        @assert $(prop_name) % $(multiple_of) == 0 \"`$(prop_name)` must be a multiple of $(multiple_of)\"\n"
+            end
+        end
+
+        # String constraints
+        if prop_type == "string"
+            if haskey(prop_schema, "minLength")
+                min_len = prop_schema["minLength"]
+                constructor *= "$(indent)        @assert length($(prop_name)) >= $(min_len) \"`$(prop_name)` must have a minimum length of $(min_len)\"\n"
+            end
+            if haskey(prop_schema, "maxLength")
+                max_len = prop_schema["maxLength"]
+                constructor *= "$(indent)        @assert length($(prop_name)) <= $(max_len) \"`$(prop_name)` must have a maximum length of $(max_len)\"\n"
+            end
+            if haskey(prop_schema, "pattern")
+                pattern_str = prop_schema["pattern"]
+                # Escape the `$` for Julia's string interpolation
+                constructor *= "$(indent)        @assert occursin(Regex(pattern_str), $(prop_name)) \"`$(prop_name)` must match the pattern))\"\n"
             end
         end
     end
