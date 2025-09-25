@@ -102,7 +102,9 @@ function generate_type_string(schema, base_path::String, parent_struct_name::Str
     end
 
     if haskey(schema, "enum")
-        julia_type = typeof(schema["enum"][1])
+        enum_values = schema["enum"] 
+        enum_types = unique(typeof.(enum_values))
+        julia_type = length(enum_types) == 1 ? enum_types[1] : Union{enum_types...}
         return string(julia_type)
     elseif haskey(schema, "oneOf")
         types = [generate_type_string(s, base_path, parent_struct_name, prop_name * "OneOf" * string(i)) for (i,s) in enumerate(schema["oneOf"])]
@@ -263,8 +265,9 @@ function generate_julia_types(main_schema_path::String, output_file::String)
                 generated_code *= generate_structs(def_schema, def_struct_name, path) * "\n"
             elseif haskey(def_schema, "enum")
                 # Handle enum types by creating a struct with an inner constructor
-                enum_values = repr(def_schema["enum"])
-                julia_type = typeof(def_schema["enum"][1])
+                enum_values = def_schema["enum"]
+                enum_types = unique(typeof.(enum_values))
+                julia_type = length(enum_types) == 1 ? enum_types[1] : Union{enum_types...}
                 
                 generated_code *= "const $(def_struct_name)_VALUES = $(enum_values)::Vector{$(string(julia_type))}\n"
                 
