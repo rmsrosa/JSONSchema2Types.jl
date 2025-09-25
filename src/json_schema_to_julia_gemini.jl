@@ -259,7 +259,21 @@ function generate_julia_types(main_schema_path::String, output_file::String)
         definitions = get(s, "\$defs", get(s, "definitions", Dict()))
         for (def_name, def_schema) in definitions
             def_struct_name = pascal_case(def_name)
-            generated_code *= generate_structs(def_schema, def_struct_name, path) * "\n"
+            if get(def_schema, "type", "") == "object"
+                generated_code *= generate_structs(def_schema, def_struct_name, path) * "\n"
+            elseif haskey(def_schema, "enum")
+                # Handle enum types by creating a struct with an inner constructor
+                enum_values = repr(def_schema["enum"])
+                julia_type = typeof(def_schema["enum"][1])
+                generated_code *= "const $(def_struct_name)_VALUES = $(enum_values)::Vector{$(string(julia_type))}\n"
+                generated_code *= "struct $(def_struct_name)\n"
+                generated_code *= "    value::$(string(julia_type))\n"
+                generated_code *= "    function $(def_struct_name)(value::$(string(julia_type)))\n"
+                generated_code *= "        @assert value in $(def_struct_name)_VALUES \"Invalid value for $(def_struct_name): '\$value'\"\n"
+                generated_code *= "        new(value)\n"
+                generated_code *= "    end\n"
+                generated_code *= "end\n\n"
+            end
         end
     end
 
