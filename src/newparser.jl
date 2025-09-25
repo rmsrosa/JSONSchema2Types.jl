@@ -239,8 +239,7 @@ function generate_inner_constructor(schema, struct_name::String, base_path::Stri
             end
             if haskey(prop_schema, "pattern")
                 pattern_str = prop_schema["pattern"]
-                # Escape the `$` for Julia's string interpolation
-                constructor *= "$(indent)        @assert occursin(Regex(pattern_str), $(prop_name)) \"`$(prop_name)` must match the pattern))\"\n"
+                constructor *= "$(indent)        @assert occursin(Regex(pattern_str), $(prop_name)) \"`$(prop_name)` must match the pattern.\"\n"
             end
         end
     end
