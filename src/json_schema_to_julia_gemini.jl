@@ -265,7 +265,12 @@ function generate_julia_types(main_schema_path::String, output_file::String)
                 # Handle enum types by creating a struct with an inner constructor
                 enum_values = repr(def_schema["enum"])
                 julia_type = typeof(def_schema["enum"][1])
+                
                 generated_code *= "const $(def_struct_name)_VALUES = $(enum_values)::Vector{$(string(julia_type))}\n"
+                
+                docstring = create_docstring(def_schema, Dict(), def_struct_name)
+                generated_code *= docstring
+                
                 generated_code *= "struct $(def_struct_name)\n"
                 generated_code *= "    value::$(string(julia_type))\n"
                 generated_code *= "    function $(def_struct_name)(value::$(string(julia_type)))\n"
