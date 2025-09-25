@@ -2,14 +2,6 @@ using JSON
 using URIs
 using Dates
 
-"""
-A Julia module to generate Julia structs from a JSON Schema.
-This version handles 'definitions' and '\$ref' keywords, including external file references,
-and generates docstrings from schema descriptions. It also adds support for
-'oneOf', 'anyOf', 'allOf', and 'not' keywords.
-"""
-#module SchemaGenerator
-
 # Mapping of JSON Schema types to Julia types
 const TYPE_MAP = Dict(
     "string" => "String",
@@ -102,7 +94,7 @@ function generate_type_string(schema, base_path::String, parent_struct_name::Str
     end
 
     if haskey(schema, "enum")
-        enum_values = schema["enum"] 
+        enum_values = schema["enum"]
         enum_types = unique(typeof.(enum_values))
         julia_type = length(enum_types) == 1 ? enum_types[1] : Union{enum_types...}
         return string(julia_type)
@@ -123,9 +115,12 @@ function generate_type_string(schema, base_path::String, parent_struct_name::Str
         return pascal_case(parent_struct_name * pascal_case(prop_name))
     elseif prop_type == "array"
         items_schema = get(schema, "items", Dict())
-        items_type_str = generate_type_string(items_schema, base_path, parent_struct_name, prop_name)
         if get(items_schema, "type", "") == "object"
-            items_type_str = pascal_case(parent_struct_name * pascal_case(prop_name)) |> x -> endswith(x, "s") ? x[1:end-1] : x
+            # Prefer schema title if available, otherwise derive from property name
+            item_name = get(items_schema, "title", pascal_case(parent_struct_name * pascal_case(prop_name)))
+            items_type_str = pascal_case(item_name)
+        else
+            items_type_str = generate_type_string(items_schema, base_path, parent_struct_name, prop_name)
         end
         return "Vector{$(items_type_str)}"
     else
@@ -160,7 +155,8 @@ function find_all_objects(schema, parent_name::String, base_path::String)
             elseif prop_type == "array"
                 items_schema = get(prop_schema, "items", Dict())
                 if get(items_schema, "type", "") == "object"
-                    nested_struct_name = pascal_case(sub_name * pascal_case(prop_name)) |> x -> endswith(x, "s") ? x[1:end-1] : x
+                    item_name = get(items_schema, "title", pascal_case(sub_name * pascal_case(prop_name)))
+                    nested_struct_name = pascal_case(item_name)
                     traverse(items_schema, nested_struct_name)
                 end
             elseif haskey(prop_schema, "oneOf")
@@ -264,12 +260,12 @@ function generate_julia_types(main_schema_path::String, output_file::String)
             if get(def_schema, "type", "") == "object"
                 generated_code *= generate_structs(def_schema, def_struct_name, path) * "\n"
             elseif haskey(def_schema, "enum")
-                # Handle enum types by creating a struct with an inner constructor
+                # Handle enum types with multiple possible Julia element types
                 enum_values = def_schema["enum"]
                 enum_types = unique(typeof.(enum_values))
                 julia_type = length(enum_types) == 1 ? enum_types[1] : Union{enum_types...}
                 
-                generated_code *= "const $(def_struct_name)_VALUES = $(enum_values)::Vector{$(string(julia_type))}\n"
+                generated_code *= "const $(def_struct_name)_VALUES = $(repr(enum_values))::Vector{$(string(julia_type))}\n"
                 
                 docstring = create_docstring(def_schema, Dict(), def_struct_name)
                 generated_code *= docstring
@@ -317,6 +313,3 @@ function find_all_refs(schema::Dict)
     end
     return refs
 end
-
-#end # module SchemaGenerator
-

@@ -43,6 +43,10 @@
         }
       },
       "required": ["priority", "payment_status"]
+    },
+    "mixed_enum_test": {
+      "description": "An intentionally mixed-type enum to test union type generation.",
+      "enum": ["a", 1, true]
     }
   },
   "$defs": {
@@ -58,6 +62,7 @@
   },
   "required": [
     "product",
-    "order_status"
+    "order_status",
+    "mixed_enum_test"
   ]
 }
