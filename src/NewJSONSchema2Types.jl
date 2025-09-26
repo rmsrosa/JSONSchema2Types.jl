@@ -4,7 +4,7 @@ using JSON
 using URIs
 using Dates
 
-export generate_type_module
+export generate_julia_types
 
 include("newparser.jl")
 
