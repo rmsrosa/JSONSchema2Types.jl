@@ -45,6 +45,10 @@ Base.showerror(io::IO, e::SchemaValidationError) = print(io, "SchemaValidationEr
 
 _jsfail(msg) = throw(SchemaValidationError(msg))
 
+# name of a type for messages, without the module, e.g. `VolumeType` or `Union{A, B}`
+_jsname(T) = T isa Union ? "Union{" * join(map(_jsname, Base.uniontypes(T)), ", ") * "}" :
+             T isa DataType && isempty(T.parameters) ? string(nameof(T)) : string(T)
+
 # Metadata of each generated struct, filled in right after each struct definition.
 const _SPECS = Dict{DataType, Any}()
 
@@ -79,7 +83,11 @@ function _jsfrom(::Type{Vector{T}}, x) where {T}
     return T[_jsfrom(T, el) for el in x]
 end
 
+# named tuples, such as `(unit = "l", value = 20)`, are accepted as objects
+_jsobject(x) = x isa NamedTuple ? Dict{String, Any}(String(k) => v for (k, v) in pairs(x)) : x
+
 function _jsfrom(::Type{Dict{String, T}}, x) where {T}
+    x = _jsobject(x)
     x isa AbstractDict || _jsfail("expected an object, got $(repr(x))")
     return Dict{String, T}(String(k) => _jsfrom(T, v) for (k, v) in x)
 end
@@ -93,13 +101,14 @@ end
 function _jsfrom(::Type{T}, x) where {T <: AbstractSchemaObject}
     T isa Union && return _jsfromunion(T, x)
     x isa T && return x
-    x isa AbstractDict || _jsfail("expected an object for `$T`, got $(repr(x))")
+    x = _jsobject(x)
+    x isa AbstractDict || _jsfail("expected an object for `$(_jsname(T))`, got $(repr(x))")
     spec = _specs(T)
     known = Set(f.key for f in spec.fields)
     extra = Dict{String, Any}()
     for k in keys(x)
         String(k) in known && continue
-        spec.extra === nothing && _jsfail("unknown property `$k` for `$T`")
+        spec.extra === nothing && _jsfail("unknown property `$k` for `$(_jsname(T))`")
         extra[String(k)] = x[k]
     end
     kwargs = Pair{Symbol, Any}[]
@@ -107,7 +116,7 @@ function _jsfrom(::Type{T}, x) where {T <: AbstractSchemaObject}
         if haskey(x, f.key)
             push!(kwargs, f.name => x[f.key])
         elseif f.required
-            _jsfail("missing required property `$(f.key)` for `$T`")
+            _jsfail("missing required property `$(f.key)` for `$(_jsname(T))`")
         end
     end
     spec.extra === nothing || push!(kwargs, spec.extra => extra)
@@ -116,7 +125,7 @@ end
 
 # Unions come from `oneOf`/`anyOf`, from lists of types and from optional fields.
 function _jsfrom(::Type{T}, x) where {T}
-    T isa Union || _jsfail("cannot convert $(repr(x)) to `$T`")
+    T isa Union || _jsfail("cannot convert $(repr(x)) to `$(_jsname(T))`")
     return _jsfromunion(T, x)
 end
 
@@ -134,7 +143,7 @@ function _jsfromunion(::Type{T}, x) where {T}
             push!(msgs, "  `$S`: $(err.msg)")
         end
     end
-    _jsfail("value does not match any of the options of `$T`:\n" * join(msgs, "\n"))
+    _jsfail("value does not match any of the options of `$(_jsname(T))`:\n" * join(msgs, "\n"))
 end
 
 # --- Validation of constraints ---
@@ -183,15 +192,15 @@ function _jscheck(::Type{T}, values::Tuple, extra) where {T <: AbstractSchemaObj
     nprops = extra === nothing ? 0 : length(extra)
     for (f, v) in zip(spec.fields, values)
         if v === nothing && f.required && !f.nullable
-            _jsfail("required property `$(f.key)` of `$T` cannot be `nothing`")
+            _jsfail("required property `$(f.key)` of `$(_jsname(T))` cannot be `nothing`")
         end
         (v !== nothing || (f.required && f.nullable)) && (nprops += 1)
-        _jsvalidate(v, f.constraints, "`$(f.key)` in `$T`")
+        _jsvalidate(v, f.constraints, "`$(f.key)` in `$(_jsname(T))`")
     end
     spec.minProperties !== nothing && nprops < spec.minProperties &&
-        _jsfail("`$T` must have at least $(spec.minProperties) properties set, got $nprops")
+        _jsfail("`$(_jsname(T))` must have at least $(spec.minProperties) properties set, got $nprops")
     spec.maxProperties !== nothing && nprops > spec.maxProperties &&
-        _jsfail("`$T` must have at most $(spec.maxProperties) properties set, got $nprops")
+        _jsfail("`$(_jsname(T))` must have at most $(spec.maxProperties) properties set, got $nprops")
     if spec.schema !== nothing
         # keywords that apply to the object as a whole (`not`, `if`, `patternProperties`...)
         obj = JSON.Object{String, Any}()
@@ -201,7 +210,7 @@ function _jscheck(::Type{T}, values::Tuple, extra) where {T <: AbstractSchemaObj
         end
         extra === nothing || foreach(((k, v),) -> (obj[k] = _jsto(v)), extra)
         err = _jsvalid(spec.schema, obj)
-        err === nothing || _jsfail("`$T` is invalid: $err")
+        err === nothing || _jsfail("`$(_jsname(T))` is invalid: $err")
     end
     return nothing
 end
@@ -210,7 +219,7 @@ end
 function _jscheckenum(::Type{T}, value) where {T <: AbstractSchemaEnum}
     vals = _enumvalues(T)
     any(v -> isequal(v, value), vals) ||
-        _jsfail("invalid value $(repr(value)) for `$T`; allowed values are $(join(repr.(vals), ", "))")
+        _jsfail("invalid value $(repr(value)) for `$(_jsname(T))`; allowed values are $(join(repr.(vals), ", "))")
     return value
 end
 
@@ -451,7 +460,8 @@ end
 Base.:(==)(a::T, b::T) where {T <: AbstractSchemaEnum} = isequal(a.value, b.value)
 Base.hash(a::AbstractSchemaEnum, h::UInt) = hash(a.value, hash(typeof(a), h))
 Base.show(io::IO, x::AbstractSchemaEnum) = print(io, nameof(typeof(x)), "(", repr(x.value), ")")
-Base.string(x::AbstractSchemaEnum) = string(x.value)
+# `print` and `string` give the plain value, e.g. `"$(VolumeUnitType("l"))" == "l"`
+Base.print(io::IO, x::AbstractSchemaEnum) = print(io, x.value)
 
 # --- Public API ---
 

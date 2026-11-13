@@ -52,6 +52,7 @@ end
     @test x.end_ == 3
     @test x.nickname === nothing
     @test x.color == M.Color("red")
+    @test string(x.color) == "red" && "$(x.color)" == "red" && repr(x.color) == "Color(\"red\")"
     @test x.mixed.value == 2.5
     @test x.shape isa M.Square
     @test x.labeled.radius == 1.0 && x.labeled.label == "c"
@@ -65,6 +66,9 @@ end
 
     # keyword constructor converts plain values
     @test T(id = "a-1", end_ = 1, nickname = "N", color = "blue").color isa M.Color
+    # named tuples are accepted as objects
+    @test T(id = "a-1", end_ = 1, nickname = nothing, labeled = (radius = 2, label = "c")).labeled.radius == 2.0
+    @test T(id = "a-1", end_ = 1, nickname = nothing, metadata = (x = 1,)).metadata == Dict("x" => 1)
 
     E = M.SchemaValidationError
     base = Dict{String, Any}("id" => "abc-1", "end" => 3, "nickname" => nothing)

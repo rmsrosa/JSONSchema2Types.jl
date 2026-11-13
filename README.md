@@ -1,5 +1,8 @@
 # JSONSchema2Types
 
+[![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://rmsrosa.github.io/JSONSchema2Types.jl/dev/)
+[![CI](https://github.com/rmsrosa/JSONSchema2Types.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/rmsrosa/JSONSchema2Types.jl/actions/workflows/CI.yml)
+
 Generate Julia types from a [JSON Schema](https://json-schema.org), together with functions
 to read and write JSON documents that conform to the schema.
 
@@ -193,6 +196,19 @@ schemas in `examples/`:
 * `beerjson-1.0.1/`: the [BeerJSON](https://github.com/beerjson/beerjson) 1.0.1 schema
   (MIT License). The generated module, split into one file per schema file, is in
   `examples/generated/BeerJSONTypes/`.
+
+## Documentation
+
+The [documentation](https://rmsrosa.github.io/JSONSchema2Types.jl/dev/) has a guide, the
+examples step by step, and a page reading and displaying BeerJSON recipes, styles, water
+profiles and hop varieties with the generated types. To build it locally:
+
+```shell
+julia --project=docs -e 'using Pkg; Pkg.develop(path = "."); Pkg.instantiate()'
+julia --project=docs docs/make.jl
+```
+
+The pages are written to `docs/build/`.
 
 ## Tests
 
