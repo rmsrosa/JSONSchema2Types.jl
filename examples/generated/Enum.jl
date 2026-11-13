@@ -5,9 +5,9 @@ module EnumExample
 
 using JSON
 
-export fromjson, tojson, readjson, writejson, fromdict, todict
+export fromjson, tojson, readjson, writejson, fromdict, todict, check_formats!
 export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError
-export ComplexEnumExampleProductShippingStatus, ComplexEnumExampleOrderStatusPriority, PaymentStatus, ComplexEnumExampleMixedEnumTest, ComplexEnumExampleProduct, ComplexEnumExampleOrderStatus
+export ComplexEnumExampleProductShippingStatusEnum, ComplexEnumExampleOrderStatusPriorityEnum, PaymentStatus, ComplexEnumExampleMixedEnumTestEnum, ComplexEnumExampleProduct, ComplexEnumExampleOrderStatus
 export ComplexEnumExample
 export RootType
 
@@ -145,6 +145,10 @@ _jslength(x::AbstractString) = length(x)
 function _jsvalidate(x, c, where_::String)
     c === nothing && return nothing
     x === nothing && return nothing
+    if haskey(c, :schema)
+        err = _jsvalid(c.schema, _jsto(x))
+        err === nothing || _jsfail("$where_ is invalid: $err")
+    end
     if x isa Real && !(x isa Bool)
         haskey(c, :minimum) && x < c.minimum && _jsfail("$where_ must be ≥ $(c.minimum), got $x")
         haskey(c, :maximum) && x > c.maximum && _jsfail("$where_ must be ≤ $(c.maximum), got $x")
@@ -189,6 +193,17 @@ function _jscheck(::Type{T}, values::Tuple, extra) where {T <: AbstractSchemaObj
         _jsfail("`$T` must have at least $(spec.minProperties) properties set, got $nprops")
     spec.maxProperties !== nothing && nprops > spec.maxProperties &&
         _jsfail("`$T` must have at most $(spec.maxProperties) properties set, got $nprops")
+    if spec.schema !== nothing
+        # keywords that apply to the object as a whole (`not`, `if`, `patternProperties`...)
+        obj = JSON.Object{String, Any}()
+        for (f, v) in zip(spec.fields, values)
+            v === nothing && !(f.required && f.nullable) && continue
+            obj[f.key] = _jsto(v)
+        end
+        extra === nothing || foreach(((k, v),) -> (obj[k] = _jsto(v)), extra)
+        err = _jsvalid(spec.schema, obj)
+        err === nothing || _jsfail("`$T` is invalid: $err")
+    end
     return nothing
 end
 
@@ -198,6 +213,204 @@ function _jscheckenum(::Type{T}, value) where {T <: AbstractSchemaEnum}
     any(v -> isequal(v, value), vals) ||
         _jsfail("invalid value $(repr(value)) for `$T`; allowed values are $(join(repr.(vals), ", "))")
     return value
+end
+
+# --- Validation of JSON values against (sub)schemas ---
+#
+# The generated types enforce most of a schema by themselves. The remaining keywords (`not`,
+# `if`/`then`/`else`, exclusivity of `oneOf`, `patternProperties`, `format`, ...) are
+# checked by validating the JSON form of a value against the corresponding subschemas,
+# which the generator embeds (with their `$ref`s resolved) in the metadata of the types.
+
+"""
+    check_formats!(flag::Bool)
+
+Enable or disable the validation of the `format` keyword (`date-time`, `date`, `time`,
+`email`, `uri`, `uuid`, `ipv4`, `ipv6`, `hostname`, `regex`). Enabled by default. Unknown
+formats are never checked.
+"""
+check_formats!(flag::Bool) = (_CHECK_FORMATS[] = flag)
+const _CHECK_FORMATS = Ref(true)
+
+const _REGEX_CACHE = Dict{String, Regex}()
+_jsregex(p::AbstractString) = get!(() -> Regex(p), _REGEX_CACHE, p)
+
+const _FORMATS = Dict{String, Function}(
+    "date-time" => s -> occursin(r"^\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}:\d{2}(\.\d+)?([Zz]|[+-]\d{2}:\d{2})$", s),
+    "date" => s -> occursin(r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$", s),
+    "time" => s -> occursin(r"^\d{2}:\d{2}:\d{2}(\.\d+)?([Zz]|[+-]\d{2}:\d{2})?$", s),
+    "email" => s -> occursin(r"^[^@\s]+@[^@\s]+$", s),
+    "uri" => s -> occursin(r"^[A-Za-z][A-Za-z0-9+.-]*:[^\s]*$", s),
+    "uuid" => s -> occursin(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", s),
+    "ipv4" => s -> (m = match(r"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$", s);
+                    m !== nothing && all(c -> parse(Int, c) <= 255, m.captures)),
+    "ipv6" => s -> occursin(r"^[0-9A-Fa-f:.]+$", s) && occursin(':', s) && count("::", s) <= 1,
+    "hostname" => s -> occursin(r"^(?=.{1,253}$)[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$", s),
+    "regex" => s -> (try Regex(s); true catch; false end),
+)
+
+_jsisinteger(x) = x isa Real && !(x isa Bool) && isinteger(x)
+_jsisnumber(x) = x isa Real && !(x isa Bool)
+
+function _jstypeok(t::AbstractString, x)
+    t == "null" && return x === nothing
+    t == "boolean" && return x isa Bool
+    t == "integer" && return _jsisinteger(x)
+    t == "number" && return _jsisnumber(x)
+    t == "string" && return x isa AbstractString
+    t == "array" && return x isa AbstractVector
+    t == "object" && return x isa AbstractDict
+    return true
+end
+
+# equality of JSON values, where `1 == 1.0`
+_jseq(a, b) = _jsisnumber(a) && _jsisnumber(b) ? a == b : isequal(a, b)
+_jseq(a::AbstractVector, b::AbstractVector) = length(a) == length(b) && all(_jseq(x, y) for (x, y) in zip(a, b))
+_jseq(a::AbstractDict, b::AbstractDict) =
+    length(a) == length(b) && all(haskey(b, k) && _jseq(v, b[k]) for (k, v) in a)
+
+"""
+    _jsvalid(schema, x) -> Union{Nothing, String}
+
+Validate the JSON value `x` against `schema`; return `nothing` if it is valid, or a
+message describing the first problem found.
+"""
+function _jsvalid(s, x)
+    s === true && return nothing
+    s === false && return "no value is allowed here"
+    s isa AbstractDict || return nothing
+
+    if haskey(s, "\$type")
+        # a generated type: the value must be convertible to it
+        T = getfield(@__MODULE__, Symbol(s["\$type"]))
+        try
+            _jsfrom(T, x)
+        catch err
+            err isa SchemaValidationError || rethrow()
+            return err.msg
+        end
+    end
+
+    if haskey(s, "type")
+        ts = s["type"] isa AbstractVector ? s["type"] : (s["type"],)
+        any(t -> _jstypeok(t, x), ts) || return "expected $(join(ts, " or ")), got $(repr(x))"
+    end
+    haskey(s, "enum") && !any(v -> _jseq(v, x), s["enum"]) && return "$(repr(x)) is not one of $(s["enum"])"
+    haskey(s, "const") && !_jseq(s["const"], x) && return "expected $(repr(s["const"])), got $(repr(x))"
+
+    if _jsisnumber(x)
+        haskey(s, "minimum") && x < s["minimum"] && return "$x is less than $(s["minimum"])"
+        haskey(s, "maximum") && x > s["maximum"] && return "$x is greater than $(s["maximum"])"
+        haskey(s, "exclusiveMinimum") && s["exclusiveMinimum"] isa Real && !(s["exclusiveMinimum"] isa Bool) &&
+            x <= s["exclusiveMinimum"] && return "$x is not greater than $(s["exclusiveMinimum"])"
+        haskey(s, "exclusiveMaximum") && s["exclusiveMaximum"] isa Real && !(s["exclusiveMaximum"] isa Bool) &&
+            x >= s["exclusiveMaximum"] && return "$x is not less than $(s["exclusiveMaximum"])"
+        if haskey(s, "multipleOf")
+            q = x / s["multipleOf"]
+            isapprox(q, round(q); atol = 1e-9) || return "$x is not a multiple of $(s["multipleOf"])"
+        end
+    elseif x isa AbstractString
+        haskey(s, "minLength") && length(x) < s["minLength"] && return "$(repr(x)) is shorter than $(s["minLength"])"
+        haskey(s, "maxLength") && length(x) > s["maxLength"] && return "$(repr(x)) is longer than $(s["maxLength"])"
+        haskey(s, "pattern") && !occursin(_jsregex(s["pattern"]), x) &&
+            return "$(repr(x)) does not match the pattern $(s["pattern"])"
+        if haskey(s, "format") && _CHECK_FORMATS[]
+            check = get(_FORMATS, s["format"], nothing)
+            check === nothing || check(x) || return "$(repr(x)) is not a valid $(s["format"])"
+        end
+    elseif x isa AbstractVector
+        haskey(s, "minItems") && length(x) < s["minItems"] && return "fewer than $(s["minItems"]) items"
+        haskey(s, "maxItems") && length(x) > s["maxItems"] && return "more than $(s["maxItems"]) items"
+        if get(s, "uniqueItems", false) === true
+            for i in eachindex(x), j in firstindex(x):i-1
+                _jseq(x[i], x[j]) && return "items are not unique"
+            end
+        end
+        prefix = get(s, "prefixItems", get(s, "items", nothing) isa AbstractVector ? s["items"] : Any[])
+        for (i, sub) in enumerate(prefix)
+            i <= length(x) || break
+            err = _jsvalid(sub, x[i])
+            err === nothing || return "item $i: $err"
+        end
+        rest = haskey(s, "prefixItems") ? get(s, "items", nothing) :
+               get(s, "items", nothing) isa AbstractVector ? get(s, "additionalItems", nothing) : get(s, "items", nothing)
+        if rest !== nothing
+            for i in (length(prefix) + 1):length(x)
+                err = _jsvalid(rest, x[i])
+                err === nothing || return "item $i: $err"
+            end
+        end
+        if haskey(s, "contains")
+            n = count(el -> _jsvalid(s["contains"], el) === nothing, x)
+            lo = get(s, "minContains", 1); hi = get(s, "maxContains", typemax(Int))
+            lo <= n <= hi || return "$n items match `contains`; expected between $lo and $hi"
+        end
+    elseif x isa AbstractDict
+        haskey(s, "minProperties") && length(x) < s["minProperties"] && return "fewer than $(s["minProperties"]) properties"
+        haskey(s, "maxProperties") && length(x) > s["maxProperties"] && return "more than $(s["maxProperties"]) properties"
+        for k in get(s, "required", ())
+            haskey(x, k) || return "missing required property `$k`"
+        end
+        props = get(s, "properties", Dict{String, Any}())
+        patterns = get(s, "patternProperties", Dict{String, Any}())
+        extra = get(s, "additionalProperties", get(s, "unevaluatedProperties", nothing))
+        for (k, v) in x
+            matched = false
+            if haskey(props, k)
+                matched = true
+                err = _jsvalid(props[k], v)
+                err === nothing || return "property `$k`: $err"
+            end
+            for (p, sub) in patterns
+                occursin(_jsregex(p), k) || continue
+                matched = true
+                err = _jsvalid(sub, v)
+                err === nothing || return "property `$k`: $err"
+            end
+            if !matched && extra !== nothing
+                err = _jsvalid(extra, v)
+                err === nothing || return extra === false ? "property `$k` is not allowed" : "property `$k`: $err"
+            end
+            if haskey(s, "propertyNames")
+                err = _jsvalid(s["propertyNames"], k)
+                err === nothing || return "property name `$k`: $err"
+            end
+        end
+        for (k, deps) in merge(get(s, "dependentRequired", Dict()), filter(p -> p[2] isa AbstractVector, get(s, "dependencies", Dict())))
+            haskey(x, k) || continue
+            for d in deps
+                haskey(x, d) || return "property `$k` requires property `$d`"
+            end
+        end
+        for (k, sub) in merge(get(s, "dependentSchemas", Dict()), filter(p -> !(p[2] isa AbstractVector), get(s, "dependencies", Dict())))
+            haskey(x, k) || continue
+            err = _jsvalid(sub, x)
+            err === nothing || return "when `$k` is present: $err"
+        end
+    end
+
+    for sub in get(s, "allOf", ())
+        err = _jsvalid(sub, x)
+        err === nothing || return err
+    end
+    if haskey(s, "anyOf")
+        errs = [_jsvalid(sub, x) for sub in s["anyOf"]]
+        any(isnothing, errs) || return "does not match any option of `anyOf` (" * join(errs, "; ") * ")"
+    end
+    if haskey(s, "oneOf")
+        n = count(sub -> _jsvalid(sub, x) === nothing, s["oneOf"])
+        n == 1 || return n == 0 ? "does not match any option of `oneOf`" :
+                         "matches $n options of `oneOf`, but must match exactly one"
+    end
+    haskey(s, "not") && _jsvalid(s["not"], x) === nothing && return "must not match the schema in `not`"
+    if haskey(s, "if")
+        branch = _jsvalid(s["if"], x) === nothing ? get(s, "then", nothing) : get(s, "else", nothing)
+        if branch !== nothing
+            err = _jsvalid(branch, x)
+            err === nothing || return (_jsvalid(s["if"], x) === nothing ? "`then`: " : "`else`: ") * err
+        end
+    end
+    return nothing
 end
 
 # --- Conversion from Julia values into JSON-compatible values ---
@@ -302,30 +515,30 @@ end
 # ---------------------------------------------------------------------------------------
 
 """
-    ComplexEnumExampleProductShippingStatus(value)
+    ComplexEnumExampleProductShippingStatusEnum(value)
 
 The current shipping status of the product.
 
 Allowed values: `"pending"`, `"shipped"`, `"delivered"`.
 """
-struct ComplexEnumExampleProductShippingStatus <: AbstractSchemaEnum
+struct ComplexEnumExampleProductShippingStatusEnum <: AbstractSchemaEnum
     value::String
-    ComplexEnumExampleProductShippingStatus(value) = new(_jscheckenum(ComplexEnumExampleProductShippingStatus, _jsfrom(String, value)))
+    ComplexEnumExampleProductShippingStatusEnum(value) = new(_jscheckenum(ComplexEnumExampleProductShippingStatusEnum, _jsfrom(String, value)))
 end
-_SPECS[ComplexEnumExampleProductShippingStatus] = (values = Any["pending", "shipped", "delivered"],)
+_SPECS[ComplexEnumExampleProductShippingStatusEnum] = (values = Any["pending", "shipped", "delivered"],)
 
 """
-    ComplexEnumExampleOrderStatusPriority(value)
+    ComplexEnumExampleOrderStatusPriorityEnum(value)
 
 The priority level of the order.
 
 Allowed values: `1`, `2`, `3`, `4`, `5`.
 """
-struct ComplexEnumExampleOrderStatusPriority <: AbstractSchemaEnum
+struct ComplexEnumExampleOrderStatusPriorityEnum <: AbstractSchemaEnum
     value::Int64
-    ComplexEnumExampleOrderStatusPriority(value) = new(_jscheckenum(ComplexEnumExampleOrderStatusPriority, _jsfrom(Int64, value)))
+    ComplexEnumExampleOrderStatusPriorityEnum(value) = new(_jscheckenum(ComplexEnumExampleOrderStatusPriorityEnum, _jsfrom(Int64, value)))
 end
-_SPECS[ComplexEnumExampleOrderStatusPriority] = (values = Any[1, 2, 3, 4, 5],)
+_SPECS[ComplexEnumExampleOrderStatusPriorityEnum] = (values = Any[1, 2, 3, 4, 5],)
 
 """
     PaymentStatus(value)
@@ -341,17 +554,17 @@ end
 _SPECS[PaymentStatus] = (values = Any["paid", "pending", "failed"],)
 
 """
-    ComplexEnumExampleMixedEnumTest(value)
+    ComplexEnumExampleMixedEnumTestEnum(value)
 
 An intentionally mixed-type enum to test union type generation.
 
 Allowed values: `"a"`, `1`, `true`.
 """
-struct ComplexEnumExampleMixedEnumTest <: AbstractSchemaEnum
+struct ComplexEnumExampleMixedEnumTestEnum <: AbstractSchemaEnum
     value::Any
-    ComplexEnumExampleMixedEnumTest(value) = new(_jscheckenum(ComplexEnumExampleMixedEnumTest, _jsfrom(Any, value)))
+    ComplexEnumExampleMixedEnumTestEnum(value) = new(_jscheckenum(ComplexEnumExampleMixedEnumTestEnum, _jsfrom(Any, value)))
 end
-_SPECS[ComplexEnumExampleMixedEnumTest] = (values = Any["a", 1, true],)
+_SPECS[ComplexEnumExampleMixedEnumTestEnum] = (values = Any["a", 1, true],)
 
 """
     ComplexEnumExampleProduct(; kwargs...)
@@ -361,16 +574,16 @@ A product with a nested shipping status.
 # Fields
 
 - `id::String` (required)
-- `shipping_status::ComplexEnumExampleProductShippingStatus` (required): The current shipping status of the product.
+- `shipping_status::ComplexEnumExampleProductShippingStatusEnum` (required): The current shipping status of the product.
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
 struct ComplexEnumExampleProduct <: AbstractSchemaObject
     id::String
-    shipping_status::ComplexEnumExampleProductShippingStatus
+    shipping_status::ComplexEnumExampleProductShippingStatusEnum
     _extra::Dict{String, Any}
     function ComplexEnumExampleProduct(; id, shipping_status, _extra = Dict{String, Any}())
         id = _jsfrom(String, id)
-        shipping_status = _jsfrom(ComplexEnumExampleProductShippingStatus, shipping_status)
+        shipping_status = _jsfrom(ComplexEnumExampleProductShippingStatusEnum, shipping_status)
         _extra = _jsfrom(Dict{String, Any}, _extra)
         _jscheck(ComplexEnumExampleProduct, (id, shipping_status), _extra)
         return new(id, shipping_status, _extra)
@@ -385,6 +598,7 @@ _SPECS[ComplexEnumExampleProduct] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -394,16 +608,16 @@ The current status of the entire order.
 
 # Fields
 
-- `priority::ComplexEnumExampleOrderStatusPriority` (required): The priority level of the order.
+- `priority::ComplexEnumExampleOrderStatusPriorityEnum` (required): The priority level of the order.
 - `payment_status::PaymentStatus` (required): The status of a payment, defined as a reusable component.
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
 struct ComplexEnumExampleOrderStatus <: AbstractSchemaObject
-    priority::ComplexEnumExampleOrderStatusPriority
+    priority::ComplexEnumExampleOrderStatusPriorityEnum
     payment_status::PaymentStatus
     _extra::Dict{String, Any}
     function ComplexEnumExampleOrderStatus(; priority, payment_status, _extra = Dict{String, Any}())
-        priority = _jsfrom(ComplexEnumExampleOrderStatusPriority, priority)
+        priority = _jsfrom(ComplexEnumExampleOrderStatusPriorityEnum, priority)
         payment_status = _jsfrom(PaymentStatus, payment_status)
         _extra = _jsfrom(Dict{String, Any}, _extra)
         _jscheck(ComplexEnumExampleOrderStatus, (priority, payment_status), _extra)
@@ -419,6 +633,7 @@ _SPECS[ComplexEnumExampleOrderStatus] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -430,18 +645,18 @@ An example schema to test deeply nested enumerated types within objects and refe
 
 - `product::ComplexEnumExampleProduct` (required): A product with a nested shipping status.
 - `order_status::ComplexEnumExampleOrderStatus` (required): The current status of the entire order.
-- `mixed_enum_test::ComplexEnumExampleMixedEnumTest` (required): An intentionally mixed-type enum to test union type generation.
+- `mixed_enum_test::ComplexEnumExampleMixedEnumTestEnum` (required): An intentionally mixed-type enum to test union type generation.
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
 struct ComplexEnumExample <: AbstractSchemaObject
     product::ComplexEnumExampleProduct
     order_status::ComplexEnumExampleOrderStatus
-    mixed_enum_test::ComplexEnumExampleMixedEnumTest
+    mixed_enum_test::ComplexEnumExampleMixedEnumTestEnum
     _extra::Dict{String, Any}
     function ComplexEnumExample(; product, order_status, mixed_enum_test, _extra = Dict{String, Any}())
         product = _jsfrom(ComplexEnumExampleProduct, product)
         order_status = _jsfrom(ComplexEnumExampleOrderStatus, order_status)
-        mixed_enum_test = _jsfrom(ComplexEnumExampleMixedEnumTest, mixed_enum_test)
+        mixed_enum_test = _jsfrom(ComplexEnumExampleMixedEnumTestEnum, mixed_enum_test)
         _extra = _jsfrom(Dict{String, Any}, _extra)
         _jscheck(ComplexEnumExample, (product, order_status, mixed_enum_test), _extra)
         return new(product, order_status, mixed_enum_test, _extra)
@@ -457,6 +672,7 @@ _SPECS[ComplexEnumExample] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 

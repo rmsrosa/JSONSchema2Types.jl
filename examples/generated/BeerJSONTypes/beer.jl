@@ -4,7 +4,7 @@
 # Types from `beer.json`.
 
 """
-    BeerJSONBeerjson(; kwargs...)
+    BeerJSONContent(; kwargs...)
 
 Root element of all beerjson documents.
 
@@ -25,7 +25,7 @@ Root element of all beerjson documents.
 - `boil::Union{Nothing, Vector{BoilProcedureType}}`: A collection of steps providing process information for common boil procedures.
 - `packaging::Union{Nothing, Vector{PackagingProcedureType}}`: A collection of steps providing process information for common packaging procedures.
 """
-struct BeerJSONBeerjson <: AbstractSchemaObject
+struct BeerJSONContent <: AbstractSchemaObject
     version::Float64
     timing_object::Union{Nothing, TimingType}
     fermentables::Union{Nothing, Vector{FermentableType}}
@@ -40,7 +40,7 @@ struct BeerJSONBeerjson <: AbstractSchemaObject
     equipments::Union{Nothing, Vector{EquipmentType}}
     boil::Union{Nothing, Vector{BoilProcedureType}}
     packaging::Union{Nothing, Vector{PackagingProcedureType}}
-    function BeerJSONBeerjson(; version, timing_object = nothing, fermentables = nothing, miscellaneous_ingredients = nothing, hop_varieties = nothing, cultures = nothing, profiles = nothing, styles = nothing, mashes = nothing, fermentations = nothing, recipes = nothing, equipments = nothing, boil = nothing, packaging = nothing)
+    function BeerJSONContent(; version, timing_object = nothing, fermentables = nothing, miscellaneous_ingredients = nothing, hop_varieties = nothing, cultures = nothing, profiles = nothing, styles = nothing, mashes = nothing, fermentations = nothing, recipes = nothing, equipments = nothing, boil = nothing, packaging = nothing)
         version = _jsfrom(Float64, version)
         timing_object = _jsfrom(Union{Nothing, TimingType}, timing_object)
         fermentables = _jsfrom(Union{Nothing, Vector{FermentableType}}, fermentables)
@@ -55,11 +55,11 @@ struct BeerJSONBeerjson <: AbstractSchemaObject
         equipments = _jsfrom(Union{Nothing, Vector{EquipmentType}}, equipments)
         boil = _jsfrom(Union{Nothing, Vector{BoilProcedureType}}, boil)
         packaging = _jsfrom(Union{Nothing, Vector{PackagingProcedureType}}, packaging)
-        _jscheck(BeerJSONBeerjson, (version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging), nothing)
+        _jscheck(BeerJSONContent, (version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging), nothing)
         return new(version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging)
     end
 end
-_SPECS[BeerJSONBeerjson] = (
+_SPECS[BeerJSONContent] = (
     fields = (
         (name = :version, key = "version", required = true, nullable = false, constraints = nothing),
         (name = :timing_object, key = "timing_object", required = false, nullable = false, constraints = nothing),
@@ -80,6 +80,7 @@ _SPECS[BeerJSONBeerjson] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -87,12 +88,12 @@ _SPECS[BeerJSONBeerjson] = (
 
 # Fields
 
-- `beerjson::BeerJSONBeerjson` (required): Root element of all beerjson documents.
+- `beerjson::BeerJSONContent` (required): Root element of all beerjson documents.
 """
 struct BeerJSON <: AbstractSchemaObject
-    beerjson::BeerJSONBeerjson
+    beerjson::BeerJSONContent
     function BeerJSON(; beerjson)
-        beerjson = _jsfrom(BeerJSONBeerjson, beerjson)
+        beerjson = _jsfrom(BeerJSONContent, beerjson)
         _jscheck(BeerJSON, (beerjson,), nothing)
         return new(beerjson)
     end
@@ -105,5 +106,6 @@ _SPECS[BeerJSON] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

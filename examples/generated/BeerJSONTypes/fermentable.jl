@@ -4,26 +4,26 @@
 # Types from `fermentable.json`.
 
 """
-    FermentableBaseType(value)
+    FermentableTypeEnum(value)
 
 Allowed values: `"dry extract"`, `"extract"`, `"grain"`, `"sugar"`, `"fruit"`, `"juice"`, `"honey"`, `"other"`.
 """
-struct FermentableBaseType <: AbstractSchemaEnum
+struct FermentableTypeEnum <: AbstractSchemaEnum
     value::String
-    FermentableBaseType(value) = new(_jscheckenum(FermentableBaseType, _jsfrom(String, value)))
+    FermentableTypeEnum(value) = new(_jscheckenum(FermentableTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[FermentableBaseType] = (values = Any["dry extract", "extract", "grain", "sugar", "fruit", "juice", "honey", "other"],)
+_SPECS[FermentableTypeEnum] = (values = Any["dry extract", "extract", "grain", "sugar", "fruit", "juice", "honey", "other"],)
 
 """
-    FermentableBaseGrainGroup(value)
+    FermentableGrainGroupEnum(value)
 
 Allowed values: `"base"`, `"caramel"`, `"flaked"`, `"roasted"`, `"specialty"`, `"smoked"`, `"adjunct"`.
 """
-struct FermentableBaseGrainGroup <: AbstractSchemaEnum
+struct FermentableGrainGroupEnum <: AbstractSchemaEnum
     value::String
-    FermentableBaseGrainGroup(value) = new(_jscheckenum(FermentableBaseGrainGroup, _jsfrom(String, value)))
+    FermentableGrainGroupEnum(value) = new(_jscheckenum(FermentableGrainGroupEnum, _jsfrom(String, value)))
 end
-_SPECS[FermentableBaseGrainGroup] = (values = Any["base", "caramel", "flaked", "roasted", "specialty", "smoked", "adjunct"],)
+_SPECS[FermentableGrainGroupEnum] = (values = Any["base", "caramel", "flaked", "roasted", "specialty", "smoked", "adjunct"],)
 
 """
     YieldType(; kwargs...)
@@ -62,6 +62,7 @@ _SPECS[YieldType] = (
     extra = nothing,
     minProperties = 1,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -81,12 +82,24 @@ struct FermentableInventoryType <: AbstractSchemaObject
 end
 _SPECS[FermentableInventoryType] = (
     fields = (
-        (name = :amount, key = "amount", required = false, nullable = false, constraints = nothing),
+        (name = :amount, key = "amount", required = false, nullable = false, constraints = (schema = JSON.parse("""
+            {
+              "oneOf": [
+                {
+                  "\$type": "VolumeType"
+                },
+                {
+                  "\$type": "MassType"
+                }
+              ]
+            }
+            """),)),
     ),
     additionalProperties = false,
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -97,11 +110,11 @@ FermentableType collects the attributes of a fermentable ingredient to store as 
 # Fields
 
 - `name::String` (required)
-- `type::FermentableBaseType` (required)
+- `type::FermentableTypeEnum` (required)
 - `origin::Union{Nothing, String}`
 - `producer::Union{Nothing, String}`
 - `product_id::Union{Nothing, String}`
-- `grain_group::Union{Nothing, FermentableBaseGrainGroup}`
+- `grain_group::Union{Nothing, FermentableGrainGroupEnum}`
 - `yield::YieldType` (required): The potential yield of the fermentable ingredient, supporting SG, or percentage. eg 1.037 or 80% are valid yield types.
 - `color::ColorType` (required): ColorType supports both grain color properties, such as Lovibond, and wort color properties such as SRM and EBC.
 - `notes::Union{Nothing, String}`
@@ -129,11 +142,11 @@ FermentableType collects the attributes of a fermentable ingredient to store as 
 """
 struct FermentableType <: AbstractSchemaObject
     name::String
-    type::FermentableBaseType
+    type::FermentableTypeEnum
     origin::Union{Nothing, String}
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
-    grain_group::Union{Nothing, FermentableBaseGrainGroup}
+    grain_group::Union{Nothing, FermentableGrainGroupEnum}
     yield::YieldType
     color::ColorType
     notes::Union{Nothing, String}
@@ -160,11 +173,11 @@ struct FermentableType <: AbstractSchemaObject
     _extra::Dict{String, Any}
     function FermentableType(; name, type, origin = nothing, producer = nothing, product_id = nothing, grain_group = nothing, yield, color, notes = nothing, moisture = nothing, alpha_amylase = nothing, diastatic_power = nothing, protein = nothing, kolbach_index = nothing, max_in_batch = nothing, recommend_mash = nothing, inventory = nothing, glassy = nothing, plump = nothing, half = nothing, mealy = nothing, thru = nothing, friability = nothing, di_ph = nothing, viscosity = nothing, dms_p = nothing, fan = nothing, fermentability = nothing, beta_glucan = nothing, _extra = Dict{String, Any}())
         name = _jsfrom(String, name)
-        type = _jsfrom(FermentableBaseType, type)
+        type = _jsfrom(FermentableTypeEnum, type)
         origin = _jsfrom(Union{Nothing, String}, origin)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
-        grain_group = _jsfrom(Union{Nothing, FermentableBaseGrainGroup}, grain_group)
+        grain_group = _jsfrom(Union{Nothing, FermentableGrainGroupEnum}, grain_group)
         yield = _jsfrom(YieldType, yield)
         color = _jsfrom(ColorType, color)
         notes = _jsfrom(Union{Nothing, String}, notes)
@@ -229,6 +242,7 @@ _SPECS[FermentableType] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -239,11 +253,11 @@ FermentableAdditionType collects the attributes of each fermentable ingredient f
 # Fields
 
 - `name::String` (required)
-- `type::FermentableBaseType` (required)
+- `type::FermentableTypeEnum` (required)
 - `origin::Union{Nothing, String}`
 - `producer::Union{Nothing, String}`
 - `product_id::Union{Nothing, String}`
-- `grain_group::Union{Nothing, FermentableBaseGrainGroup}`
+- `grain_group::Union{Nothing, FermentableGrainGroupEnum}`
 - `yield::YieldType` (required): The potential yield of the fermentable ingredient, supporting SG, or percentage. eg 1.037 or 80% are valid yield types.
 - `color::ColorType` (required): ColorType supports both grain color properties, such as Lovibond, and wort color properties such as SRM and EBC.
 - `timing::Union{Nothing, TimingType}`: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
@@ -252,11 +266,11 @@ FermentableAdditionType collects the attributes of each fermentable ingredient f
 """
 struct FermentableAdditionType <: AbstractSchemaObject
     name::String
-    type::FermentableBaseType
+    type::FermentableTypeEnum
     origin::Union{Nothing, String}
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
-    grain_group::Union{Nothing, FermentableBaseGrainGroup}
+    grain_group::Union{Nothing, FermentableGrainGroupEnum}
     yield::YieldType
     color::ColorType
     timing::Union{Nothing, TimingType}
@@ -264,11 +278,11 @@ struct FermentableAdditionType <: AbstractSchemaObject
     _extra::Dict{String, Any}
     function FermentableAdditionType(; name, type, origin = nothing, producer = nothing, product_id = nothing, grain_group = nothing, yield, color, timing = nothing, amount, _extra = Dict{String, Any}())
         name = _jsfrom(String, name)
-        type = _jsfrom(FermentableBaseType, type)
+        type = _jsfrom(FermentableTypeEnum, type)
         origin = _jsfrom(Union{Nothing, String}, origin)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
-        grain_group = _jsfrom(Union{Nothing, FermentableBaseGrainGroup}, grain_group)
+        grain_group = _jsfrom(Union{Nothing, FermentableGrainGroupEnum}, grain_group)
         yield = _jsfrom(YieldType, yield)
         color = _jsfrom(ColorType, color)
         timing = _jsfrom(Union{Nothing, TimingType}, timing)
@@ -289,11 +303,23 @@ _SPECS[FermentableAdditionType] = (
         (name = :yield, key = "yield", required = true, nullable = false, constraints = nothing),
         (name = :color, key = "color", required = true, nullable = false, constraints = nothing),
         (name = :timing, key = "timing", required = false, nullable = false, constraints = nothing),
-        (name = :amount, key = "amount", required = true, nullable = false, constraints = nothing),
+        (name = :amount, key = "amount", required = true, nullable = false, constraints = (schema = JSON.parse("""
+            {
+              "oneOf": [
+                {
+                  "\$type": "VolumeType"
+                },
+                {
+                  "\$type": "MassType"
+                }
+              ]
+            }
+            """),)),
     ),
     additionalProperties = true,
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

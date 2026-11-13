@@ -4,15 +4,15 @@
 # Types from `packaging_vessel.json`.
 
 """
-    PackagingVesselTypeType(value)
+    PackagingVesselTypeEnum(value)
 
 Allowed values: `"keg"`, `"bottle"`, `"cask"`, `"tank"`, `"firkin"`, `"other"`.
 """
-struct PackagingVesselTypeType <: AbstractSchemaEnum
+struct PackagingVesselTypeEnum <: AbstractSchemaEnum
     value::String
-    PackagingVesselTypeType(value) = new(_jscheckenum(PackagingVesselTypeType, _jsfrom(String, value)))
+    PackagingVesselTypeEnum(value) = new(_jscheckenum(PackagingVesselTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[PackagingVesselTypeType] = (values = Any["keg", "bottle", "cask", "tank", "firkin", "other"],)
+_SPECS[PackagingVesselTypeEnum] = (values = Any["keg", "bottle", "cask", "tank", "firkin", "other"],)
 
 """
     PackagingVesselType(; kwargs...)
@@ -22,7 +22,7 @@ PackagingVesselType - a per vessel representation of a packaging process.
 # Fields
 
 - `name::String` (required)
-- `type::Union{Nothing, PackagingVesselTypeType}`
+- `type::Union{Nothing, PackagingVesselTypeEnum}`
 - `description::Union{Nothing, String}`
 - `package_date::Union{Nothing, String}`
 - `start_temperature::Union{Nothing, TemperatureType}`
@@ -38,7 +38,7 @@ PackagingVesselType - a per vessel representation of a packaging process.
 """
 struct PackagingVesselType <: AbstractSchemaObject
     name::String
-    type::Union{Nothing, PackagingVesselTypeType}
+    type::Union{Nothing, PackagingVesselTypeEnum}
     description::Union{Nothing, String}
     package_date::Union{Nothing, String}
     start_temperature::Union{Nothing, TemperatureType}
@@ -53,7 +53,7 @@ struct PackagingVesselType <: AbstractSchemaObject
     vessel_quantity::Union{Nothing, Float64}
     function PackagingVesselType(; name, type = nothing, description = nothing, package_date = nothing, start_temperature = nothing, end_temperature = nothing, step_time = nothing, start_gravity = nothing, end_gravity = nothing, start_ph = nothing, end_ph = nothing, carbonation = nothing, vessel_volume = nothing, vessel_quantity = nothing)
         name = _jsfrom(String, name)
-        type = _jsfrom(Union{Nothing, PackagingVesselTypeType}, type)
+        type = _jsfrom(Union{Nothing, PackagingVesselTypeEnum}, type)
         description = _jsfrom(Union{Nothing, String}, description)
         package_date = _jsfrom(Union{Nothing, String}, package_date)
         start_temperature = _jsfrom(Union{Nothing, TemperatureType}, start_temperature)
@@ -91,5 +91,6 @@ _SPECS[PackagingVesselType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

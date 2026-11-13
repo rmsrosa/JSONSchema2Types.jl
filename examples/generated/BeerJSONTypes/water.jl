@@ -83,6 +83,7 @@ _SPECS[WaterBase] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -169,5 +170,6 @@ _SPECS[WaterAdditionType] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

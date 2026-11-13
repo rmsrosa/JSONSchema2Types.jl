@@ -68,6 +68,7 @@ mutable struct ObjectDef
     extra_type::TypeRef                    # type of the values of additional properties
     min_properties::Union{Nothing, Int}
     max_properties::Union{Nothing, Int}
+    schema::Union{Nothing, Dict{String, Any}}  # keywords checked on the whole object
 end
 
 struct EnumDef
@@ -92,12 +93,15 @@ mutable struct Generator
     names::Dict{String, String}                    # location => type name
     taken::Dict{String, String}                    # type name => location
     order::Vector{String}                          # locations in discovery order
+    overrides::Dict{String, String}                # "file.json#pointer" => type name
+    used_overrides::Set{String}
 end
 
 Generator(root_file::String, root_name::String) = Generator(
     root_file, root_name, Dict{String, Any}(), Dict{String, String}(),
     Dict{String, Union{ObjectDef, EnumDef}}(),
-    Dict{String, String}(), Dict{String, String}(), String[],
+    Dict{String, String}(), Dict{String, String}(), String[], Dict{String, String}(),
+    Set{String}(),
 )
 
 # --- Utilities ---
@@ -273,7 +277,10 @@ function name_hint(gen::Generator, file::String, pointer::String)
             base = type_identifier(nxt)
             step = 2
         elseif seg == "properties" && nxt !== nothing
-            base *= type_identifier(nxt)
+            prop = type_identifier(nxt)
+            stem = name_stem(base)
+            # e.g. `beerjson` in `BeerJSON` gives `BeerJSONContent`, not `BeerJSONBeerjson`
+            base = lowercase(prop) == lowercase(stem) ? stem * "Content" : stem * prop
             step = 2
         elseif seg == "allOf" && nxt !== nothing
             step = 2
@@ -298,7 +305,25 @@ function name_hint(gen::Generator, file::String, pointer::String)
         end
         i += step
     end
+    # inline enums are suffixed with `Enum`, e.g. `RecipeTypeEnum` for the `type` of `RecipeType`
+    if !isempty(segs) && !occursin(r"^(definitions|\$defs)$", segs[end-1]) && isobject(node) &&
+            (haskey(node, "enum") || haskey(node, "const")) && !haskey(node, "title") &&
+            !endswith(base, "Enum")
+        base *= "Enum"
+    end
     return base
+end
+
+"""
+    name_stem(name)
+
+Name of a type without a trailing `Type` or `Base`, used as a prefix for the names of the
+types of its properties (e.g. `Recipe` for `RecipeType`, `Fermentable` for
+`FermentableBase`).
+"""
+function name_stem(name::AbstractString)
+    m = match(r"^(.+?)(Type|Base)$", name)
+    return m === nothing ? String(name) : String(m.captures[1])
 end
 
 """
@@ -309,12 +334,24 @@ Assign a unique type name to the subschema at the given location.
 function register_name!(gen::Generator, file::String, pointer::String)
     loc = location(file, pointer)
     haskey(gen.names, loc) && return gen.names[loc]
+    key = basename(file) * "#" * pointer
+    if haskey(gen.overrides, key)
+        name = gen.overrides[key]
+        haskey(gen.taken, name) &&
+            throw(ArgumentError("the type name `$name` given in `type_names` for `$key` is already used"))
+        push!(gen.used_overrides, key)
+        gen.names[loc] = name
+        gen.taken[name] = loc
+        push!(gen.order, loc)
+        return name
+    end
     hint = name_hint(gen, file, pointer)
+    isfree(n) = !haskey(gen.taken, n) && !(n in values(gen.overrides))
     name = hint
-    if haskey(gen.taken, name)
+    if !isfree(name)
         name = type_identifier(splitext(basename(file))[1]) * hint
         k = 2
-        while haskey(gen.taken, name)
+        while !isfree(name)
             name = hint * string(k)
             k += 1
         end
@@ -506,7 +543,8 @@ function resolve_type(gen::Generator, file::String, pointer::String, node, depth
     elseif jtype == "object"
         key = haskey(node, "additionalProperties") ? "additionalProperties" : "unevaluatedProperties"
         ap = get(node, key, nothing)
-        if isobject(ap)
+        # with `patternProperties`, values are kept as they are and checked against the schemas
+        if isobject(ap) && !haskey(node, "patternProperties")
             t, _ = resolve_type(gen, file, pointer * "/" * key, ap, depth + 1)
             return TypeRef("Dict{String, $(t.expr)}", t.deps), constraints
         end
@@ -571,7 +609,8 @@ function generate_named_type!(gen::Generator, file::String, pointer::String, nod
                  get(merged, "unevaluatedProperties", true) !== false
     objdef = ObjectDef(name, loc, type_description(merged), FieldDef[],
                        additional, nothing, TypeRef("Any"),
-                       get(merged, "minProperties", nothing), get(merged, "maxProperties", nothing))
+                       get(merged, "minProperties", nothing), get(merged, "maxProperties", nothing),
+                       nothing)
     # registered before generating the fields, so that recursive schemas terminate
     gen.types[loc] = objdef
 
@@ -593,7 +632,24 @@ function generate_named_type!(gen::Generator, file::String, pointer::String, nod
             target = get_node(gen, f2, p2)
             isobject(target) && (desc = string(get(target, "description", "")))
         end
+        r = field_residual(gen, f, p, sub)
+        if r !== nothing
+            c = c === nothing ? Dict{String, Any}() : copy(c)
+            c["schema"] = r
+        end
         push!(objdef.fields, FieldDef(fname, key, t, is_required, nullable, c, desc, deprecated))
+    end
+    objdef.schema = object_residual(gen, file, pointer, node)
+    if haskey(merged, "patternProperties")
+        # properties matching a pattern are kept in the extra field and checked against
+        # their schemas, along with the other additional properties
+        objdef.schema = combine_residuals(Any[objdef.schema, Dict{String, Any}(
+            "properties" => Dict{String, Any}(f.key => true for f in objdef.fields),
+            "patternProperties" => translate_schema(gen, file, merged["patternProperties"]; kind = :map),
+            "additionalProperties" => translate_schema(gen, file, get(merged, extra_schema, true)),
+        )])
+        additional = true
+        extra_schema = ""
     end
     if additional
         # properties not described by the schema are kept in an extra field
@@ -603,7 +659,7 @@ function generate_named_type!(gen::Generator, file::String, pointer::String, nod
         end
         objdef.extra_field = fname
         ap = get(node, extra_schema, nothing)
-        if isobject(ap)
+        if isobject(ap) && !isempty(extra_schema)
             objdef.extra_type, _ = resolve_type(gen, file, pointer * "/" * extra_schema, ap)
         end
     end
@@ -623,6 +679,175 @@ function enum_valuetype(values)
     all(v -> v isa Real && !(v isa Bool), values) && return "Float64"
     all(v -> v isa Bool, values) && return "Bool"
     return "Any"
+end
+
+# --- Keywords not enforced by the Julia types ---
+#
+# Some keywords cannot be expressed by the generated types: `not`, `if`/`then`/`else`,
+# `format`, `patternProperties`, `dependentRequired`, `contains`..., and the exclusivity of
+# `oneOf` (and the constraints of the options of `oneOf`/`anyOf`, since a `Union` only
+# checks their types). These "residual" subschemas are embedded in the generated code,
+# with their `$ref`s resolved, and checked at runtime against the JSON form of the values.
+
+# keywords whose value is a subschema, a list of subschemas, or a map to subschemas
+const SCHEMA_KEYS = ("not", "if", "then", "else", "items", "additionalItems", "contains",
+                     "propertyNames", "additionalProperties", "unevaluatedProperties",
+                     "unevaluatedItems")
+const SCHEMA_LIST_KEYS = ("allOf", "anyOf", "oneOf", "prefixItems")
+const SCHEMA_MAP_KEYS = ("properties", "patternProperties", "dependentSchemas")
+const ANNOTATION_KEYS = ("title", "description", "examples", "default", "deprecated",
+                         "readOnly", "writeOnly", "\$comment", "\$schema", "\$id",
+                         "\$anchor", "definitions", "\$defs", "contentMediaType",
+                         "contentEncoding")
+
+# keywords always left to the runtime validator, for fields and for objects
+const FIELD_RESIDUAL_KEYS = ("not", "if", "then", "else", "format", "contains", "minContains",
+                             "maxContains", "propertyNames", "dependentRequired",
+                             "dependentSchemas", "dependencies", "prefixItems")
+const OBJECT_RESIDUAL_KEYS = ("not", "if", "then", "else", "propertyNames",
+                              "dependentRequired", "dependentSchemas", "dependencies")
+
+"""
+    translate_schema(gen, file, node; kind = :schema) -> Any
+
+Copy of the subschema `node` (found in `file`) for validation at runtime: annotations are
+dropped, a `\$ref` to a schema translated into a generated type `T` becomes
+`{"\$type": "T"}` (checked by converting the value to `T`), and other `\$ref`s are replaced
+by the subschemas they point to (a reference back to a subschema being translated is
+dropped, i.e. accepted).
+"""
+function translate_schema(gen::Generator, file::String, node, visiting = Set{String}(); kind = :schema)
+    if kind == :list
+        return Any[translate_schema(gen, file, n, visiting) for n in node]
+    elseif kind == :map
+        return Dict{String, Any}(String(k) => translate_schema(gen, file, v, visiting) for (k, v) in node)
+    end
+    isobject(node) || return node
+    out = Dict{String, Any}()
+    for (k, v) in node
+        (k in ANNOTATION_KEYS || k == "\$ref") && continue
+        out[k] = if k in SCHEMA_KEYS
+            translate_schema(gen, file, v, visiting; kind = v isa AbstractVector ? :list : :schema)
+        elseif k in SCHEMA_LIST_KEYS
+            translate_schema(gen, file, v, visiting; kind = :list)
+        elseif k in SCHEMA_MAP_KEYS
+            translate_schema(gen, file, v, visiting; kind = :map)
+        elseif k == "dependencies"
+            Dict{String, Any}(String(d) => x isa AbstractVector ? collect(Any, x) : translate_schema(gen, file, x, visiting)
+                              for (d, x) in v)
+        else
+            v isa AbstractVector ? collect(Any, v) : isobject(v) ? Dict{String, Any}(v) : v
+        end
+    end
+    if haskey(node, "\$ref")
+        f, p = resolve_ref(gen, file, node["\$ref"])
+        loc = location(f, p)
+        target_node = get_node(gen, f, p)
+        if needs_named_type(gen, f, p, target_node)
+            target = Dict{String, Any}("\$type" => generate_named_type!(gen, f, p, target_node))
+        elseif !(loc in visiting)
+            target = translate_schema(gen, f, target_node, union(visiting, [loc]))
+        else
+            target = nothing
+        end
+        target === nothing || (out["allOf"] = push!(get(out, "allOf", Any[]), target))
+    end
+    # a lone `{"allOf": [x]}` is just `x`
+    if length(out) == 1 && haskey(out, "allOf") && length(out["allOf"]) == 1
+        return only(out["allOf"])
+    end
+    return out
+end
+
+# Translation of an option of `oneOf`/`anyOf` of a property: inline objects and enums are
+# generated types, which are checked as such.
+function translate_option(gen::Generator, file::String, pointer::String, node)
+    needs_named_type(gen, file, pointer, node) &&
+        return Dict{String, Any}("\$type" => generate_named_type!(gen, file, pointer, node))
+    return translate_schema(gen, file, node)
+end
+
+function combine_residuals(parts::Vector)
+    parts = filter(!isnothing, parts)
+    isempty(parts) && return nothing
+    length(parts) == 1 && return only(parts)
+    return Dict{String, Any}("allOf" => parts)
+end
+
+"""
+    field_residual(gen, file, pointer, node) -> Union{Nothing, Dict}
+
+Subschema with the keywords of the property schema `node` that are not enforced by the
+type of the field and its constraints.
+"""
+function field_residual(gen::Generator, file::String, pointer::String, node, depth::Int = 0)
+    isobject(node) || return nothing
+    depth > 32 && return nothing
+    # named types check their own residual keywords
+    needs_named_type(gen, file, pointer, node) && return nothing
+    parts = Any[]
+    if haskey(node, "\$ref")
+        f, p = resolve_ref(gen, file, node["\$ref"])
+        push!(parts, field_residual(gen, f, p, get_node(gen, f, p), depth + 1))
+    end
+    r = Dict{String, Any}()
+    for key in ("oneOf", "anyOf")
+        haskey(node, key) || continue
+        r[key] = Any[translate_option(gen, file, pointer * "/$key/" * string(i - 1), sub)
+                     for (i, sub) in enumerate(node[key])]
+    end
+    for k in FIELD_RESIDUAL_KEYS
+        haskey(node, k) || continue
+        v = node[k]
+        r[k] = k in SCHEMA_KEYS ? translate_schema(gen, file, v) :
+               k == "prefixItems" ? translate_schema(gen, file, v; kind = :list) :
+               k == "dependentSchemas" ? translate_schema(gen, file, v; kind = :map) :
+               k == "dependencies" ? translate_schema(gen, file, Dict("dependencies" => v))["dependencies"] : v
+    end
+    items = get(node, "items", nothing)
+    if isobject(items)
+        ir = field_residual(gen, file, pointer * "/items", items, depth + 1)
+        ir === nothing || (r["items"] = ir)
+    elseif items isa AbstractVector
+        r["items"] = translate_schema(gen, file, items; kind = :list)
+    end
+    if haskey(node, "patternProperties")
+        r["patternProperties"] = translate_schema(gen, file, node["patternProperties"]; kind = :map)
+        ap = get(node, "additionalProperties", get(node, "unevaluatedProperties", nothing))
+        ap === nothing || (r["additionalProperties"] = translate_schema(gen, file, ap))
+    else
+        for key in ("additionalProperties", "unevaluatedProperties")
+            ap = get(node, key, nothing)
+            isobject(ap) || continue
+            ar = field_residual(gen, file, pointer * "/" * key, ap, depth + 1)
+            ar === nothing || (r["additionalProperties"] = ar)
+        end
+    end
+    isempty(r) || push!(parts, r)
+    return combine_residuals(parts)
+end
+
+"""
+    object_residual(gen, file, pointer, node) -> Union{Nothing, Dict}
+
+Subschema with the keywords that apply to the object described by `node` as a whole and
+are not enforced by its struct, collected from `node` and the schemas it combines with
+`allOf` and `\$ref`.
+"""
+function object_residual(gen::Generator, file::String, pointer::String, node)
+    parts = Any[]
+    function walk(f, n, d)
+        (isobject(n) && d <= 32) || return
+        keys_ = [k for k in OBJECT_RESIDUAL_KEYS if haskey(n, k)]
+        isempty(keys_) || push!(parts, translate_schema(gen, f, Dict{String, Any}(k => n[k] for k in keys_)))
+        if haskey(n, "\$ref")
+            f2, p2 = resolve_ref(gen, f, n["\$ref"])
+            walk(f2, get_node(gen, f2, p2), d + 1)
+        end
+        foreach(sub -> walk(f, sub, d + 1), get(n, "allOf", ()))
+    end
+    walk(file, node, 0)
+    return combine_residuals(parts)
 end
 
 # --- Code emission ---
@@ -726,6 +951,14 @@ function julia_literal(v)
     return repr(v)
 end
 
+# A schema for validation at runtime, as indented JSON, parsed when the module is loaded.
+function schema_literal(schema, indent::String)
+    schema === nothing && return "nothing"
+    json = JSON.json(schema; pretty = true)
+    lines = split(escape_docstring(json), '\n')
+    return "JSON.parse(\"\"\"\n" * join(indent .* "    " .* lines, "\n") * "\n" * indent * "    \"\"\")"
+end
+
 function constraints_literal(c)
     c === nothing && return "nothing"
     parts = String[]
@@ -733,6 +966,7 @@ function constraints_literal(c)
         v = c[k]
         lit = k == "pattern" ? "Regex($(repr(String(v))))" :
               k == "items" ? constraints_literal(v) : julia_literal(v)
+        k == "schema" && (lit = schema_literal(v, "        "))
         push!(parts, "$k = $lit")
     end
     return "(" * join(parts, ", ") * ",)"
@@ -816,12 +1050,13 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
     println(io, "    extra = ", extra === nothing ? "nothing" : ":" * extra, ",")
     println(io, "    minProperties = ", something(d.min_properties, "nothing"), ",")
     println(io, "    maxProperties = ", something(d.max_properties, "nothing"), ",")
+    println(io, "    schema = ", schema_literal(d.schema, "    "), ",")
     println(io, ")")
     println(io)
 end
 
 """
-    generate_module(schema_file, output; root_name, module_name, schemas, split) -> String
+    generate_module(schema_file, output; root_name, module_name, schemas, split, type_names) -> String
 
 Read the JSON Schema in `schema_file` (and every schema file it references through
 `\$ref`) and write to `output_file` a Julia module defining types for all the objects and
@@ -851,6 +1086,11 @@ types defined in that schema file (inline subschemas go with the type containing
 Schema files whose types depend on each other in a cycle share a single file. Load the
 module by including `<module_name>.jl`.
 
+Type names are derived from the schema (see the README). Any of them can be chosen with
+`type_names`, mapping the location of a subschema, as `"file.json#/json/pointer"` (or
+`"#/json/pointer"` in the root schema file), to the name of its type, e.g.
+`Dict("recipe.json#/definitions/RecipeType/properties/type" => "RecipeKind")`.
+
 Returns the path of the file defining the module.
 """
 function generate_module(
@@ -859,9 +1099,17 @@ function generate_module(
     module_name::Union{Nothing, AbstractString} = nothing,
     schemas::AbstractVector{<:AbstractString} = String[],
     split::Bool = false,
+    type_names::AbstractDict{<:AbstractString, <:AbstractString} = Dict{String, String}(),
 )
     root_file = abspath(normpath(schema_file))
     gen = Generator(root_file, "")
+    for (k, v) in type_names
+        key = startswith(k, "#") ? basename(root_file) * k : String(k)
+        occursin('#', key) || throw(ArgumentError("invalid key `$k` in `type_names`; " *
+                                                  "use `\"file.json#/json/pointer\"`"))
+        type_identifier(v) == v || throw(ArgumentError("`$v` in `type_names` is not a valid type name"))
+        gen.overrides[key] = String(v)
+    end
     root = load_schema!(gen, root_file)
     foreach(f -> load_schema!(gen, f), schemas)
     if root_name === nothing
@@ -872,6 +1120,9 @@ function generate_module(
     module_name = module_name === nothing ? gen.root_name * "Types" : type_identifier(module_name)
 
     root_type, _ = resolve_type(gen, root_file, "", root)
+    for k in setdiff(keys(gen.overrides), gen.used_overrides)
+        @warn "`type_names` entry `$k` does not name a generated type; it was ignored"
+    end
 
     files = generate_files(gen, module_name, root_type, basename(schema_file), split)
     if split
@@ -930,7 +1181,7 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
     println(io)
     println(io, "using JSON")
     println(io)
-    println(io, "export fromjson, tojson, readjson, writejson, fromdict, todict")
+    println(io, "export fromjson, tojson, readjson, writejson, fromdict, todict, check_formats!")
     println(io, "export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError")
     for chunk in Iterators.partition(names, 6)
         println(io, "export ", join(chunk, ", "))

@@ -118,6 +118,7 @@ _SPECS[StyleType] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -168,5 +169,6 @@ _SPECS[RecipeStyleType] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
