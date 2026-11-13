@@ -9,8 +9,9 @@ const SAMPLES = joinpath(@__DIR__, "beerjson-1.0.1-samples")
 Generate a module from `schema` into a temporary file and load it into a fresh anonymous
 module. Returns the generated module.
 """
-function load_generated(schema; kwargs...)
-    file = generate_module(schema, joinpath(mktempdir(), "generated.jl"); kwargs...)
+function load_generated(schema; split = false, kwargs...)
+    output = joinpath(mktempdir(), split ? "generated" : "generated.jl")
+    file = generate_module(schema, output; split, kwargs...)
     # the file contains a single `module ... end`, which evaluates to the module itself
     return Base.include(Module(), file)
 end
@@ -139,9 +140,31 @@ end
     end
 end
 
+@testset "Split into several files" begin
+    schema = joinpath(@__DIR__, "schemas", "split", "root.json")
+    dir = joinpath(mktempdir(), "LibraryTypes")
+    main = generate_module(schema, dir; split = true)
+    @test main == joinpath(dir, "LibraryTypes.jl")
+    # `author.json` and `book.json` use each other, so they share a file, after `common.json`
+    @test sort(readdir(dir)) == ["LibraryTypes.jl", "author_and_book.jl", "common.jl", "root.jl", "runtime.jl"]
+    code = read(main, String)
+    @test findfirst("include(\"common.jl\")", code) < findfirst("include(\"author_and_book.jl\")", code) <
+          findfirst("include(\"root.jl\")", code)
+    @test !occursin("module", read(joinpath(dir, "author_and_book.jl"), String))
+    M = Base.include(Module(), main)
+    json = """{"authors": [{"name": "Machado", "country": "BR", "books": [{"title": "Dom Casmurro"}]}],
+               "books": [{"title": "Dom Casmurro", "author": {"name": "Machado"}}]}"""
+    x = M.fromjson(M.RootType, json)
+    @test x.authors[1].books[1].title == "Dom Casmurro"
+    @test canon(JSON.parse(M.tojson(x))) == canon(JSON.parse(json))
+    # the single-file version has the same types
+    S = load_generated(schema)
+    @test S.fromjson(S.RootType, json) isa S.Library
+end
+
 @testset "BeerJSON 1.0.1" begin
     M = load_generated(joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json");
-                       root_name = "BeerJSON", module_name = "BeerJSONTypes")
+                       root_name = "BeerJSON", module_name = "BeerJSONTypes", split = true)
     @test M.RootType === M.BeerJSON
     # `allOf` with `$ref`s merges the properties of the referenced schemas
     @test (:name, :alpha_acid, :timing, :amount) ⊆ fieldnames(M.HopAdditionType)
@@ -170,16 +193,20 @@ end
 
 @testset "Committed examples load" begin
     for file in readdir(joinpath(EXAMPLES, "generated"); join = true)
+        isdir(file) && (file = joinpath(file, basename(file) * ".jl"))
         @test Base.include(Module(), file) isa Module
     end
 end
 
 @testset "Committed examples are up to date" begin
-    dir = mktempdir()
-    gen = joinpath(EXAMPLES, "generated")
-    generate_module(joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json"), joinpath(dir, "BeerJSON.jl");
-                    root_name = "BeerJSON", module_name = "BeerJSONTypes")
-    @test read(joinpath(dir, "BeerJSON.jl"), String) == read(joinpath(gen, "BeerJSON.jl"), String)
+    dir = joinpath(mktempdir(), "BeerJSONTypes")
+    committed = joinpath(EXAMPLES, "generated", "BeerJSONTypes")
+    generate_module(joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json"), dir;
+                    root_name = "BeerJSON", module_name = "BeerJSONTypes", split = true)
+    @test readdir(dir) == readdir(committed)
+    for f in readdir(dir)
+        @test read(joinpath(dir, f), String) == read(joinpath(committed, f), String)
+    end
 end
 
 end

@@ -8,6 +8,7 @@ using JSON
 export fromjson, tojson, readjson, writejson, fromdict, todict
 export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError
 export Customer, OrderItemsItem, Order
+export RootType
 
 # ---------------------------------------------------------------------------------------
 # Runtime support for generated types.
@@ -295,6 +296,10 @@ end
 # End of runtime support. Generated types follow.
 # ---------------------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------------------
+# Types from `customer_schema.json`
+# ---------------------------------------------------------------------------------------
+
 """
     Customer(; kwargs...)
 
@@ -330,6 +335,11 @@ _SPECS[Customer] = (
     minProperties = nothing,
     maxProperties = nothing,
 )
+
+
+# ---------------------------------------------------------------------------------------
+# Types from `order_schema.json`
+# ---------------------------------------------------------------------------------------
 
 """
     OrderItemsItem(; kwargs...)
@@ -399,12 +409,12 @@ _SPECS[Order] = (
     maxProperties = nothing,
 )
 
+
 """
     RootType
 
 Alias of `Order`, the type of the root of the schema.
 """
 const RootType = Order
-export RootType
 
 end # module OrderTypes

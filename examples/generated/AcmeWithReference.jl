@@ -7,7 +7,8 @@ using JSON
 
 export fromjson, tojson, readjson, writejson, fromdict, todict
 export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError
-export ProductDimensions, LongitudeAndLatitude, Product
+export LongitudeAndLatitude, ProductDimensions, Product
+export RootType
 
 # ---------------------------------------------------------------------------------------
 # Runtime support for generated types.
@@ -295,6 +296,49 @@ end
 # End of runtime support. Generated types follow.
 # ---------------------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------------------
+# Types from `acme_tobereferredschema.json`
+# ---------------------------------------------------------------------------------------
+
+"""
+    LongitudeAndLatitude(; kwargs...)
+
+A geographical coordinate on a planet (most commonly Earth).
+
+# Fields
+
+- `latitude::Float64` (required)
+- `longitude::Float64` (required)
+- `_extra::Dict{String, Any}`: additional properties, not described in the schema
+"""
+struct LongitudeAndLatitude <: AbstractSchemaObject
+    latitude::Float64
+    longitude::Float64
+    _extra::Dict{String, Any}
+    function LongitudeAndLatitude(; latitude, longitude, _extra = Dict{String, Any}())
+        latitude = _jsfrom(Float64, latitude)
+        longitude = _jsfrom(Float64, longitude)
+        _extra = _jsfrom(Dict{String, Any}, _extra)
+        _jscheck(LongitudeAndLatitude, (latitude, longitude), _extra)
+        return new(latitude, longitude, _extra)
+    end
+end
+_SPECS[LongitudeAndLatitude] = (
+    fields = (
+        (name = :latitude, key = "latitude", required = true, nullable = false, constraints = (maximum = 90, minimum = -90,)),
+        (name = :longitude, key = "longitude", required = true, nullable = false, constraints = (maximum = 180, minimum = -180,)),
+    ),
+    additionalProperties = true,
+    extra = :_extra,
+    minProperties = nothing,
+    maxProperties = nothing,
+)
+
+
+# ---------------------------------------------------------------------------------------
+# Types from `acme_withreferenceschema.json`
+# ---------------------------------------------------------------------------------------
+
 """
     ProductDimensions(; kwargs...)
 
@@ -324,40 +368,6 @@ _SPECS[ProductDimensions] = (
         (name = :length, key = "length", required = true, nullable = false, constraints = nothing),
         (name = :width, key = "width", required = true, nullable = false, constraints = nothing),
         (name = :height, key = "height", required = true, nullable = false, constraints = nothing),
-    ),
-    additionalProperties = true,
-    extra = :_extra,
-    minProperties = nothing,
-    maxProperties = nothing,
-)
-
-"""
-    LongitudeAndLatitude(; kwargs...)
-
-A geographical coordinate on a planet (most commonly Earth).
-
-# Fields
-
-- `latitude::Float64` (required)
-- `longitude::Float64` (required)
-- `_extra::Dict{String, Any}`: additional properties, not described in the schema
-"""
-struct LongitudeAndLatitude <: AbstractSchemaObject
-    latitude::Float64
-    longitude::Float64
-    _extra::Dict{String, Any}
-    function LongitudeAndLatitude(; latitude, longitude, _extra = Dict{String, Any}())
-        latitude = _jsfrom(Float64, latitude)
-        longitude = _jsfrom(Float64, longitude)
-        _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(LongitudeAndLatitude, (latitude, longitude), _extra)
-        return new(latitude, longitude, _extra)
-    end
-end
-_SPECS[LongitudeAndLatitude] = (
-    fields = (
-        (name = :latitude, key = "latitude", required = true, nullable = false, constraints = (maximum = 90, minimum = -90,)),
-        (name = :longitude, key = "longitude", required = true, nullable = false, constraints = (maximum = 180, minimum = -180,)),
     ),
     additionalProperties = true,
     extra = :_extra,
@@ -415,12 +425,12 @@ _SPECS[Product] = (
     maxProperties = nothing,
 )
 
+
 """
     RootType
 
 Alias of `Product`, the type of the root of the schema.
 """
 const RootType = Product
-export RootType
 
 end # module AcmeWithReference

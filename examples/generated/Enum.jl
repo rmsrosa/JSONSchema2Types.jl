@@ -9,6 +9,7 @@ export fromjson, tojson, readjson, writejson, fromdict, todict
 export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError
 export ComplexEnumExampleProductShippingStatus, ComplexEnumExampleOrderStatusPriority, PaymentStatus, ComplexEnumExampleMixedEnumTest, ComplexEnumExampleProduct, ComplexEnumExampleOrderStatus
 export ComplexEnumExample
+export RootType
 
 # ---------------------------------------------------------------------------------------
 # Runtime support for generated types.
@@ -296,6 +297,10 @@ end
 # End of runtime support. Generated types follow.
 # ---------------------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------------------
+# Types from `enum_schema.json`
+# ---------------------------------------------------------------------------------------
+
 """
     ComplexEnumExampleProductShippingStatus(value)
 
@@ -454,12 +459,12 @@ _SPECS[ComplexEnumExample] = (
     maxProperties = nothing,
 )
 
+
 """
     RootType
 
 Alias of `ComplexEnumExample`, the type of the root of the schema.
 """
 const RootType = ComplexEnumExample
-export RootType
 
 end # module EnumExample
