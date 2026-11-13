@@ -4,17 +4,17 @@
 # Types from `boil_step.json`.
 
 """
-    BoilStepTypeChillingType(value)
+    BoilStepChillingTypeEnum(value)
 
 Chilling type seperates batch chilling, eg immersion chillers, where the entire volume of wort is brought down in temperture as a whole, vs inline chilling where the wort is chilled while it is being drained, which can leave a significant amount of hop isomerization occuring in the boil kettle.
 
 Allowed values: `"batch"`, `"inline"`.
 """
-struct BoilStepTypeChillingType <: AbstractSchemaEnum
+struct BoilStepChillingTypeEnum <: AbstractSchemaEnum
     value::String
-    BoilStepTypeChillingType(value) = new(_jscheckenum(BoilStepTypeChillingType, _jsfrom(String, value)))
+    BoilStepChillingTypeEnum(value) = new(_jscheckenum(BoilStepChillingTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[BoilStepTypeChillingType] = (values = Any["batch", "inline"],)
+_SPECS[BoilStepChillingTypeEnum] = (values = Any["batch", "inline"],)
 
 """
     BoilStepType(; kwargs...)
@@ -33,7 +33,7 @@ BoilStepType - a per step representation of a boil process, can be used to suppo
 - `end_gravity::Union{Nothing, GravityType}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
 - `start_ph::Union{Nothing, AcidityType}`
 - `end_ph::Union{Nothing, AcidityType}`
-- `chilling_type::Union{Nothing, BoilStepTypeChillingType}`: Chilling type seperates batch chilling, eg immersion chillers, where the entire volume of wort is brought down in temperture as a whole, vs inline chilling where the wort is chilled while it is being drained, which can leave a significant amount of hop isomerization occuring in the boil kettle.
+- `chilling_type::Union{Nothing, BoilStepChillingTypeEnum}`: Chilling type seperates batch chilling, eg immersion chillers, where the entire volume of wort is brought down in temperture as a whole, vs inline chilling where the wort is chilled while it is being drained, which can leave a significant amount of hop isomerization occuring in the boil kettle.
 """
 struct BoilStepType <: AbstractSchemaObject
     name::String
@@ -46,7 +46,7 @@ struct BoilStepType <: AbstractSchemaObject
     end_gravity::Union{Nothing, GravityType}
     start_ph::Union{Nothing, AcidityType}
     end_ph::Union{Nothing, AcidityType}
-    chilling_type::Union{Nothing, BoilStepTypeChillingType}
+    chilling_type::Union{Nothing, BoilStepChillingTypeEnum}
     function BoilStepType(; name, description = nothing, start_temperature = nothing, end_temperature = nothing, ramp_time = nothing, step_time = nothing, start_gravity = nothing, end_gravity = nothing, start_ph = nothing, end_ph = nothing, chilling_type = nothing)
         name = _jsfrom(String, name)
         description = _jsfrom(Union{Nothing, String}, description)
@@ -58,7 +58,7 @@ struct BoilStepType <: AbstractSchemaObject
         end_gravity = _jsfrom(Union{Nothing, GravityType}, end_gravity)
         start_ph = _jsfrom(Union{Nothing, AcidityType}, start_ph)
         end_ph = _jsfrom(Union{Nothing, AcidityType}, end_ph)
-        chilling_type = _jsfrom(Union{Nothing, BoilStepTypeChillingType}, chilling_type)
+        chilling_type = _jsfrom(Union{Nothing, BoilStepChillingTypeEnum}, chilling_type)
         _jscheck(BoilStepType, (name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type), nothing)
         return new(name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type)
     end
@@ -81,5 +81,6 @@ _SPECS[BoilStepType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

@@ -65,5 +65,6 @@ _SPECS[TimingType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

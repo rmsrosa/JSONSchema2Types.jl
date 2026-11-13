@@ -4,15 +4,15 @@
 # Types from `misc.json`.
 
 """
-    MiscellaneousBaseType(value)
+    MiscellaneousTypeEnum(value)
 
 Allowed values: `"spice"`, `"fining"`, `"water agent"`, `"herb"`, `"flavor"`, `"wood"`, `"other"`.
 """
-struct MiscellaneousBaseType <: AbstractSchemaEnum
+struct MiscellaneousTypeEnum <: AbstractSchemaEnum
     value::String
-    MiscellaneousBaseType(value) = new(_jscheckenum(MiscellaneousBaseType, _jsfrom(String, value)))
+    MiscellaneousTypeEnum(value) = new(_jscheckenum(MiscellaneousTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[MiscellaneousBaseType] = (values = Any["spice", "fining", "water agent", "herb", "flavor", "wood", "other"],)
+_SPECS[MiscellaneousTypeEnum] = (values = Any["spice", "fining", "water agent", "herb", "flavor", "wood", "other"],)
 
 """
     MiscellaneousInventoryType(; kwargs...)
@@ -31,12 +31,27 @@ struct MiscellaneousInventoryType <: AbstractSchemaObject
 end
 _SPECS[MiscellaneousInventoryType] = (
     fields = (
-        (name = :amount, key = "amount", required = true, nullable = false, constraints = nothing),
+        (name = :amount, key = "amount", required = true, nullable = false, constraints = (schema = JSON.parse("""
+            {
+              "oneOf": [
+                {
+                  "\$type": "VolumeType"
+                },
+                {
+                  "\$type": "MassType"
+                },
+                {
+                  "\$type": "UnitType"
+                }
+              ]
+            }
+            """),)),
     ),
     additionalProperties = false,
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -49,7 +64,7 @@ MiscellaneousType collects the attributes of an ingredient to store as record in
 - `name::String` (required)
 - `producer::Union{Nothing, String}`
 - `product_id::Union{Nothing, String}`
-- `type::MiscellaneousBaseType` (required)
+- `type::MiscellaneousTypeEnum` (required)
 - `use_for::Union{Nothing, String}`: Used to describe the purpose of the miscellaneous ingredient, e.g. whirlfloc is used for clarity.
 - `notes::Union{Nothing, String}`
 - `inventory::Union{Nothing, MiscellaneousInventoryType}`
@@ -59,7 +74,7 @@ struct MiscellaneousType <: AbstractSchemaObject
     name::String
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
-    type::MiscellaneousBaseType
+    type::MiscellaneousTypeEnum
     use_for::Union{Nothing, String}
     notes::Union{Nothing, String}
     inventory::Union{Nothing, MiscellaneousInventoryType}
@@ -68,7 +83,7 @@ struct MiscellaneousType <: AbstractSchemaObject
         name = _jsfrom(String, name)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
-        type = _jsfrom(MiscellaneousBaseType, type)
+        type = _jsfrom(MiscellaneousTypeEnum, type)
         use_for = _jsfrom(Union{Nothing, String}, use_for)
         notes = _jsfrom(Union{Nothing, String}, notes)
         inventory = _jsfrom(Union{Nothing, MiscellaneousInventoryType}, inventory)
@@ -91,6 +106,7 @@ _SPECS[MiscellaneousType] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -103,7 +119,7 @@ MiscellaneousAdditionType collects the attributes of each miscellaneous ingredie
 - `name::String` (required)
 - `producer::Union{Nothing, String}`
 - `product_id::Union{Nothing, String}`
-- `type::MiscellaneousBaseType` (required)
+- `type::MiscellaneousTypeEnum` (required)
 - `timing::Union{Nothing, TimingType}`: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
 - `amount::Union{VolumeType, MassType, UnitType}` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
@@ -112,7 +128,7 @@ struct MiscellaneousAdditionType <: AbstractSchemaObject
     name::String
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
-    type::MiscellaneousBaseType
+    type::MiscellaneousTypeEnum
     timing::Union{Nothing, TimingType}
     amount::Union{VolumeType, MassType, UnitType}
     _extra::Dict{String, Any}
@@ -120,7 +136,7 @@ struct MiscellaneousAdditionType <: AbstractSchemaObject
         name = _jsfrom(String, name)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
-        type = _jsfrom(MiscellaneousBaseType, type)
+        type = _jsfrom(MiscellaneousTypeEnum, type)
         timing = _jsfrom(Union{Nothing, TimingType}, timing)
         amount = _jsfrom(Union{VolumeType, MassType, UnitType}, amount)
         _extra = _jsfrom(Dict{String, Any}, _extra)
@@ -135,11 +151,26 @@ _SPECS[MiscellaneousAdditionType] = (
         (name = :product_id, key = "product_id", required = false, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = true, nullable = false, constraints = nothing),
         (name = :timing, key = "timing", required = false, nullable = false, constraints = nothing),
-        (name = :amount, key = "amount", required = true, nullable = false, constraints = nothing),
+        (name = :amount, key = "amount", required = true, nullable = false, constraints = (schema = JSON.parse("""
+            {
+              "oneOf": [
+                {
+                  "\$type": "VolumeType"
+                },
+                {
+                  "\$type": "MassType"
+                },
+                {
+                  "\$type": "UnitType"
+                }
+              ]
+            }
+            """),)),
     ),
     additionalProperties = true,
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

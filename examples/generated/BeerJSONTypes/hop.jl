@@ -4,26 +4,26 @@
 # Types from `hop.json`.
 
 """
-    HopVarietyBaseForm(value)
+    HopVarietyFormEnum(value)
 
 Allowed values: `"extract"`, `"leaf"`, `"leaf (wet)"`, `"pellet"`, `"powder"`, `"plug"`.
 """
-struct HopVarietyBaseForm <: AbstractSchemaEnum
+struct HopVarietyFormEnum <: AbstractSchemaEnum
     value::String
-    HopVarietyBaseForm(value) = new(_jscheckenum(HopVarietyBaseForm, _jsfrom(String, value)))
+    HopVarietyFormEnum(value) = new(_jscheckenum(HopVarietyFormEnum, _jsfrom(String, value)))
 end
-_SPECS[HopVarietyBaseForm] = (values = Any["extract", "leaf", "leaf (wet)", "pellet", "powder", "plug"],)
+_SPECS[HopVarietyFormEnum] = (values = Any["extract", "leaf", "leaf (wet)", "pellet", "powder", "plug"],)
 
 """
-    VarietyInformationType(value)
+    VarietyInformationTypeEnum(value)
 
 Allowed values: `"aroma"`, `"bittering"`, `"flavor"`, `"aroma/bittering"`, `"bittering/flavor"`, `"aroma/flavor"`, `"aroma/bittering/flavor"`.
 """
-struct VarietyInformationType <: AbstractSchemaEnum
+struct VarietyInformationTypeEnum <: AbstractSchemaEnum
     value::String
-    VarietyInformationType(value) = new(_jscheckenum(VarietyInformationType, _jsfrom(String, value)))
+    VarietyInformationTypeEnum(value) = new(_jscheckenum(VarietyInformationTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[VarietyInformationType] = (values = Any["aroma", "bittering", "flavor", "aroma/bittering", "bittering/flavor", "aroma/flavor", "aroma/bittering/flavor"],)
+_SPECS[VarietyInformationTypeEnum] = (values = Any["aroma", "bittering", "flavor", "aroma/bittering", "bittering/flavor", "aroma/flavor", "aroma/bittering/flavor"],)
 
 """
     IBUMethodType(value)
@@ -116,6 +116,7 @@ _SPECS[OilContentType] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -135,12 +136,24 @@ struct HopInventoryType <: AbstractSchemaObject
 end
 _SPECS[HopInventoryType] = (
     fields = (
-        (name = :amount, key = "amount", required = false, nullable = false, constraints = nothing),
+        (name = :amount, key = "amount", required = false, nullable = false, constraints = (schema = JSON.parse("""
+            {
+              "oneOf": [
+                {
+                  "\$type": "VolumeType"
+                },
+                {
+                  "\$type": "MassType"
+                }
+              ]
+            }
+            """),)),
     ),
     additionalProperties = false,
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -155,10 +168,10 @@ VarietyInformation collects the attributes of a hop variety to store as record i
 - `product_id::Union{Nothing, String}`
 - `origin::Union{Nothing, String}`
 - `year::Union{Nothing, String}`
-- `form::Union{Nothing, HopVarietyBaseForm}`
+- `form::Union{Nothing, HopVarietyFormEnum}`
 - `alpha_acid::PercentType` (required)
 - `beta_acid::Union{Nothing, PercentType}`
-- `type::Union{Nothing, VarietyInformationType}`
+- `type::Union{Nothing, VarietyInformationTypeEnum}`
 - `notes::Union{Nothing, String}`
 - `percent_lost::Union{Nothing, PercentType}`:  Defined as the percentage of hop alpha lost in 6 months of storage.
 - `substitutes::Union{Nothing, String}`
@@ -172,10 +185,10 @@ struct VarietyInformation <: AbstractSchemaObject
     product_id::Union{Nothing, String}
     origin::Union{Nothing, String}
     year::Union{Nothing, String}
-    form::Union{Nothing, HopVarietyBaseForm}
+    form::Union{Nothing, HopVarietyFormEnum}
     alpha_acid::PercentType
     beta_acid::Union{Nothing, PercentType}
-    type::Union{Nothing, VarietyInformationType}
+    type::Union{Nothing, VarietyInformationTypeEnum}
     notes::Union{Nothing, String}
     percent_lost::Union{Nothing, PercentType}
     substitutes::Union{Nothing, String}
@@ -188,10 +201,10 @@ struct VarietyInformation <: AbstractSchemaObject
         product_id = _jsfrom(Union{Nothing, String}, product_id)
         origin = _jsfrom(Union{Nothing, String}, origin)
         year = _jsfrom(Union{Nothing, String}, year)
-        form = _jsfrom(Union{Nothing, HopVarietyBaseForm}, form)
+        form = _jsfrom(Union{Nothing, HopVarietyFormEnum}, form)
         alpha_acid = _jsfrom(PercentType, alpha_acid)
         beta_acid = _jsfrom(Union{Nothing, PercentType}, beta_acid)
-        type = _jsfrom(Union{Nothing, VarietyInformationType}, type)
+        type = _jsfrom(Union{Nothing, VarietyInformationTypeEnum}, type)
         notes = _jsfrom(Union{Nothing, String}, notes)
         percent_lost = _jsfrom(Union{Nothing, PercentType}, percent_lost)
         substitutes = _jsfrom(Union{Nothing, String}, substitutes)
@@ -223,6 +236,7 @@ _SPECS[VarietyInformation] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -237,7 +251,7 @@ HopAdditionType collects the attributes of each hop ingredient for use in a reci
 - `product_id::Union{Nothing, String}`
 - `origin::Union{Nothing, String}`
 - `year::Union{Nothing, String}`
-- `form::Union{Nothing, HopVarietyBaseForm}`
+- `form::Union{Nothing, HopVarietyFormEnum}`
 - `alpha_acid::PercentType` (required)
 - `beta_acid::Union{Nothing, PercentType}`
 - `timing::TimingType` (required): The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
@@ -250,7 +264,7 @@ struct HopAdditionType <: AbstractSchemaObject
     product_id::Union{Nothing, String}
     origin::Union{Nothing, String}
     year::Union{Nothing, String}
-    form::Union{Nothing, HopVarietyBaseForm}
+    form::Union{Nothing, HopVarietyFormEnum}
     alpha_acid::PercentType
     beta_acid::Union{Nothing, PercentType}
     timing::TimingType
@@ -262,7 +276,7 @@ struct HopAdditionType <: AbstractSchemaObject
         product_id = _jsfrom(Union{Nothing, String}, product_id)
         origin = _jsfrom(Union{Nothing, String}, origin)
         year = _jsfrom(Union{Nothing, String}, year)
-        form = _jsfrom(Union{Nothing, HopVarietyBaseForm}, form)
+        form = _jsfrom(Union{Nothing, HopVarietyFormEnum}, form)
         alpha_acid = _jsfrom(PercentType, alpha_acid)
         beta_acid = _jsfrom(Union{Nothing, PercentType}, beta_acid)
         timing = _jsfrom(TimingType, timing)
@@ -283,12 +297,24 @@ _SPECS[HopAdditionType] = (
         (name = :alpha_acid, key = "alpha_acid", required = true, nullable = false, constraints = nothing),
         (name = :beta_acid, key = "beta_acid", required = false, nullable = false, constraints = nothing),
         (name = :timing, key = "timing", required = true, nullable = false, constraints = nothing),
-        (name = :amount, key = "amount", required = true, nullable = false, constraints = nothing),
+        (name = :amount, key = "amount", required = true, nullable = false, constraints = (schema = JSON.parse("""
+            {
+              "oneOf": [
+                {
+                  "\$type": "VolumeType"
+                },
+                {
+                  "\$type": "MassType"
+                }
+              ]
+            }
+            """),)),
     ),
     additionalProperties = true,
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -319,5 +345,6 @@ _SPECS[IBUEstimateType] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

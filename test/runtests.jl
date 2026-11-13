@@ -52,6 +52,7 @@ end
     @test x.end_ == 3
     @test x.nickname === nothing
     @test x.color == M.Color("red")
+    @test string(x.color) == "red" && "$(x.color)" == "red" && repr(x.color) == "Color(\"red\")"
     @test x.mixed.value == 2.5
     @test x.shape isa M.Square
     @test x.labeled.radius == 1.0 && x.labeled.label == "c"
@@ -65,6 +66,9 @@ end
 
     # keyword constructor converts plain values
     @test T(id = "a-1", end_ = 1, nickname = "N", color = "blue").color isa M.Color
+    # named tuples are accepted as objects
+    @test T(id = "a-1", end_ = 1, nickname = nothing, labeled = (radius = 2, label = "c")).labeled.radius == 2.0
+    @test T(id = "a-1", end_ = 1, nickname = nothing, metadata = (x = 1,)).metadata == Dict("x" => 1)
 
     E = M.SchemaValidationError
     base = Dict{String, Any}("id" => "abc-1", "end" => 3, "nickname" => nothing)
@@ -105,6 +109,86 @@ end
                                 joinpath(mktempdir(), "features.jl")), String)
     @test occursin("- `old_name::Union{Nothing, String}` (deprecated): Use `first-name` instead.", code)
     @test occursin("**Deprecated.** Additional values must be numbers.", code)
+end
+
+@testset "Keywords checked at runtime" begin
+    M = load_generated(joinpath(@__DIR__, "schemas", "validation.json"))
+    T = M.Validation
+    E = M.SchemaValidationError
+    ok(d) = M.fromdict(T, d)
+    bad(d) = @test_throws E M.fromdict(T, d)
+
+    # not
+    @test ok(Dict("password" => "s3cret")).password == "s3cret"
+    bad(Dict("password" => "123456"))
+    # oneOf: exactly one option must match
+    @test ok(Dict("number" => 1.5)).number == 1.5
+    @test ok(Dict("number" => -2)).number == -2
+    bad(Dict("number" => 5))
+    @test ok(Dict("shape" => Dict("radius" => 1, "ratio" => 2))).shape isa M.Ellipse
+    bad(Dict("shape" => Dict("radius" => 1)))                  # both Circle and Ellipse
+    bad(Dict("shape" => Dict("ratio" => 1)))                   # neither
+    # anyOf: the constraints of the options are checked, not only their types
+    @test ok(Dict("code" => "abc")).code == "abc"
+    @test ok(Dict("code" => 100)).code == 100
+    bad(Dict("code" => "abcd"))
+    bad(Dict("code" => 99))
+    # format
+    @test ok(Dict("date" => "2026-11-13", "email" => "a@b.org", "homepage" => "https://x.org/a",
+                  "id" => "123e4567-e89b-12d3-a456-426614174000", "secret_format" => "anything")) isa T
+    bad(Dict("date" => "13/11/2026"))
+    bad(Dict("email" => "not an email"))
+    bad(Dict("homepage" => "no scheme"))
+    bad(Dict("id" => "123"))
+    M.check_formats!(false)
+    @test ok(Dict("date" => "13/11/2026")).date == "13/11/2026"
+    M.check_formats!(true)
+    # items and contains
+    @test ok(Dict("tags" => ["a", "important"])).tags == ["a", "important"]
+    bad(Dict("tags" => ["a", ""]))
+    bad(Dict("tags" => ["a", "b"]))
+    # patternProperties with additionalProperties: false, in a dict
+    @test ok(Dict("labels" => Dict("x-a" => "1"))).labels == Dict("x-a" => "1")
+    bad(Dict("labels" => Dict("x-a" => 1)))
+    bad(Dict("labels" => Dict("y" => "1")))
+    # if/then/else and dependentRequired on an object
+    @test M.fromdict(M.Payment, Dict("method" => "card", "card_number" => "1", "billing_address" => "x")) isa M.Payment
+    @test M.fromdict(M.Payment, Dict("method" => "cash")) isa M.Payment
+    @test_throws E M.fromdict(M.Payment, Dict("method" => "card"))                   # then
+    @test_throws E M.fromdict(M.Payment, Dict("method" => "cash", "card_number" => "1",
+                                              "billing_address" => "x"))             # else
+    @test_throws E M.fromdict(M.Payment, Dict("method" => "card", "card_number" => "1"))  # dependentRequired
+    @test_throws E M.Payment(method = "card")                                        # also in constructors
+    # patternProperties in a struct: matching properties are kept in `_extra`
+    s = M.fromdict(M.Settings, Dict("name" => "n", "opt_a" => true))
+    @test s._extra == Dict("opt_a" => true)
+    @test M.tojson(s) == """{"name":"n","opt_a":true}"""
+    @test_throws E M.fromdict(M.Settings, Dict("name" => "n", "opt_a" => 1))
+    @test_throws E M.fromdict(M.Settings, Dict("name" => "n", "other" => true))
+end
+
+@testset "Type names" begin
+    # inline enums get an `Enum` suffix, after the name of the parent without `Type`/`Base`
+    M = load_generated(joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json"); root_name = "BeerJSON")
+    @test isdefined(M, :RecipeTypeEnum) && isdefined(M, :FermentableTypeEnum) &&
+          isdefined(M, :BoilStepChillingTypeEnum) && isdefined(M, :HopVarietyFormEnum)
+    @test fieldtype(M.RecipeType, :type) == M.RecipeTypeEnum
+    # a property named like its parent: `beerjson` in `BeerJSON`
+    @test fieldtype(M.BeerJSON, :beerjson) == M.BeerJSONContent
+    # chosen names
+    names = Dict("recipe.json#/definitions/RecipeType/properties/type" => "RecipeKind",
+                 "#/properties/beerjson" => "BeerJSONDocument",
+                 "measureable_units.json#/definitions/VolumeType" => "Volume")
+    N = load_generated(joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json");
+                       root_name = "BeerJSON", type_names = names)
+    @test fieldtype(N.RecipeType, :type) == N.RecipeKind
+    @test fieldtype(N.BeerJSON, :beerjson) == N.BeerJSONDocument
+    @test N.Volume(unit = "l", value = 1).value == 1.0 && !isdefined(N, :VolumeType)
+    file = joinpath(mktempdir(), "x.jl")
+    @test_logs (:warn, r"does not name a generated type") generate_module(
+        joinpath(EXAMPLES, "acme_schemas", "acme_flatschema.json"), file; type_names = Dict("#/nowhere" => "X"))
+    @test_throws ArgumentError generate_module(joinpath(EXAMPLES, "acme_schemas", "acme_flatschema.json"), file;
+                                               type_names = Dict("#" => "not valid"))
 end
 
 @testset "Additional properties are preserved" begin

@@ -48,5 +48,6 @@ _SPECS[BoilProcedureType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

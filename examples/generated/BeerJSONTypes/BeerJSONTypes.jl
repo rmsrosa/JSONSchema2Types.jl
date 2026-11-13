@@ -5,7 +5,7 @@ module BeerJSONTypes
 
 using JSON
 
-export fromjson, tojson, readjson, writejson, fromdict, todict
+export fromjson, tojson, readjson, writejson, fromdict, todict, check_formats!
 export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError
 export TimeUnitType, GravityUnitType, AcidityUnitType, PercentUnitType, ColorUnitType, DiastaticPowerUnitType
 export VolumeUnitType, MassUnitType, ViscosityUnitType, ConcentrationUnitType, UnitUnitType, TemperatureUnitType
@@ -13,15 +13,15 @@ export QualitativeRangeType, BitternessUnitType, CarbonationUnitType, SpecificVo
 export GravityType, AcidityType, PercentType, ColorType, DiastaticPowerType, VolumeType
 export MassType, ViscosityType, ConcentrationType, UnitType, TemperatureType, TemperatureRangeType
 export PercentRangeType, GravityRangeType, BitternessType, BitternessRangeType, ColorRangeType, CarbonationType
-export CarbonationRangeType, SpecificVolumeType, SpecificHeatType, UseType, TimingType, FermentableBaseType
-export FermentableBaseGrainGroup, YieldType, FermentableInventoryType, FermentableType, FermentableAdditionType, MiscellaneousBaseType
-export MiscellaneousInventoryType, MiscellaneousType, MiscellaneousAdditionType, HopVarietyBaseForm, VarietyInformationType, IBUMethodType
-export OilContentType, HopInventoryType, VarietyInformation, HopAdditionType, IBUEstimateType, CultureBaseType
-export CultureBaseForm, CultureInventoryType, Zymocide, CultureInformation, CultureAdditionType, WaterBase
-export WaterAdditionType, StyleCategories, StyleType, RecipeStyleType, MashStepTypeType, MashStepType
-export MashProcedureType, FermentationStepType, FermentationProcedureType, PackagingVesselTypeType, PackagingVesselType, PackagingProcedureType
-export BoilStepTypeChillingType, BoilStepType, BoilProcedureType, RecipeTypeType, EfficiencyType, IngredientsType
-export TasteType, RecipeType, EquipmentBaseForm, EquipmentItemType, EquipmentType, BeerJSONBeerjson
+export CarbonationRangeType, SpecificVolumeType, SpecificHeatType, UseType, TimingType, FermentableTypeEnum
+export FermentableGrainGroupEnum, YieldType, FermentableInventoryType, FermentableType, FermentableAdditionType, MiscellaneousTypeEnum
+export MiscellaneousInventoryType, MiscellaneousType, MiscellaneousAdditionType, HopVarietyFormEnum, VarietyInformationTypeEnum, IBUMethodType
+export OilContentType, HopInventoryType, VarietyInformation, HopAdditionType, IBUEstimateType, CultureTypeEnum
+export CultureFormEnum, CultureInventoryType, Zymocide, CultureInformation, CultureAdditionType, WaterBase
+export WaterAdditionType, StyleCategories, StyleType, RecipeStyleType, MashStepTypeEnum, MashStepType
+export MashProcedureType, FermentationStepType, FermentationProcedureType, PackagingVesselTypeEnum, PackagingVesselType, PackagingProcedureType
+export BoilStepChillingTypeEnum, BoilStepType, BoilProcedureType, RecipeTypeEnum, EfficiencyType, IngredientsType
+export TasteType, RecipeType, EquipmentFormEnum, EquipmentItemType, EquipmentType, BeerJSONContent
 export BeerJSON
 export RootType
 

@@ -4,15 +4,15 @@
 # Types from `recipe.json`.
 
 """
-    RecipeTypeType(value)
+    RecipeTypeEnum(value)
 
 Allowed values: `"cider"`, `"kombucha"`, `"soda"`, `"other"`, `"mead"`, `"wine"`, `"extract"`, `"partial mash"`, `"all grain"`.
 """
-struct RecipeTypeType <: AbstractSchemaEnum
+struct RecipeTypeEnum <: AbstractSchemaEnum
     value::String
-    RecipeTypeType(value) = new(_jscheckenum(RecipeTypeType, _jsfrom(String, value)))
+    RecipeTypeEnum(value) = new(_jscheckenum(RecipeTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[RecipeTypeType] = (values = Any["cider", "kombucha", "soda", "other", "mead", "wine", "extract", "partial mash", "all grain"],)
+_SPECS[RecipeTypeEnum] = (values = Any["cider", "kombucha", "soda", "other", "mead", "wine", "extract", "partial mash", "all grain"],)
 
 """
     EfficiencyType(; kwargs...)
@@ -51,6 +51,7 @@ _SPECS[EfficiencyType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -92,6 +93,7 @@ _SPECS[IngredientsType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -121,6 +123,7 @@ _SPECS[TasteType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -131,7 +134,7 @@ RecipeType composes the information stored in a beerjson recipe.
 # Fields
 
 - `name::String` (required)
-- `type::RecipeTypeType` (required)
+- `type::RecipeTypeEnum` (required)
 - `author::String` (required)
 - `coauthor::Union{Nothing, String}`
 - `created::Union{Nothing, String}`
@@ -157,7 +160,7 @@ RecipeType composes the information stored in a beerjson recipe.
 """
 struct RecipeType <: AbstractSchemaObject
     name::String
-    type::RecipeTypeType
+    type::RecipeTypeEnum
     author::String
     coauthor::Union{Nothing, String}
     created::Union{Nothing, String}
@@ -182,7 +185,7 @@ struct RecipeType <: AbstractSchemaObject
     calories_per_pint::Union{Nothing, Float64}
     function RecipeType(; name, type, author, coauthor = nothing, created = nothing, batch_size, efficiency, style = nothing, ingredients, mash = nothing, notes = nothing, original_gravity = nothing, final_gravity = nothing, alcohol_by_volume = nothing, ibu_estimate = nothing, color_estimate = nothing, beer_pH = nothing, carbonation = nothing, apparent_attenuation = nothing, fermentation = nothing, packaging = nothing, boil = nothing, taste = nothing, calories_per_pint = nothing)
         name = _jsfrom(String, name)
-        type = _jsfrom(RecipeTypeType, type)
+        type = _jsfrom(RecipeTypeEnum, type)
         author = _jsfrom(String, author)
         coauthor = _jsfrom(Union{Nothing, String}, coauthor)
         created = _jsfrom(Union{Nothing, String}, created)
@@ -240,5 +243,6 @@ _SPECS[RecipeType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

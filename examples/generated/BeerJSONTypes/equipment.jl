@@ -4,15 +4,15 @@
 # Types from `equipment.json`.
 
 """
-    EquipmentBaseForm(value)
+    EquipmentFormEnum(value)
 
 Allowed values: `"HLT"`, `"Mash Tun"`, `"Lauter Tun"`, `"Brew Kettle"`, `"Fermenter"`, `"Aging Vessel"`, `"Packaging Vessel"`.
 """
-struct EquipmentBaseForm <: AbstractSchemaEnum
+struct EquipmentFormEnum <: AbstractSchemaEnum
     value::String
-    EquipmentBaseForm(value) = new(_jscheckenum(EquipmentBaseForm, _jsfrom(String, value)))
+    EquipmentFormEnum(value) = new(_jscheckenum(EquipmentFormEnum, _jsfrom(String, value)))
 end
-_SPECS[EquipmentBaseForm] = (values = Any["HLT", "Mash Tun", "Lauter Tun", "Brew Kettle", "Fermenter", "Aging Vessel", "Packaging Vessel"],)
+_SPECS[EquipmentFormEnum] = (values = Any["HLT", "Mash Tun", "Lauter Tun", "Brew Kettle", "Fermenter", "Aging Vessel", "Packaging Vessel"],)
 
 """
     EquipmentItemType(; kwargs...)
@@ -23,7 +23,7 @@ EquipmentType provides necessary information for individual brewing equipment.
 
 - `name::String` (required)
 - `type::Union{Nothing, String}`
-- `form::EquipmentBaseForm` (required)
+- `form::EquipmentFormEnum` (required)
 - `maximum_volume::VolumeType` (required)
 - `loss::VolumeType` (required)
 - `grain_absorption_rate::Union{Nothing, SpecificVolumeType}`: The apparent volume absorbed by grain, typical values are 0.125 qt/lb (1.04 L/kg) for a mashtun, 0.08 gal/lb (0.66 L/kg) for BIAB.
@@ -37,7 +37,7 @@ EquipmentType provides necessary information for individual brewing equipment.
 struct EquipmentItemType <: AbstractSchemaObject
     name::String
     type::Union{Nothing, String}
-    form::EquipmentBaseForm
+    form::EquipmentFormEnum
     maximum_volume::VolumeType
     loss::VolumeType
     grain_absorption_rate::Union{Nothing, SpecificVolumeType}
@@ -50,7 +50,7 @@ struct EquipmentItemType <: AbstractSchemaObject
     function EquipmentItemType(; name, type = nothing, form, maximum_volume, loss, grain_absorption_rate = nothing, boil_rate_per_hour = nothing, drain_rate_per_minute = nothing, weight = nothing, specific_heat = nothing, notes = nothing, _extra = Dict{String, Any}())
         name = _jsfrom(String, name)
         type = _jsfrom(Union{Nothing, String}, type)
-        form = _jsfrom(EquipmentBaseForm, form)
+        form = _jsfrom(EquipmentFormEnum, form)
         maximum_volume = _jsfrom(VolumeType, maximum_volume)
         loss = _jsfrom(VolumeType, loss)
         grain_absorption_rate = _jsfrom(Union{Nothing, SpecificVolumeType}, grain_absorption_rate)
@@ -82,6 +82,7 @@ _SPECS[EquipmentItemType] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -113,5 +114,6 @@ _SPECS[EquipmentType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

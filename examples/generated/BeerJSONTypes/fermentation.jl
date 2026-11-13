@@ -40,5 +40,6 @@ _SPECS[FermentationProcedureType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

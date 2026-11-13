@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Validation",
+  "description": "Keywords that are checked at runtime rather than by the types.",
+  "type": "object",
+  "properties": {
+    "password": { "type": "string", "not": { "enum": ["password", "123456"] } },
+    "number": {
+      "description": "Positive numbers and integers overlap, so 5 matches both options.",
+      "oneOf": [
+        { "type": "number", "minimum": 0 },
+        { "type": "integer" }
+      ]
+    },
+    "code": {
+      "anyOf": [
+        { "type": "string", "maxLength": 3 },
+        { "type": "integer", "minimum": 100 }
+      ]
+    },
+    "shape": {
+      "oneOf": [
+        { "$ref": "#/$defs/Circle" },
+        { "$ref": "#/$defs/Ellipse" }
+      ]
+    },
+    "date": { "type": "string", "format": "date" },
+    "email": { "type": "string", "format": "email" },
+    "homepage": { "type": "string", "format": "uri" },
+    "id": { "type": "string", "format": "uuid" },
+    "secret_format": { "type": "string", "format": "made-up" },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "not": { "const": "" } },
+      "contains": { "const": "important" }
+    },
+    "labels": {
+      "type": "object",
+      "patternProperties": { "^x-": { "type": "string" } },
+      "additionalProperties": false
+    },
+    "payment": { "$ref": "#/$defs/Payment" },
+    "settings": { "$ref": "#/$defs/Settings" }
+  },
+  "$defs": {
+    "Circle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "radius": { "type": "number" } },
+      "required": ["radius"]
+    },
+    "Ellipse": {
+      "type": "object",
+      "properties": { "radius": { "type": "number" }, "ratio": { "type": "number" } },
+      "required": ["radius"]
+    },
+    "Payment": {
+      "type": "object",
+      "properties": {
+        "method": { "enum": ["card", "cash"] },
+        "card_number": { "type": "string" },
+        "billing_address": { "type": "string" }
+      },
+      "required": ["method"],
+      "if": { "properties": { "method": { "const": "card" } } },
+      "then": { "required": ["card_number"] },
+      "else": { "not": { "required": ["card_number"] } },
+      "dependentRequired": { "card_number": ["billing_address"] }
+    },
+    "Settings": {
+      "type": "object",
+      "properties": { "name": { "type": "string" } },
+      "patternProperties": { "^opt_": { "type": "boolean" } },
+      "additionalProperties": false
+    }
+  }
+}

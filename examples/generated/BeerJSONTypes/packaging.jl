@@ -44,5 +44,6 @@ _SPECS[PackagingProcedureType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

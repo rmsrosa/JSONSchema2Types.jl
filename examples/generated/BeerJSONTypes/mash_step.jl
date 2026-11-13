@@ -4,15 +4,15 @@
 # Types from `mash_step.json`.
 
 """
-    MashStepTypeType(value)
+    MashStepTypeEnum(value)
 
 Allowed values: `"infusion"`, `"temperature"`, `"decoction"`, `"souring mash"`, `"souring wort"`, `"drain mash tun"`, `"sparge"`.
 """
-struct MashStepTypeType <: AbstractSchemaEnum
+struct MashStepTypeEnum <: AbstractSchemaEnum
     value::String
-    MashStepTypeType(value) = new(_jscheckenum(MashStepTypeType, _jsfrom(String, value)))
+    MashStepTypeEnum(value) = new(_jscheckenum(MashStepTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[MashStepTypeType] = (values = Any["infusion", "temperature", "decoction", "souring mash", "souring wort", "drain mash tun", "sparge"],)
+_SPECS[MashStepTypeEnum] = (values = Any["infusion", "temperature", "decoction", "souring mash", "souring wort", "drain mash tun", "sparge"],)
 
 """
     MashStepType(; kwargs...)
@@ -22,7 +22,7 @@ MashStepType - a per step representation occurring during the mash.
 # Fields
 
 - `name::String` (required)
-- `type::MashStepTypeType` (required)
+- `type::MashStepTypeEnum` (required)
 - `amount::Union{Nothing, VolumeType}`
 - `step_temperature::TemperatureType` (required)
 - `step_time::TimeType` (required)
@@ -36,7 +36,7 @@ MashStepType - a per step representation occurring during the mash.
 """
 struct MashStepType <: AbstractSchemaObject
     name::String
-    type::MashStepTypeType
+    type::MashStepTypeEnum
     amount::Union{Nothing, VolumeType}
     step_temperature::TemperatureType
     step_time::TimeType
@@ -49,7 +49,7 @@ struct MashStepType <: AbstractSchemaObject
     end_ph::Union{Nothing, AcidityType}
     function MashStepType(; name, type, amount = nothing, step_temperature, step_time, ramp_time = nothing, end_temperature = nothing, description = nothing, water_grain_ratio = nothing, infuse_temperature = nothing, start_ph = nothing, end_ph = nothing)
         name = _jsfrom(String, name)
-        type = _jsfrom(MashStepTypeType, type)
+        type = _jsfrom(MashStepTypeEnum, type)
         amount = _jsfrom(Union{Nothing, VolumeType}, amount)
         step_temperature = _jsfrom(TemperatureType, step_temperature)
         step_time = _jsfrom(TimeType, step_time)
@@ -83,5 +83,6 @@ _SPECS[MashStepType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

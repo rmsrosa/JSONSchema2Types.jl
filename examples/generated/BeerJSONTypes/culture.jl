@@ -4,26 +4,26 @@
 # Types from `culture.json`.
 
 """
-    CultureBaseType(value)
+    CultureTypeEnum(value)
 
 Allowed values: `"ale"`, `"bacteria"`, `"brett"`, `"champagne"`, `"kveik"`, `"lacto"`, `"lager"`, `"malolactic"`, `"mixed-culture"`, `"other"`, `"pedio"`, `"spontaneous"`, `"wine"`.
 """
-struct CultureBaseType <: AbstractSchemaEnum
+struct CultureTypeEnum <: AbstractSchemaEnum
     value::String
-    CultureBaseType(value) = new(_jscheckenum(CultureBaseType, _jsfrom(String, value)))
+    CultureTypeEnum(value) = new(_jscheckenum(CultureTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[CultureBaseType] = (values = Any["ale", "bacteria", "brett", "champagne", "kveik", "lacto", "lager", "malolactic", "mixed-culture", "other", "pedio", "spontaneous", "wine"],)
+_SPECS[CultureTypeEnum] = (values = Any["ale", "bacteria", "brett", "champagne", "kveik", "lacto", "lager", "malolactic", "mixed-culture", "other", "pedio", "spontaneous", "wine"],)
 
 """
-    CultureBaseForm(value)
+    CultureFormEnum(value)
 
 Allowed values: `"liquid"`, `"dry"`, `"slant"`, `"culture"`, `"dregs"`.
 """
-struct CultureBaseForm <: AbstractSchemaEnum
+struct CultureFormEnum <: AbstractSchemaEnum
     value::String
-    CultureBaseForm(value) = new(_jscheckenum(CultureBaseForm, _jsfrom(String, value)))
+    CultureFormEnum(value) = new(_jscheckenum(CultureFormEnum, _jsfrom(String, value)))
 end
-_SPECS[CultureBaseForm] = (values = Any["liquid", "dry", "slant", "culture", "dregs"],)
+_SPECS[CultureFormEnum] = (values = Any["liquid", "dry", "slant", "culture", "dregs"],)
 
 """
     CultureInventoryType(; kwargs...)
@@ -60,6 +60,7 @@ _SPECS[CultureInventoryType] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -103,6 +104,7 @@ _SPECS[Zymocide] = (
     extra = nothing,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -113,8 +115,8 @@ CultureInformation collects the attributes of a microbial culture.
 # Fields
 
 - `name::String` (required)
-- `type::CultureBaseType` (required)
-- `form::CultureBaseForm` (required)
+- `type::CultureTypeEnum` (required)
+- `form::CultureFormEnum` (required)
 - `producer::Union{Nothing, String}`
 - `product_id::Union{Nothing, String}`
 - `temperature_range::Union{Nothing, TemperatureRangeType}`: The recommended temperature range of fermentation by the culture producer.
@@ -132,8 +134,8 @@ CultureInformation collects the attributes of a microbial culture.
 """
 struct CultureInformation <: AbstractSchemaObject
     name::String
-    type::CultureBaseType
-    form::CultureBaseForm
+    type::CultureTypeEnum
+    form::CultureFormEnum
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
     temperature_range::Union{Nothing, TemperatureRangeType}
@@ -150,8 +152,8 @@ struct CultureInformation <: AbstractSchemaObject
     _extra::Dict{String, Any}
     function CultureInformation(; name, type, form, producer = nothing, product_id = nothing, temperature_range = nothing, alcohol_tolerance = nothing, flocculation = nothing, attenuation_range = nothing, notes = nothing, best_for = nothing, max_reuse = nothing, pof = nothing, glucoamylase = nothing, inventory = nothing, zymocide = nothing, _extra = Dict{String, Any}())
         name = _jsfrom(String, name)
-        type = _jsfrom(CultureBaseType, type)
-        form = _jsfrom(CultureBaseForm, form)
+        type = _jsfrom(CultureTypeEnum, type)
+        form = _jsfrom(CultureFormEnum, form)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
         temperature_range = _jsfrom(Union{Nothing, TemperatureRangeType}, temperature_range)
@@ -193,6 +195,7 @@ _SPECS[CultureInformation] = (
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 
 """
@@ -203,8 +206,8 @@ CultureAdditionType collects the attributes of each culture ingredient for use i
 # Fields
 
 - `name::String` (required)
-- `type::CultureBaseType` (required)
-- `form::CultureBaseForm` (required)
+- `type::CultureTypeEnum` (required)
+- `form::CultureFormEnum` (required)
 - `producer::Union{Nothing, String}`
 - `product_id::Union{Nothing, String}`
 - `attenuation::Union{Nothing, PercentType}`: The expected, or measured apparent attenuation for a given culture in a given recipe. In comparison to attenuation range, this is a single value.
@@ -216,8 +219,8 @@ CultureAdditionType collects the attributes of each culture ingredient for use i
 """
 struct CultureAdditionType <: AbstractSchemaObject
     name::String
-    type::CultureBaseType
-    form::CultureBaseForm
+    type::CultureTypeEnum
+    form::CultureFormEnum
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
     attenuation::Union{Nothing, PercentType}
@@ -228,8 +231,8 @@ struct CultureAdditionType <: AbstractSchemaObject
     _extra::Dict{String, Any}
     function CultureAdditionType(; name, type, form, producer = nothing, product_id = nothing, attenuation = nothing, times_cultured = nothing, timing = nothing, cell_count_billions = nothing, amount, _extra = Dict{String, Any}())
         name = _jsfrom(String, name)
-        type = _jsfrom(CultureBaseType, type)
-        form = _jsfrom(CultureBaseForm, form)
+        type = _jsfrom(CultureTypeEnum, type)
+        form = _jsfrom(CultureFormEnum, form)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
         attenuation = _jsfrom(Union{Nothing, PercentType}, attenuation)
@@ -253,11 +256,26 @@ _SPECS[CultureAdditionType] = (
         (name = :times_cultured, key = "times_cultured", required = false, nullable = false, constraints = nothing),
         (name = :timing, key = "timing", required = false, nullable = false, constraints = nothing),
         (name = :cell_count_billions, key = "cell_count_billions", required = false, nullable = false, constraints = nothing),
-        (name = :amount, key = "amount", required = true, nullable = false, constraints = nothing),
+        (name = :amount, key = "amount", required = true, nullable = false, constraints = (schema = JSON.parse("""
+            {
+              "oneOf": [
+                {
+                  "\$type": "VolumeType"
+                },
+                {
+                  "\$type": "MassType"
+                },
+                {
+                  "\$type": "UnitType"
+                }
+              ]
+            }
+            """),)),
     ),
     additionalProperties = true,
     extra = :_extra,
     minProperties = nothing,
     maxProperties = nothing,
+    schema = nothing,
 )
 

@@ -1,5 +1,8 @@
 # JSONSchema2Types
 
+[![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://rmsrosa.github.io/JSONSchema2Types.jl/dev/)
+[![CI](https://github.com/rmsrosa/JSONSchema2Types.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/rmsrosa/JSONSchema2Types.jl/actions/workflows/CI.yml)
+
 Generate Julia types from a [JSON Schema](https://json-schema.org), together with functions
 to read and write JSON documents that conform to the schema.
 
@@ -30,7 +33,7 @@ julia> doc = readjson(RootType, "test/beerjson-1.0.1-samples/real/SourMash.json"
 julia> recipe = doc.beerjson.recipes[1];
 
 julia> recipe.name, recipe.type
-("Sour Mash", RecipeTypeType("all grain"))
+("Sour Mash", RecipeTypeEnum("all grain"))
 
 julia> recipe.batch_size
 VolumeType(VolumeUnitType("gal"), 12.0)
@@ -56,7 +59,8 @@ The generated module exports:
   of type `T`;
 * `writejson(filename, x)` and `tojson(x)` to write a value as JSON;
 * `fromdict(T, x)` and `todict(x)` to convert from and to parsed JSON values;
-* `SchemaValidationError`, the error thrown when a value does not conform to the schema.
+* `SchemaValidationError`, the error thrown when a value does not conform to the schema;
+* `check_formats!(flag)` to turn the validation of `format` off or on (see below).
 
 ### Options
 
@@ -67,6 +71,8 @@ The generated module exports:
   below), instead of to the single file `output`. Defaults to `false`.
 * `schemas`: other schema files that are referenced by their `$id` URL instead of by a
   relative path (see `examples/generate_examples.jl`).
+* `type_names`: names to use for chosen types, instead of the derived ones (see
+  [Type names](#type-names)).
 
 ### Splitting into several files
 
@@ -105,13 +111,53 @@ before it. Schema files whose types depend on each other in a cycle share a sing
 | `additionalProperties: false` | unknown properties are an error |
 | `unevaluatedProperties` (2019-09 and later) | same as `additionalProperties`, applied after merging `allOf`, so `unevaluatedProperties: false` closes an `allOf`-composed type |
 | `deprecated: true` | flagged as deprecated in the docstrings of the field or type |
+| `patternProperties` | in a struct, matching properties are kept in `_extra`; in a dict, values are kept as they are; either way they are checked against their schemas |
+| `not`, `if`/`then`/`else`, `dependentRequired`, `dependentSchemas`, `dependencies`, `propertyNames`, `contains`, `prefixItems` | checked at runtime (see below) |
+| `format` | the value stays a `String`; well-known formats are checked at runtime (see below) |
+
+### Checks at runtime
+
+Most of a schema is enforced by the types themselves. The keywords that cannot be
+expressed by Julia types are checked when a value is constructed or read. The generator
+embeds the corresponding subschemas, with their `$ref`s resolved, in the generated code,
+and a small JSON Schema validator in the runtime checks the JSON form of the value against
+them. These keywords are:
+
+* `not`, `if`/`then`/`else`, `dependentRequired`, `dependentSchemas`, `dependencies`,
+  `propertyNames`, `contains`/`minContains`/`maxContains`, `prefixItems` and
+  `patternProperties`;
+* `oneOf` and `anyOf`. A field from `oneOf` or `anyOf` is a `Union`, and reading a value
+  picks the first option whose type fits. The runtime check then makes sure that the value
+  satisfies the full schema of an option (including its constraints) and, for `oneOf`,
+  that it matches *exactly one* option;
+* `format`: `date-time`, `date`, `time`, `email`, `uri`, `uuid`, `ipv4`, `ipv6`, `hostname`
+  and `regex` are checked; other formats are ignored. JSON Schema treats `format` as an
+  annotation by default, so the checks can be turned off with `check_formats!(false)` (and
+  back on with `check_formats!(true)`).
+
+### Type names
 
 Type names come from the definition names, for example `#/definitions/VolumeType` becomes
 `VolumeType`. Inline subschemas are named after their `title` if they have one. Otherwise
-the name is built from the parent type and the property name, for example
-`RecipeTypeType` for the inline `enum` of the `type` property of `RecipeType`. Property
-names that are not valid Julia identifiers, or are keywords, are changed (`first-name` →
-`first_name`, `end` → `end_`). Each field keeps a link to its original JSON name.
+the name is built from the parent type, without a trailing `Type` or `Base`, and the
+property name. Inline enums get an `Enum` suffix. For example, the inline `enum` of the
+`type` property of `RecipeType` is `RecipeTypeEnum`, and that of `form` in `HopVarietyBase`
+is `HopVarietyFormEnum`. A property with the same name as its parent gets `Content`, e.g.
+`beerjson` in `BeerJSON` is `BeerJSONContent`.
+
+Any type can be given another name with `type_names`, which maps the location of its
+subschema, as `"file.json#/json/pointer"` (or `"#/json/pointer"` in the root schema file),
+to a name:
+
+```julia
+generate_module("beer.json", "BeerJSONTypes"; root_name = "BeerJSON", split = true,
+    type_names = Dict("recipe.json#/definitions/RecipeType/properties/type" => "RecipeKind",
+                      "#/properties/beerjson" => "BeerJSONDocument"))
+```
+
+Property names that are not valid Julia identifiers, or are keywords, are changed
+(`first-name` → `first_name`, `end` → `end_`). Each field keeps a link to its original
+JSON name.
 
 Types are emitted in dependency order. When a schema is recursive, the fields that close
 the cycle are declared as `Any`, but they are still converted and checked by the
@@ -124,10 +170,12 @@ These keywords are checked at construction time: `minimum`, `maximum`,
 
 ### Current limitations
 
-* `not`, `if`/`then`/`else`, `patternProperties`, `dependencies`/`dependentRequired`,
-  tuple-style `items`, and `format` are not enforced. String formats such as `date-time`
-  are kept as `String`.
-* For `oneOf`, the first matching option is used; exclusivity is not checked.
+* Values with a `format` stay `String`s; e.g. `date-time` is not converted to `DateTime`.
+* `unevaluatedProperties` and `unevaluatedItems` inside the subschemas checked at runtime
+  (e.g. in `not` or `if`) only take into account the keywords of their own subschema, not
+  those of `allOf`/`$ref` siblings. At the level of a generated type they are exact.
+* Tuple-style arrays (`prefixItems`, or `items` as a list) are `Vector{Any}`, with their
+  items checked at runtime.
 * Remote `$ref`s are not downloaded; give the files locally (relative paths or `schemas`).
 * `$id`-relative resolution of nested `$id`s and `$anchor`s is not supported; references
   must be relative file paths or JSON pointers, or match the `$id` of a loaded file.
@@ -148,6 +196,19 @@ schemas in `examples/`:
 * `beerjson-1.0.1/`: the [BeerJSON](https://github.com/beerjson/beerjson) 1.0.1 schema
   (MIT License). The generated module, split into one file per schema file, is in
   `examples/generated/BeerJSONTypes/`.
+
+## Documentation
+
+The [documentation](https://rmsrosa.github.io/JSONSchema2Types.jl/dev/) has a guide, the
+examples step by step, and a page reading and displaying BeerJSON recipes, styles, water
+profiles and hop varieties with the generated types. To build it locally:
+
+```shell
+julia --project=docs -e 'using Pkg; Pkg.develop(path = "."); Pkg.instantiate()'
+julia --project=docs docs/make.jl
+```
+
+The pages are written to `docs/build/`.
 
 ## Tests
 
