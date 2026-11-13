@@ -1,0 +1,38 @@
+{
+  "beerjson": {
+    "version": 2.01,
+    "fermentables": [
+      {
+        "name": "Fustons Hopped Amber",
+        "type": "extract",
+        "color": {
+          "unit": "Lovi",
+          "value": 13
+        },
+        "yield": {
+          "potential": {
+            "unit": "sg",
+            "value": 1.036
+          }
+        },
+        "notes": "Hopped amber extract suitable as a base for english ales."
+      }
+    ],
+    "styles": [{
+      "name": "",
+      "category": "",
+      "style_guide": "BJCP2015",
+      "type": "beer",
+      "international_bitterness_units":{
+        "minimum": {
+          "unit": "IBUs",
+          "value": 16.6
+        },
+        "maximum": {
+          "unit": "IBUs",
+          "value": 16.6
+        }
+      }
+    }]
+  }
+}

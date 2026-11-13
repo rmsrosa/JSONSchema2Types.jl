@@ -1,0 +1,11 @@
+{
+  "beerjson": {
+    "version": 2.06,
+    "miscellaneous_ingredients": [
+      {
+        "name": "name",
+        "type": "fining"
+      }
+    ]
+  }
+}

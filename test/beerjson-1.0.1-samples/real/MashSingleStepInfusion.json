@@ -1,0 +1,32 @@
+{
+  "beerjson": {
+    "version": 2.01,
+    "mashes": [
+      {
+        "name": "Single Step Infusion, 68 C",
+        "grain_temperature": {
+          "unit": "C",
+          "value": 22.0
+        },
+        "mash_steps": [
+          {
+            "name": "Conversion Step, 68C",
+            "type": "infusion",
+            "amount": {
+              "unit": "l",
+              "value": 10.0
+            },
+            "step_temperature": {
+              "unit": "C",
+              "value": 68.0
+            },
+            "step_time": {
+              "unit": "min",
+              "value": 60.0
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

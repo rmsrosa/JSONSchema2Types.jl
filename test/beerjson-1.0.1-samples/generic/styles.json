@@ -1,0 +1,55 @@
+{
+  "beerjson": {
+    "version": 2.06,
+    "styles": [
+      {
+        "name": "name",
+        "category": "European Pale Ale",
+        "category_number": 2,
+        "style_letter": "A",
+        "style_guide": "BJCP",
+        "type": "beer",
+        "original_gravity": {
+          "minimum": {
+            "unit": "sg",
+            "value": 1
+          },
+          "maximum": {
+            "unit": "sg",
+            "value": 1
+          }
+        },
+        "final_gravity": {
+          "minimum": {
+            "unit": "sg",
+            "value": 1
+          },
+          "maximum": {
+            "unit": "sg",
+            "value": 1
+          }
+        },
+        "international_bitterness_units": {
+          "minimum": {
+            "unit": "IBUs",
+            "value": 1
+          },
+          "maximum": {
+            "unit": "IBUs",
+            "value": 1
+          }
+        },
+        "color": {
+          "minimum": {
+            "unit": "SRM",
+            "value": 1
+          },
+          "maximum": {
+            "unit": "SRM",
+            "value": 1
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "beerjson": {
+    "version": 2.01,
+    "styles": [
+      {
+        "name": "Bohemian Pilsner",
+        "category": "European Pale Ale",
+        "category_number": 2,
+        "style_letter": "A",
+        "style_guide": "BJCP",
+        "type": "beer",
+        "original_gravity": {
+          "minimum": {
+            "unit": "sg",
+            "value": 1.044
+          },
+          "maximum": {
+            "unit": "sg",
+            "value": 1.056
+          }
+        },
+        "final_gravity": {
+          "minimum": {
+            "unit": "sg",
+            "value": 1.013
+          },
+          "maximum": {
+            "unit": "sg",
+            "value": 1.017
+          }
+        },
+        "international_bitterness_units": {
+          "minimum": {
+            "unit": "IBUs",
+            "value": 35.0
+          },
+          "maximum": {
+            "unit": "IBUs",
+            "value": 45.0
+          }
+        },
+        "color": {
+          "minimum": {
+            "unit": "SRM",
+            "value": 3.0
+          },
+          "maximum": {
+            "unit": "SRM",
+            "value": 5.0
+          }
+        },
+        "notes": "Famous beer of Pilsen, Czech republic. Light to medium body with some sweetness. Saaz hop flavor and aroma with no lingering bitterness."
+      }
+    ]
+  }
+}

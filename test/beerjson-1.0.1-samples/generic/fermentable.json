@@ -1,0 +1,25 @@
+{
+  "beerjson": {
+    "version": 2.06,
+    "fermentables": [
+      {
+        "name": "name",
+        "type": "grain",
+        "color": {
+          "unit": "SRM",
+          "value": 3.0
+        },
+        "yield": {
+          "fine_grind": {
+            "unit": "%",
+            "value": 80
+          },
+          "coarse_grind": {
+            "unit": "%",
+            "value": 76
+          }
+        }
+      }
+    ]
+  }
+}

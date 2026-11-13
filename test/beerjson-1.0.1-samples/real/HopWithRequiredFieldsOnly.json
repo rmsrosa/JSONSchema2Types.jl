@@ -1,0 +1,15 @@
+{
+  "beerjson": {
+    "version": 2.01,
+    "hop_varieties": [
+      {
+        "name": "Cascade",
+        "origin": "US",
+        "alpha_acid": {
+          "unit": "%",
+          "value": 5.5
+        }
+      }
+    ]
+  }
+}

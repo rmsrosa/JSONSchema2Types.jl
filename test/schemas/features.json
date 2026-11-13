@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Features",
+  "description": "Schema exercising several features. Costs are in $ and paths use \\ separators.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "#/definitions/Identifier" },
+    "end": { "type": "integer", "description": "A field named with a Julia keyword." },
+    "first-name": { "type": "string", "minLength": 1, "maxLength": 10 },
+    "score": { "type": "number", "minimum": 0, "exclusiveMaximum": 10, "multipleOf": 0.5 },
+    "nickname": { "type": ["string", "null"] },
+    "color": { "$ref": "#/definitions/Color" },
+    "mixed": { "enum": ["a", 1, 2.5, true] },
+    "tags": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Identifier" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "tree": { "$ref": "#/definitions/Node" },
+    "metadata": { "type": "object", "additionalProperties": { "type": "integer" } },
+    "shape": {
+      "oneOf": [
+        { "$ref": "#/definitions/Circle" },
+        { "$ref": "#/definitions/Square" }
+      ]
+    },
+    "labeled": { "$ref": "#/definitions/LabeledCircle" },
+    "counted": {
+      "type": "object",
+      "properties": { "a": { "type": "integer" }, "b": { "type": "integer" } },
+      "minProperties": 1
+    }
+  },
+  "required": ["id", "end", "nickname"],
+  "definitions": {
+    "Identifier": { "type": "string", "pattern": "^[a-z]+-[0-9]+$" },
+    "Color": { "type": "string", "enum": ["red", "green", "blue"] },
+    "Node": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "integer" },
+        "children": { "type": "array", "items": { "$ref": "#/definitions/Node" } },
+        "parent": { "$ref": "#/definitions/Parent" }
+      },
+      "required": ["value"]
+    },
+    "Parent": {
+      "type": "object",
+      "properties": { "node": { "$ref": "#/definitions/Node" } }
+    },
+    "Circle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "radius": { "type": "number", "exclusiveMinimum": 0 } },
+      "required": ["radius"]
+    },
+    "Square": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "side": { "type": "number" } },
+      "required": ["side"]
+    },
+    "LabeledCircle": {
+      "allOf": [
+        { "$ref": "#/definitions/Circle" },
+        { "properties": { "label": { "type": "string" } }, "required": ["label"] }
+      ]
+    }
+  }
+}
