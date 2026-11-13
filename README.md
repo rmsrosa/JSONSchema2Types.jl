@@ -12,17 +12,18 @@ general, though, and should be useful for other schemas as well.
 ```julia
 julia> using JSONSchema2Types
 
-julia> generate_module("examples/beerjson-1.0.1/json/beer.json", "BeerJSON.jl";
-           root_name = "BeerJSON", module_name = "BeerJSONTypes")
-"BeerJSON.jl"
+julia> generate_module("examples/beerjson-1.0.1/json/beer.json", "BeerJSONTypes";
+           root_name = "BeerJSON", split = true)
+"BeerJSONTypes/BeerJSONTypes.jl"
 ```
 
 This reads the schema, and every schema file it references with `$ref`. It then writes a
-self-contained module to `BeerJSON.jl`, which depends only on
-[JSON.jl](https://github.com/JuliaIO/JSON.jl):
+self-contained module, `BeerJSONTypes`, which depends only on
+[JSON.jl](https://github.com/JuliaIO/JSON.jl). With `split = true`, the module is written
+to a directory, with one file per schema file (see [below](#splitting-into-several-files)):
 
 ```julia
-julia> include("BeerJSON.jl"); using .BeerJSONTypes
+julia> include("BeerJSONTypes/BeerJSONTypes.jl"); using .BeerJSONTypes
 
 julia> doc = readjson(RootType, "test/beerjson-1.0.1-samples/real/SourMash.json");
 
@@ -62,8 +63,31 @@ The generated module exports:
 * `root_name`: name of the root type. Defaults to the schema `title`, or else to the file name.
 * `module_name`: name of the generated module. Defaults to `root_name * "Types"`. It
   must differ from the names of the generated types.
+* `split`: write the module to the directory `output`, split into several files (see
+  below), instead of to the single file `output`. Defaults to `false`.
 * `schemas`: other schema files that are referenced by their `$id` URL instead of by a
   relative path (see `examples/generate_examples.jl`).
+
+### Splitting into several files
+
+For a schema spread over several files, like BeerJSON, `split = true` writes one Julia file
+per schema file, so the generated code follows the organization of the schema:
+
+```
+BeerJSONTypes/
+  BeerJSONTypes.jl        # the module: exports and `include`s, in dependency order
+  runtime.jl              # reading, writing and validation
+  measureable_units.jl    # types from measureable_units.json
+  timing.jl               # types from timing.json
+  hop.jl, recipe.jl, ...  # and so on
+  beer.jl                 # the root type, from beer.json
+```
+
+All the files are part of the same module, so the types are used just as in the
+single-file version. Inline subschemas go in the file of the type that contains them.
+The files are included so that every file only uses types from itself and from the files
+before it. Schema files whose types depend on each other in a cycle share a single file
+(e.g. `author_and_book.jl`).
 
 ## How the schema is translated
 
@@ -122,7 +146,8 @@ schemas in `examples/`:
 * `more_schemas/`: examples with references to other files, `enum`, `oneOf`, `anyOf`,
   `allOf` and `not`;
 * `beerjson-1.0.1/`: the [BeerJSON](https://github.com/beerjson/beerjson) 1.0.1 schema
-  (MIT License). The generated module is `examples/generated/BeerJSON.jl`.
+  (MIT License). The generated module, split into one file per schema file, is in
+  `examples/generated/BeerJSONTypes/`.
 
 ## Tests
 

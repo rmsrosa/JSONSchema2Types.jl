@@ -8,6 +8,7 @@ using JSON
 export fromjson, tojson, readjson, writejson, fromdict, todict
 export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError
 export ProductDimensions, Product
+export RootType
 
 # ---------------------------------------------------------------------------------------
 # Runtime support for generated types.
@@ -295,6 +296,10 @@ end
 # End of runtime support. Generated types follow.
 # ---------------------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------------------
+# Types from `acme_nestedschema_mod.json`
+# ---------------------------------------------------------------------------------------
+
 """
     ProductDimensions(; kwargs...)
 
@@ -377,12 +382,12 @@ _SPECS[Product] = (
     maxProperties = nothing,
 )
 
+
 """
     RootType
 
 Alias of `Product`, the type of the root of the schema.
 """
 const RootType = Product
-export RootType
 
 end # module AcmeNestedMod

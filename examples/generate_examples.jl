@@ -30,6 +30,7 @@ generate_module(ex("more_schemas", "combined_schema.json"), joinpath(OUT, "Combi
 generate_module(ex("more_schemas", "enum_schema.json"), joinpath(OUT, "Enum.jl");
     module_name = "EnumExample")
 
-# BeerJSON 1.0.1
-generate_module(ex("beerjson-1.0.1", "json", "beer.json"), joinpath(OUT, "BeerJSON.jl");
-    root_name = "BeerJSON", module_name = "BeerJSONTypes")
+# BeerJSON 1.0.1, split into one file per schema file; load it with
+# `include("examples/generated/BeerJSONTypes/BeerJSONTypes.jl")`
+generate_module(ex("beerjson-1.0.1", "json", "beer.json"), joinpath(OUT, "BeerJSONTypes");
+    root_name = "BeerJSON", module_name = "BeerJSONTypes", split = true)

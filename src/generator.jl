@@ -627,31 +627,90 @@ end
 
 # --- Code emission ---
 
-"""
-    sort_types(gen) -> Vector{Union{ObjectDef, EnumDef}}
+schema_file_of(d) = String(first(split(d.location, '#'; limit = 2)))
 
-Sort the generated types so that every type is defined before the types that use it, as
-far as possible (enums first, then structs in depth-first dependency order).
+# Names of the generated types a struct depends on, through its fields.
+type_deps(d::EnumDef) = String[]
+type_deps(d::ObjectDef) = vcat([f.type.deps for f in d.fields]..., d.extra_type.deps)
+
 """
-function sort_types(gen::Generator)
+    group_types(gen) -> Vector{Pair{String, Vector{Union{ObjectDef, EnumDef}}}}
+
+Group the generated types by the schema file that defines them and sort them so that every
+type is defined before the types that use it, as far as possible.
+
+Groups come in dependency order (a group only uses types from itself and from earlier
+groups). Schema files whose types depend on each other in a cycle are merged into a single
+group. Within a group, enums come first, then structs in depth-first dependency order.
+Each group is named after its schema file(s).
+"""
+function group_types(gen::Generator)
     defs = [gen.types[loc] for loc in gen.order if haskey(gen.types, loc)]
     byname = Dict(d.name => d for d in defs)
-    sorted = Union{ObjectDef, EnumDef}[d for d in defs if d isa EnumDef]
-    state = Dict{String, Symbol}()
-    function visit(d::ObjectDef)
-        get(state, d.name, :new) == :new || return
-        state[d.name] = :visiting
-        for f in d.fields, dep in f.type.deps
-            dd = byname[dep]
-            dd isa ObjectDef && visit(dd)
+
+    # dependency graph between schema files, in discovery order
+    files = unique(schema_file_of.(defs))
+    edges = Dict(f => String[] for f in files)
+    for d in defs, dep in type_deps(d)
+        f, g = schema_file_of(d), schema_file_of(byname[dep])
+        f == g || g in edges[f] || push!(edges[f], g)
+    end
+
+    # strongly connected components (Tarjan); each one is emitted after the ones it uses
+    index = Dict{String, Int}(); low = Dict{String, Int}()
+    stack = String[]; onstack = Set{String}(); sccs = Vector{Vector{String}}()
+    counter = Ref(0)
+    function strongconnect(v)
+        counter[] += 1
+        index[v] = low[v] = counter[]
+        push!(stack, v); push!(onstack, v)
+        for w in edges[v]
+            if !haskey(index, w)
+                strongconnect(w)
+                low[v] = min(low[v], low[w])
+            elseif w in onstack
+                low[v] = min(low[v], index[w])
+            end
         end
-        state[d.name] = :done
-        push!(sorted, d)
+        if low[v] == index[v]
+            scc = String[]
+            while true
+                w = pop!(stack); delete!(onstack, w); push!(scc, w)
+                w == v && break
+            end
+            push!(sccs, sort!(scc; by = f -> findfirst(==(f), files)))
+        end
     end
-    for d in defs
-        d isa ObjectDef && visit(d)
+    foreach(f -> haskey(index, f) || strongconnect(f), files)
+
+    # sort the types within each group
+    groups = Pair{String, Vector{Union{ObjectDef, EnumDef}}}[]
+    taken = Set{String}()
+    for scc in sccs
+        members = Set(scc)
+        ingroup = [d for d in defs if schema_file_of(d) in members]
+        sorted = Union{ObjectDef, EnumDef}[d for d in ingroup if d isa EnumDef]
+        state = Dict{String, Symbol}()
+        function visit(d::ObjectDef)
+            get(state, d.name, :new) == :new || return
+            state[d.name] = :visiting
+            for dep in type_deps(d)
+                dd = byname[dep]
+                dd isa ObjectDef && schema_file_of(dd) in members && visit(dd)
+            end
+            state[d.name] = :done
+            push!(sorted, d)
+        end
+        foreach(d -> d isa ObjectDef && visit(d), ingroup)
+        name = join([replace(splitext(basename(f))[1], r"[^A-Za-z0-9_.-]" => "_") for f in scc], "_and_")
+        base = name; k = 2
+        while name in taken
+            name = base * "_" * string(k); k += 1
+        end
+        push!(taken, name)
+        push!(groups, name => sorted)
     end
-    return sorted
+    return groups
 end
 
 function julia_literal(v)
@@ -762,7 +821,7 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
 end
 
 """
-    generate_module(schema_file, output_file; root_name, module_name, schemas) -> String
+    generate_module(schema_file, output; root_name, module_name, schemas, split) -> String
 
 Read the JSON Schema in `schema_file` (and every schema file it references through
 `\$ref`) and write to `output_file` a Julia module defining types for all the objects and
@@ -782,13 +841,24 @@ schemas are not downloaded.
 
 The name of the root type is `root_name`, which defaults to the `title` of the schema or
 else to the name of the schema file. The module name defaults to the root type name
-followed by `Types`. Returns the path of the output file.
+followed by `Types`.
+
+By default the whole module is written to the file `output`. With `split = true`, `output`
+is a directory, and the module is split into several files in it, following the schema
+files: `<module_name>.jl` defines the module and includes `runtime.jl` (the code for
+reading, writing and validating) and one file per schema file, named after it, with the
+types defined in that schema file (inline subschemas go with the type containing them).
+Schema files whose types depend on each other in a cycle share a single file. Load the
+module by including `<module_name>.jl`.
+
+Returns the path of the file defining the module.
 """
 function generate_module(
     schema_file::AbstractString, output_file::AbstractString;
     root_name::Union{Nothing, AbstractString} = nothing,
     module_name::Union{Nothing, AbstractString} = nothing,
     schemas::AbstractVector{<:AbstractString} = String[],
+    split::Bool = false,
 )
     root_file = abspath(normpath(schema_file))
     gen = Generator(root_file, "")
@@ -803,62 +873,109 @@ function generate_module(
 
     root_type, _ = resolve_type(gen, root_file, "", root)
 
-    code = generate_code(gen, module_name, root_type, schema_file)
+    files = generate_files(gen, module_name, root_type, basename(schema_file), split)
+    if split
+        mkpath(output_file)
+        for (name, code) in files
+            write(joinpath(output_file, name), code)
+        end
+        return joinpath(output_file, first(first(files)))
+    end
     mkpath(dirname(abspath(output_file)))
-    write(output_file, code)
+    write(output_file, only(files)[2])
     return output_file
 end
 
-function generate_code(gen::Generator, module_name::String, root_type::TypeRef, schema_file)
-    io = IOBuffer()
-    println(io, "# This file was generated by JSONSchema2Types.jl from the JSON Schema")
-    println(io, "# `", basename(schema_file), "`. Do not edit it by hand: regenerate it instead.")
-    println(io)
-    println(io, "module ", module_name)
-    println(io)
-    println(io, "using JSON")
-    println(io)
-    sorted = sort_types(gen)
-    names = [d.name for d in sorted]
+const GENERATED_NOTICE = "Do not edit it by hand: regenerate it instead."
+
+"""
+    generate_files(gen, module_name, root_type, schema_name, split) -> Vector{Pair{String, String}}
+
+Generate the code of the module, as a list of `filename => code`, the main file first.
+Without `split`, everything goes into the single main file.
+"""
+function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
+                        schema_name::String, split::Bool)
+    groups = group_types(gen)
+    names = [d.name for (_, ds) in groups for d in ds]
     if module_name in names
         # A module cannot define a type with its own name (an error in Julia < 1.12)
         throw(ArgumentError("the module name `$module_name` is also the name of a generated " *
                             "type; choose another `module_name` (e.g. `$(module_name)Types`)"))
     end
+    main_file = module_name * ".jl"
+
+    # code of each group
+    defined = Set{String}()
+    group_code = Pair{String, String}[]
+    for (group, defs) in groups
+        io = IOBuffer()
+        for d in defs
+            d isa EnumDef ? emit_enum(io, d) : emit_struct(io, d, defined)
+            push!(defined, d.name)
+        end
+        filename = group * ".jl"
+        while filename in (main_file, "runtime.jl") || any(p -> p[1] == filename, group_code)
+            filename = splitext(filename)[1] * "_types.jl"
+        end
+        push!(group_code, filename => String(take!(io)))
+    end
+    sources(group) = join(["`$(basename(f))`" for f in unique(schema_file_of.(last(groups[group])))], ", ")
+
+    io = IOBuffer()
+    println(io, "# This file was generated by JSONSchema2Types.jl from the JSON Schema")
+    println(io, "# `", schema_name, "`. ", GENERATED_NOTICE)
+    println(io)
+    println(io, "module ", module_name)
+    println(io)
+    println(io, "using JSON")
+    println(io)
     println(io, "export fromjson, tojson, readjson, writejson, fromdict, todict")
     println(io, "export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError")
     for chunk in Iterators.partition(names, 6)
         println(io, "export ", join(chunk, ", "))
     end
-    println(io)
-    print(io, RUNTIME_CODE)
-    println(io)
-    defined = Set{String}()
-    for d in sorted
-        if d isa EnumDef
-            emit_enum(io, d)
-        else
-            emit_struct(io, d, defined)
-        end
-        push!(defined, d.name)
-    end
-    if !(root_type.expr in names)
-        println(io, "\"\"\"")
-        println(io, "    RootType")
-        println(io)
-        println(io, "Type of the root of the schema.")
-        println(io, "\"\"\"")
-        println(io, "const RootType = ", root_type.expr)
-    else
-        println(io, "\"\"\"")
-        println(io, "    RootType")
-        println(io)
-        println(io, "Alias of `", root_type.expr, "`, the type of the root of the schema.")
-        println(io, "\"\"\"")
-        println(io, "const RootType = ", root_type.expr)
-    end
     println(io, "export RootType")
     println(io)
+    if split
+        println(io, "include(\"runtime.jl\")")
+        println(io)
+        println(io, "# Generated types, one file per schema file, in dependency order")
+        for (filename, _) in group_code
+            println(io, "include(", repr(filename), ")")
+        end
+    else
+        print(io, RUNTIME_CODE)
+        for (i, (_, code)) in enumerate(group_code)
+            println(io)
+            println(io, "# ", "-"^87)
+            println(io, "# Types from ", sources(i))
+            println(io, "# ", "-"^87)
+            println(io)
+            print(io, code)
+        end
+    end
+    println(io)
+    println(io, "\"\"\"")
+    println(io, "    RootType")
+    println(io)
+    if root_type.expr in names
+        println(io, "Alias of `", root_type.expr, "`, the type of the root of the schema.")
+    else
+        println(io, "Type of the root of the schema.")
+    end
+    println(io, "\"\"\"")
+    println(io, "const RootType = ", root_type.expr)
+    println(io)
     println(io, "end # module ", module_name)
-    return String(take!(io))
+    files = [main_file => String(take!(io))]
+    split || return files
+
+    included = "# This file is included by `$main_file`, generated by JSONSchema2Types.jl from the JSON\n" *
+                     "# Schema `$schema_name`. $GENERATED_NOTICE\n"
+    push!(files, "runtime.jl" => included * "\n" * RUNTIME_CODE)
+    for (i, (filename, code)) in enumerate(group_code)
+        push!(files, filename => included * "#\n# Types from " * sources(i) * ".\n\n" * code)
+    end
+    return files
 end

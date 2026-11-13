@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Library",
+  "type": "object",
+  "properties": {
+    "authors": { "type": "array", "items": { "$ref": "author.json#/$defs/Author" } },
+    "books": { "type": "array", "items": { "$ref": "book.json#/$defs/Book" } }
+  }
+}

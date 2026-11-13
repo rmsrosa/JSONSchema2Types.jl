@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "Author": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "country": { "$ref": "common.json#/$defs/Country" },
+        "books": { "type": "array", "items": { "$ref": "book.json#/$defs/Book" } }
+      },
+      "required": ["name"]
+    }
+  }
+}

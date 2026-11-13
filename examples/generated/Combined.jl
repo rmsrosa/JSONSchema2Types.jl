@@ -9,6 +9,7 @@ export fromjson, tojson, readjson, writejson, fromdict, todict
 export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError
 export PersonUserType, CompanyUserType, Person, Company, CombinedSchemaExampleAnyOfIdentifierOption1, CombinedSchemaExampleAnyOfIdentifierOption2
 export CombinedSchemaExampleAllOfRequest, CombinedSchemaExample
+export RootType
 
 # ---------------------------------------------------------------------------------------
 # Runtime support for generated types.
@@ -296,6 +297,10 @@ end
 # End of runtime support. Generated types follow.
 # ---------------------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------------------
+# Types from `combined_schema.json`
+# ---------------------------------------------------------------------------------------
+
 """
     PersonUserType(value)
 
@@ -522,12 +527,12 @@ _SPECS[CombinedSchemaExample] = (
     maxProperties = nothing,
 )
 
+
 """
     RootType
 
 Alias of `CombinedSchemaExample`, the type of the root of the schema.
 """
 const RootType = CombinedSchemaExample
-export RootType
 
 end # module Combined
