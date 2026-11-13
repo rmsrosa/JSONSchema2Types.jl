@@ -13,7 +13,7 @@ general, though, and should be useful for other schemas as well.
 julia> using JSONSchema2Types
 
 julia> generate_module("examples/beerjson-1.0.1/json/beer.json", "BeerJSON.jl";
-           root_name = "BeerJSON", module_name = "BeerJSON")
+           root_name = "BeerJSON", module_name = "BeerJSONTypes")
 "BeerJSON.jl"
 ```
 
@@ -22,7 +22,7 @@ self-contained module to `BeerJSON.jl`, which depends only on
 [JSON.jl](https://github.com/JuliaIO/JSON.jl):
 
 ```julia
-julia> include("BeerJSON.jl"); using .BeerJSON
+julia> include("BeerJSON.jl"); using .BeerJSONTypes
 
 julia> doc = readjson(RootType, "test/beerjson-1.0.1-samples/real/SourMash.json");
 
@@ -60,7 +60,8 @@ The generated module exports:
 ### Options
 
 * `root_name`: name of the root type. Defaults to the schema `title`, or else to the file name.
-* `module_name`: name of the generated module. Defaults to `root_name * "Types"`.
+* `module_name`: name of the generated module. Defaults to `root_name * "Types"`. It
+  must differ from the names of the generated types.
 * `schemas`: other schema files that are referenced by their `$id` URL instead of by a
   relative path (see `examples/generate_examples.jl`).
 

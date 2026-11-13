@@ -124,7 +124,7 @@ end
 
 @testset "BeerJSON 1.0.1" begin
     M = load_generated(joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json");
-                       root_name = "BeerJSON", module_name = "BeerJSON")
+                       root_name = "BeerJSON", module_name = "BeerJSONTypes")
     @test M.RootType === M.BeerJSON
     # `allOf` with `$ref`s merges the properties of the referenced schemas
     @test (:name, :alpha_acid, :timing, :amount) ⊆ fieldnames(M.HopAdditionType)
@@ -146,11 +146,22 @@ end
     @test M.readjson(M.RootType, out) == x
 end
 
+@testset "Module name clashing with a type name" begin
+    @test_throws ArgumentError generate_module(joinpath(EXAMPLES, "more_schemas", "order_schema.json"),
+                                               joinpath(mktempdir(), "x.jl"); module_name = "Order")
+end
+
+@testset "Committed examples load" begin
+    for file in readdir(joinpath(EXAMPLES, "generated"); join = true)
+        @test Base.include(Module(), file) isa Module
+    end
+end
+
 @testset "Committed examples are up to date" begin
     dir = mktempdir()
     gen = joinpath(EXAMPLES, "generated")
     generate_module(joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json"), joinpath(dir, "BeerJSON.jl");
-                    root_name = "BeerJSON", module_name = "BeerJSON")
+                    root_name = "BeerJSON", module_name = "BeerJSONTypes")
     @test read(joinpath(dir, "BeerJSON.jl"), String) == read(joinpath(gen, "BeerJSON.jl"), String)
 end
 

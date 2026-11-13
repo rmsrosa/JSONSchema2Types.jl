@@ -24,7 +24,7 @@ generate_module(ex("acme_schemas", "acme_withreferenceschema.json"), joinpath(OU
 
 # Other examples, with `$ref`s to other files, `enum`, `oneOf`, `anyOf`, `allOf` and `not`
 generate_module(ex("more_schemas", "order_schema.json"), joinpath(OUT, "Order.jl");
-    module_name = "Order")
+    module_name = "OrderTypes")
 generate_module(ex("more_schemas", "combined_schema.json"), joinpath(OUT, "Combined.jl");
     module_name = "Combined")
 generate_module(ex("more_schemas", "enum_schema.json"), joinpath(OUT, "Enum.jl");
@@ -32,4 +32,4 @@ generate_module(ex("more_schemas", "enum_schema.json"), joinpath(OUT, "Enum.jl")
 
 # BeerJSON 1.0.1
 generate_module(ex("beerjson-1.0.1", "json", "beer.json"), joinpath(OUT, "BeerJSON.jl");
-    root_name = "BeerJSON", module_name = "BeerJSON")
+    root_name = "BeerJSON", module_name = "BeerJSONTypes")

@@ -803,6 +803,11 @@ function generate_code(gen::Generator, module_name::String, root_type::TypeRef, 
     println(io)
     sorted = sort_types(gen)
     names = [d.name for d in sorted]
+    if module_name in names
+        # A module cannot define a type with its own name (an error in Julia < 1.12)
+        throw(ArgumentError("the module name `$module_name` is also the name of a generated " *
+                            "type; choose another `module_name` (e.g. `$(module_name)Types`)"))
+    end
     println(io, "export fromjson, tojson, readjson, writejson, fromdict, todict")
     println(io, "export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError")
     for chunk in Iterators.partition(names, 6)
