@@ -55,6 +55,7 @@ struct FieldDef
     nullable::Bool
     constraints::Union{Nothing, Dict{String, Any}}
     description::String
+    deprecated::Bool
 end
 
 mutable struct ObjectDef
@@ -281,7 +282,7 @@ function name_hint(gen::Generator, file::String, pointer::String)
             step = 2
         elseif seg == "items"
             base *= "Item"
-        elseif seg == "additionalProperties"
+        elseif seg in ("additionalProperties", "unevaluatedProperties")
             base *= "Value"
         else
             base *= type_identifier(seg)
@@ -420,13 +421,14 @@ function merge_allof(gen::Generator, file::String, pointer::String, node, depth:
         append!(required, get(n, "required", String[]))
         for (k, v) in n
             k in ("\$ref", "allOf", "properties", "required", "additionalProperties",
-                  "description", "\$id", "\$schema", "definitions", "\$defs") && continue
+                  "unevaluatedProperties", "description", "deprecated", "\$id", "\$schema",
+                  "definitions", "\$defs") && continue
             merged[k] = v
         end
     end
     add!(file, pointer, node, depth)
-    # `additionalProperties` and `description` are only taken from the outer schema
-    for k in ("additionalProperties", "description")
+    # these keywords are only taken from the outer schema
+    for k in ("additionalProperties", "unevaluatedProperties", "description", "deprecated")
         haskey(node, k) && (merged[k] = node[k])
     end
     return props, unique(required), merged
@@ -502,9 +504,10 @@ function resolve_type(gen::Generator, file::String, pointer::String, node, depth
         end
         return TypeRef("Vector{Any}"), constraints
     elseif jtype == "object"
-        ap = get(node, "additionalProperties", nothing)
+        key = haskey(node, "additionalProperties") ? "additionalProperties" : "unevaluatedProperties"
+        ap = get(node, key, nothing)
         if isobject(ap)
-            t, _ = resolve_type(gen, file, pointer * "/additionalProperties", ap, depth + 1)
+            t, _ = resolve_type(gen, file, pointer * "/" * key, ap, depth + 1)
             return TypeRef("Dict{String, $(t.expr)}", t.deps), constraints
         end
         return TypeRef("Dict{String, Any}"), constraints
@@ -547,7 +550,7 @@ function generate_named_type!(gen::Generator, file::String, pointer::String, nod
 
     if haskey(node, "enum") || haskey(node, "const")
         values = haskey(node, "enum") ? collect(Any, node["enum"]) : Any[node["const"]]
-        gen.types[loc] = EnumDef(name, loc, string(get(node, "description", "")),
+        gen.types[loc] = EnumDef(name, loc, type_description(node),
                                  values, enum_valuetype(values))
         return name
     end
@@ -555,12 +558,18 @@ function generate_named_type!(gen::Generator, file::String, pointer::String, nod
     props, required, merged = merge_allof(gen, file, pointer, node)
     if isempty(props) && (haskey(merged, "enum") || haskey(merged, "const"))
         values = haskey(merged, "enum") ? collect(Any, merged["enum"]) : Any[merged["const"]]
-        gen.types[loc] = EnumDef(name, loc, string(get(node, "description", "")),
+        gen.types[loc] = EnumDef(name, loc, type_description(node),
                                  values, enum_valuetype(values))
         return name
     end
-    additional = get(merged, "additionalProperties", true) !== false
-    objdef = ObjectDef(name, loc, string(get(merged, "description", "")), FieldDef[],
+    # After merging `allOf`, the properties of the merged schema are exactly the ones a
+    # validator counts as evaluated, so `unevaluatedProperties` (JSON Schema 2019-09 and
+    # later) acts on the merged type like `additionalProperties`.
+    extra_schema = haskey(merged, "unevaluatedProperties") && !haskey(merged, "additionalProperties") ?
+                   "unevaluatedProperties" : "additionalProperties"
+    additional = get(merged, extra_schema, true) !== false &&
+                 get(merged, "unevaluatedProperties", true) !== false
+    objdef = ObjectDef(name, loc, type_description(merged), FieldDef[],
                        additional, nothing, TypeRef("Any"),
                        get(merged, "minProperties", nothing), get(merged, "maxProperties", nothing))
     # registered before generating the fields, so that recursive schemas terminate
@@ -578,12 +587,13 @@ function generate_named_type!(gen::Generator, file::String, pointer::String, nod
         end
         push!(used, fname)
         desc = isobject(sub) ? string(get(sub, "description", "")) : ""
+        deprecated = isobject(sub) && get(sub, "deprecated", false) === true
         if isempty(desc) && isobject(sub) && haskey(sub, "\$ref")
             f2, p2 = resolve_ref(gen, f, sub["\$ref"])
             target = get_node(gen, f2, p2)
             isobject(target) && (desc = string(get(target, "description", "")))
         end
-        push!(objdef.fields, FieldDef(fname, key, t, is_required, nullable, c, desc))
+        push!(objdef.fields, FieldDef(fname, key, t, is_required, nullable, c, desc, deprecated))
     end
     if additional
         # properties not described by the schema are kept in an extra field
@@ -592,12 +602,19 @@ function generate_named_type!(gen::Generator, file::String, pointer::String, nod
             fname *= "_"
         end
         objdef.extra_field = fname
-        ap = get(node, "additionalProperties", nothing)
+        ap = get(node, extra_schema, nothing)
         if isobject(ap)
-            objdef.extra_type, _ = resolve_type(gen, file, pointer * "/additionalProperties", ap)
+            objdef.extra_type, _ = resolve_type(gen, file, pointer * "/" * extra_schema, ap)
         end
     end
     return name
+end
+
+# Description of a type, flagged when the schema marks it as deprecated.
+function type_description(node)
+    desc = string(get(node, "description", ""))
+    get(node, "deprecated", false) === true || return desc
+    return isempty(desc) ? "**Deprecated.**" : "**Deprecated.** " * desc
 end
 
 function enum_valuetype(values)
@@ -687,7 +704,7 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
         println(io, "# Fields")
         println(io)
         for f in d.fields
-            req = f.required ? " (required)" : ""
+            req = (f.required ? " (required)" : "") * (f.deprecated ? " (deprecated)" : "")
             keynote = f.name == f.key ? "" : " (JSON property `$(escape_docstring(f.key))`)"
             line = "- `$(f.name)::$(f.type.expr)`$req$keynote"
             isempty(f.description) || (line *= ": " * escape_docstring(f.description))

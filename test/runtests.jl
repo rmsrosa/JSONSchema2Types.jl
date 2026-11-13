@@ -87,6 +87,23 @@ end
     @test_throws E bad("counted", Dict())                 # minProperties
     @test_throws E bad("unknown", 1)                      # additionalProperties: false
     @test_throws E M.fromdict(T, Dict("id" => "abc-1", "end" => 3))  # missing required
+
+    # `unevaluatedProperties: false` closes an `allOf`-composed type, including the keys
+    # merged from the referenced schemas
+    @test M.fromdict(M.StrictLabeledCircle, Dict("radius" => 1, "label" => "c")).label == "c"
+    @test !hasfield(M.StrictLabeledCircle, :_extra)
+    @test_throws E M.fromdict(M.StrictLabeledCircle, Dict("radius" => 1, "lable" => "c"))
+    # `unevaluatedProperties` with a schema types the additional properties
+    t = M.fromdict(M.TypedExtra, Dict("name" => "n", "weight" => 2))
+    @test t._extra == Dict("weight" => 2.0) && fieldtype(M.TypedExtra, :_extra) == Dict{String, Float64}
+    @test_throws E M.fromdict(M.TypedExtra, Dict("name" => "n", "weight" => "heavy"))
+    @test bad("strict", Dict("radius" => 1)).strict isa M.StrictLabeledCircle
+
+    # `deprecated` is flagged in the docstrings
+    code = read(generate_module(joinpath(@__DIR__, "schemas", "features.json"),
+                                joinpath(mktempdir(), "features.jl")), String)
+    @test occursin("- `old_name::Union{Nothing, String}` (deprecated): Use `first-name` instead.", code)
+    @test occursin("**Deprecated.** Additional values must be numbers.", code)
 end
 
 @testset "Additional properties are preserved" begin
