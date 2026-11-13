@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="referrer" content="no-referrer"/><title>Examples · JSONSchema2Types.jl</title><meta name="title" content="Examples · JSONSchema2Types.jl"/><meta property="og:title" content="Examples · JSONSchema2Types.jl"/><meta property="twitter:title" content="Examples · JSONSchema2Types.jl"/><meta name="description" content="Documentation for JSONSchema2Types.jl."/><meta property="og:description" content="Documentation for JSONSchema2Types.jl."/><meta property="twitter:description" content="Documentation for JSONSchema2Types.jl."/><meta property="og:url" content="https://rmsrosa.github.io/JSONSchema2Types.jl/examples/"/><meta property="twitter:url" content="https://rmsrosa.github.io/JSONSchema2Types.jl/examples/"/><link rel="canonical" href="https://rmsrosa.github.io/JSONSchema2Types.jl/examples/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">JSONSchema2Types.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../guide/">Guide</a></li><li class="is-active"><a class="tocitem" href>Examples</a><ul class="internal"><li><a class="tocitem" href="#A-product-catalog"><span>A product catalog</span></a></li><li><a class="tocitem" href="#A-schema-referenced-by-its-id"><span>A schema referenced by its <code>$id</code></span></a></li><li><a class="tocitem" href="#oneOf,-anyOf,-allOf-and-not"><span><code>oneOf</code>, <code>anyOf</code>, <code>allOf</code> and <code>not</code></span></a></li></ul></li><li><a class="tocitem" href="../beerjson/">BeerJSON</a></li><li><a class="tocitem" href="../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Examples</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/rmsrosa/JSONSchema2Types.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/rmsrosa/JSONSchema2Types.jl/blob/main/docs/src/examples.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h1><p>The code on this page is run when the documentation is built. The schemas are in the <code>examples/</code> directory of the repository.</p><h2 id="A-product-catalog"><a class="docs-heading-anchor" href="#A-product-catalog">A product catalog</a><a id="A-product-catalog-1"></a><a class="docs-heading-anchor-permalink" href="#A-product-catalog" title="Permalink"></a></h2><p>This schema is from the <a href="https://json-schema.org/learn/getting-started-step-by-step">Getting Started Step-By-Step</a> guide of the JSON Schema organization. It describes a product with a nested object and a few constraints:</p><pre><code class="language-julia hljs">schema = joinpath(EXAMPLES, &quot;acme_schemas&quot;, &quot;acme_nestedschema.json&quot;)
+print(read(schema, String))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">{
+    &quot;$schema&quot;: &quot;https://json-schema.org/draft/2020-12/schema&quot;,
+    &quot;$id&quot;: &quot;https://example.com/product.schema.json&quot;,
+    &quot;title&quot;: &quot;Product&quot;,
+    &quot;description&quot;: &quot;A product from Acme&#39;s catalog&quot;,
+    &quot;type&quot;: &quot;object&quot;,
+    &quot;properties&quot;: {
+      &quot;productId&quot;: {
+        &quot;description&quot;: &quot;The unique identifier for a product&quot;,
+        &quot;type&quot;: &quot;integer&quot;
+      },
+      &quot;productName&quot;: {
+        &quot;description&quot;: &quot;Name of the product&quot;,
+        &quot;type&quot;: &quot;string&quot;
+      },
+      &quot;price&quot;: {
+        &quot;description&quot;: &quot;The price of the product&quot;,
+        &quot;type&quot;: &quot;number&quot;,
+        &quot;exclusiveMinimum&quot;: 0
+      },
+      &quot;tags&quot;: {
+        &quot;description&quot;: &quot;Tags for the product&quot;,
+        &quot;type&quot;: &quot;array&quot;,
+        &quot;items&quot;: {
+          &quot;type&quot;: &quot;string&quot;
+        },
+        &quot;minItems&quot;: 1,
+        &quot;uniqueItems&quot;: true
+      },
+      &quot;dimensions&quot;: {
+        &quot;description&quot;: &quot;Dimensions of a product&quot;,
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {
+          &quot;length&quot;: {
+            &quot;type&quot;: &quot;number&quot;
+          },
+          &quot;width&quot;: {
+            &quot;type&quot;: &quot;number&quot;
+          },
+          &quot;height&quot;: {
+            &quot;type&quot;: &quot;number&quot;
+          }
+        },
+        &quot;required&quot;: [ &quot;length&quot;, &quot;width&quot;, &quot;height&quot; ]
+      }
+    },
+    &quot;required&quot;: [ &quot;productId&quot;, &quot;productName&quot;, &quot;price&quot; ]
+  }</code></pre><p>Generate a module from it, and load it:</p><pre><code class="language-julia hljs">file = generate_module(schema, joinpath(OUT, &quot;ProductTypes.jl&quot;))
+include(file)
+using .ProductTypes</code></pre><p>These are the generated types (the rest of the file is the code for reading, writing and validating, the same in every generated module):</p><pre><code class="language-julia hljs">show_types(file)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"># ---------------------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------------------
+# Types from `acme_nestedschema.json`
+# ---------------------------------------------------------------------------------------
+
+&quot;&quot;&quot;
+    ProductDimensions(; kwargs...)
+
+Dimensions of a product
+
+# Fields
+
+- `length::Float64` (required)
+- `width::Float64` (required)
+- `height::Float64` (required)
+- `_extra::Dict{String, Any}`: additional properties, not described in the schema
+&quot;&quot;&quot;
+struct ProductDimensions &lt;: AbstractSchemaObject
+    length::Float64
+    width::Float64
+    height::Float64
+    _extra::Dict{String, Any}
+    function ProductDimensions(; length, width, height, _extra = Dict{String, Any}())
+        length = _jsfrom(Float64, length)
+        width = _jsfrom(Float64, width)
+        height = _jsfrom(Float64, height)
+        _extra = _jsfrom(Dict{String, Any}, _extra)
+        _jscheck(ProductDimensions, (length, width, height), _extra)
+        return new(length, width, height, _extra)
+    end
+end
+_SPECS[ProductDimensions] = (
+    fields = (
+        (name = :length, key = &quot;length&quot;, required = true, nullable = false, constraints = nothing),
+        (name = :width, key = &quot;width&quot;, required = true, nullable = false, constraints = nothing),
+        (name = :height, key = &quot;height&quot;, required = true, nullable = false, constraints = nothing),
+    ),
+    additionalProperties = true,
+    extra = :_extra,
+    minProperties = nothing,
+    maxProperties = nothing,
+    schema = nothing,
+)
+
+&quot;&quot;&quot;
+    Product(; kwargs...)
+
+A product from Acme&#39;s catalog
+
+# Fields
+
+- `productId::Int64` (required): The unique identifier for a product
+- `productName::String` (required): Name of the product
+- `price::Float64` (required): The price of the product
+- `tags::Union{Nothing, Vector{String}}`: Tags for the product
+- `dimensions::Union{Nothing, ProductDimensions}`: Dimensions of a product
+- `_extra::Dict{String, Any}`: additional properties, not described in the schema
+&quot;&quot;&quot;
+struct Product &lt;: AbstractSchemaObject
+    productId::Int64
+    productName::String
+    price::Float64
+    tags::Union{Nothing, Vector{String}}
+    dimensions::Union{Nothing, ProductDimensions}
+    _extra::Dict{String, Any}
+    function Product(; productId, productName, price, tags = nothing, dimensions = nothing, _extra = Dict{String, Any}())
+        productId = _jsfrom(Int64, productId)
+        productName = _jsfrom(String, productName)
+        price = _jsfrom(Float64, price)
+        tags = _jsfrom(Union{Nothing, Vector{String}}, tags)
+        dimensions = _jsfrom(Union{Nothing, ProductDimensions}, dimensions)
+        _extra = _jsfrom(Dict{String, Any}, _extra)
+        _jscheck(Product, (productId, productName, price, tags, dimensions), _extra)
+        return new(productId, productName, price, tags, dimensions, _extra)
+    end
+end
+_SPECS[Product] = (
+    fields = (
+        (name = :productId, key = &quot;productId&quot;, required = true, nullable = false, constraints = nothing),
+        (name = :productName, key = &quot;productName&quot;, required = true, nullable = false, constraints = nothing),
+        (name = :price, key = &quot;price&quot;, required = true, nullable = false, constraints = (exclusiveMinimum = 0,)),
+        (name = :tags, key = &quot;tags&quot;, required = false, nullable = false, constraints = (minItems = 1, uniqueItems = true,)),
+        (name = :dimensions, key = &quot;dimensions&quot;, required = false, nullable = false, constraints = nothing),
+    ),
+    additionalProperties = true,
+    extra = :_extra,
+    minProperties = nothing,
+    maxProperties = nothing,
+    schema = nothing,
+)
+
+
+&quot;&quot;&quot;
+    RootType
+
+Alias of `Product`, the type of the root of the schema.
+&quot;&quot;&quot;
+const RootType = Product
+
+end # module ProductTypes</code></pre><p>Values are built with keyword constructors. Plain values are converted, and optional fields can be left out:</p><pre><code class="language-julia hljs">p = Product(productId = 1, productName = &quot;An ice sculpture&quot;, price = 12.5,
+            dimensions = Dict(&quot;length&quot; =&gt; 7, &quot;width&quot; =&gt; 12, &quot;height&quot; =&gt; 9.5))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.ProductTypes.Product(1, &quot;An ice sculpture&quot;, 12.5, nothing, Main.ProductTypes.ProductDimensions(7.0, 12.0, 9.5, Dict{String, Any}()), Dict{String, Any}())</code></pre><pre><code class="language-julia hljs">p.dimensions</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.ProductTypes.ProductDimensions(7.0, 12.0, 9.5, Dict{String, Any}())</code></pre><p>and are written as JSON, without the fields that are not set:</p><pre><code class="language-julia hljs">print(tojson(p; pretty = true))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">{
+  &quot;productId&quot;: 1,
+  &quot;productName&quot;: &quot;An ice sculpture&quot;,
+  &quot;price&quot;: 12.5,
+  &quot;dimensions&quot;: {
+    &quot;length&quot;: 7,
+    &quot;width&quot;: 12,
+    &quot;height&quot;: 9.5
+  }
+}</code></pre><p>Reading a document validates it against the schema:</p><pre><code class="language-julia hljs">json = &quot;&quot;&quot;{&quot;productId&quot;: 1, &quot;productName&quot;: &quot;An ice sculpture&quot;, &quot;price&quot;: 0}&quot;&quot;&quot;
+try
+    fromjson(Product, json)
+catch err
+    showerror(stdout, err)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SchemaValidationError: `price` in `Product` must be &gt; 0, got 0.0</code></pre><pre><code class="language-julia hljs">json = &quot;&quot;&quot;{&quot;productId&quot;: 1, &quot;productName&quot;: &quot;Ice&quot;, &quot;price&quot;: 1, &quot;tags&quot;: [&quot;cold&quot;, &quot;cold&quot;]}&quot;&quot;&quot;
+try
+    fromjson(Product, json)
+catch err
+    showerror(stdout, err)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SchemaValidationError: `tags` in `Product` must have unique items</code></pre><h2 id="A-schema-referenced-by-its-id"><a class="docs-heading-anchor" href="#A-schema-referenced-by-its-id">A schema referenced by its <code>$id</code></a><a id="A-schema-referenced-by-its-id-1"></a><a class="docs-heading-anchor-permalink" href="#A-schema-referenced-by-its-id" title="Permalink"></a></h2><p>Another version of the product schema refers to a separate schema for the location of the warehouse by its <code>$id</code>, <code>https://example.com/geographical-location.schema.json</code>. The file with that schema is given with the <code>schemas</code> keyword:</p><pre><code class="language-julia hljs">file = generate_module(joinpath(EXAMPLES, &quot;acme_schemas&quot;, &quot;acme_withreferenceschema.json&quot;),
+    joinpath(OUT, &quot;WarehouseTypes.jl&quot;); module_name = &quot;WarehouseTypes&quot;,
+    schemas = [joinpath(EXAMPLES, &quot;acme_schemas&quot;, &quot;acme_tobereferredschema.json&quot;)])
+include(file)
+using .WarehouseTypes: Product as WarehouseProduct, LongitudeAndLatitude
+data = joinpath(EXAMPLES, &quot;acme_schemas&quot;, &quot;acme_data.json&quot;)
+print(read(data, String))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">{
+    &quot;productId&quot;: 1,
+    &quot;productName&quot;: &quot;An ice sculpture&quot;,
+    &quot;price&quot;: 12.50,
+    &quot;tags&quot;: [ &quot;cold&quot;, &quot;ice&quot; ],
+    &quot;dimensions&quot;: {
+        &quot;length&quot;: 7.0,
+        &quot;width&quot;: 12.0,
+        &quot;height&quot;: 9.5
+    },
+    &quot;warehouseLocation&quot;: {
+        &quot;latitude&quot;: -78.75,
+        &quot;longitude&quot;: 20.4
+    }
+}</code></pre><pre><code class="language-julia hljs">product = WarehouseTypes.readjson(WarehouseProduct, data)
+product.warehouseLocation</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.WarehouseTypes.LongitudeAndLatitude(-78.75, 20.4, Dict{String, Any}())</code></pre><p>The referenced schema has the title &quot;Longitude and Latitude&quot;, which gives the name of its type, <code>LongitudeAndLatitude</code>.</p><h2 id="oneOf,-anyOf,-allOf-and-not"><a class="docs-heading-anchor" href="#oneOf,-anyOf,-allOf-and-not"><code>oneOf</code>, <code>anyOf</code>, <code>allOf</code> and <code>not</code></a><a id="oneOf,-anyOf,-allOf-and-not-1"></a><a class="docs-heading-anchor-permalink" href="#oneOf,-anyOf,-allOf-and-not" title="Permalink"></a></h2><p>This schema shows the keywords for combining schemas:</p><pre><code class="language-julia hljs">schema = joinpath(EXAMPLES, &quot;more_schemas&quot;, &quot;combined_schema.json&quot;)
+print(read(schema, String))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">{
+  &quot;$schema&quot;: &quot;http://json-schema.org/draft-07/schema#&quot;,
+  &quot;title&quot;: &quot;CombinedSchemaExample&quot;,
+  &quot;description&quot;: &quot;A single schema demonstrating oneOf, anyOf, allOf, and not.&quot;,
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;one_of_user&quot;: {
+      &quot;description&quot;: &quot;Demonstrates &#39;oneOf&#39; for a user that is either a Person or a Company.&quot;,
+      &quot;oneOf&quot;: [
+        {
+          &quot;title&quot;: &quot;Person&quot;,
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;user_type&quot;: {
+              &quot;type&quot;: &quot;string&quot;,
+              &quot;const&quot;: &quot;person&quot;
+            },
+            &quot;first_name&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            },
+            &quot;last_name&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            }
+          },
+          &quot;required&quot;: [&quot;user_type&quot;, &quot;first_name&quot;, &quot;last_name&quot;]
+        },
+        {
+          &quot;title&quot;: &quot;Company&quot;,
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;user_type&quot;: {
+              &quot;type&quot;: &quot;string&quot;,
+              &quot;const&quot;: &quot;company&quot;
+            },
+            &quot;company_name&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            }
+          },
+          &quot;required&quot;: [&quot;user_type&quot;, &quot;company_name&quot;]
+        }
+      ]
+    },
+    &quot;any_of_identifier&quot;: {
+      &quot;description&quot;: &quot;Demonstrates &#39;anyOf&#39; for a product identifier.&quot;,
+      &quot;anyOf&quot;: [
+        {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;sku&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            }
+          },
+          &quot;required&quot;: [&quot;sku&quot;]
+        },
+        {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;product_code&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            }
+          },
+          &quot;required&quot;: [&quot;product_code&quot;]
+        }
+      ]
+    },
+    &quot;all_of_request&quot;: {
+      &quot;description&quot;: &quot;Demonstrates &#39;allOf&#39; to combine schemas for a request with authentication.&quot;,
+      &quot;allOf&quot;: [
+        {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;payload&quot;: {
+              &quot;type&quot;: &quot;object&quot;
+            }
+          },
+          &quot;required&quot;: [&quot;payload&quot;]
+        },
+        {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;api_key&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            },
+            &quot;timestamp&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            }
+          },
+          &quot;required&quot;: [&quot;api_key&quot;, &quot;timestamp&quot;]
+        }
+      ]
+    },
+    &quot;not_a_password&quot;: {
+      &quot;description&quot;: &quot;A password that cannot be the literal string &#39;password&#39;.&quot;,
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;not&quot;: {
+        &quot;const&quot;: &quot;password&quot;
+      }
+    }
+  },
+  &quot;required&quot;: [
+    &quot;one_of_user&quot;,
+    &quot;any_of_identifier&quot;,
+    &quot;all_of_request&quot;,
+    &quot;not_a_password&quot;
+  ]
+}</code></pre><pre><code class="language-julia hljs">file = generate_module(schema, joinpath(OUT, &quot;CombinedTypes.jl&quot;); module_name = &quot;CombinedTypes&quot;)
+include(file)
+using .CombinedTypes
+fieldtypes(CombinedSchemaExample)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(Union{Main.CombinedTypes.Company, Main.CombinedTypes.Person}, Union{Main.CombinedTypes.CombinedSchemaExampleAnyOfIdentifierOption1, Main.CombinedTypes.CombinedSchemaExampleAnyOfIdentifierOption2}, Main.CombinedTypes.CombinedSchemaExampleAllOfRequest, String, Dict{String, Any})</code></pre><p>The options of <code>oneOf</code> have titles, so they are the types <code>Person</code> and <code>Company</code>. The options of <code>anyOf</code> have none, so their names are made from the parent and the property. The <code>allOf</code> is merged into a single type, and the <code>not</code> is checked at runtime. When reading, the option that fits is chosen:</p><pre><code class="language-julia hljs">json = &quot;&quot;&quot;
+{
+  &quot;one_of_user&quot;: {&quot;user_type&quot;: &quot;company&quot;, &quot;company_name&quot;: &quot;Acme&quot;},
+  &quot;any_of_identifier&quot;: {&quot;sku&quot;: &quot;A-1&quot;},
+  &quot;all_of_request&quot;: {&quot;payload&quot;: {}, &quot;api_key&quot;: &quot;k&quot;, &quot;timestamp&quot;: &quot;2026-11-13&quot;},
+  &quot;not_a_password&quot;: &quot;s3cret&quot;
+}
+&quot;&quot;&quot;
+x = fromjson(RootType, json)
+x.one_of_user</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.CombinedTypes.Company(CompanyUserTypeEnum(&quot;company&quot;), &quot;Acme&quot;, Dict{String, Any}())</code></pre><p>and the <code>not</code> is enforced:</p><pre><code class="language-julia hljs">try
+    fromjson(RootType, replace(json, &quot;s3cret&quot; =&gt; &quot;password&quot;))
+catch err
+    showerror(stdout, err)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SchemaValidationError: `not_a_password` in `CombinedSchemaExample` is invalid: must not match the schema in `not`</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../guide/">« Guide</a><a class="docs-footer-nextpage" href="../beerjson/">BeerJSON »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Friday 13 November 2026 22:52">Friday 13 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

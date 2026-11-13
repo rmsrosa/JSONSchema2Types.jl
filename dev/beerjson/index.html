@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="referrer" content="no-referrer"/><title>BeerJSON · JSONSchema2Types.jl</title><meta name="title" content="BeerJSON · JSONSchema2Types.jl"/><meta property="og:title" content="BeerJSON · JSONSchema2Types.jl"/><meta property="twitter:title" content="BeerJSON · JSONSchema2Types.jl"/><meta name="description" content="Documentation for JSONSchema2Types.jl."/><meta property="og:description" content="Documentation for JSONSchema2Types.jl."/><meta property="twitter:description" content="Documentation for JSONSchema2Types.jl."/><meta property="og:url" content="https://rmsrosa.github.io/JSONSchema2Types.jl/beerjson/"/><meta property="twitter:url" content="https://rmsrosa.github.io/JSONSchema2Types.jl/beerjson/"/><link rel="canonical" href="https://rmsrosa.github.io/JSONSchema2Types.jl/beerjson/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">JSONSchema2Types.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../guide/">Guide</a></li><li><a class="tocitem" href="../examples/">Examples</a></li><li class="is-active"><a class="tocitem" href>BeerJSON</a><ul class="internal"><li><a class="tocitem" href="#Generating-the-types"><span>Generating the types</span></a></li><li><a class="tocitem" href="#A-recipe"><span>A recipe</span></a></li><li><a class="tocitem" href="#A-hop-schedule"><span>A hop schedule</span></a></li><li><a class="tocitem" href="#A-style"><span>A style</span></a></li><li><a class="tocitem" href="#A-water-profile"><span>A water profile</span></a></li><li><a class="tocitem" href="#A-hop-variety"><span>A hop variety</span></a></li><li><a class="tocitem" href="#Creating-and-writing-a-document"><span>Creating and writing a document</span></a></li><li><a class="tocitem" href="#Reading-every-sample"><span>Reading every sample</span></a></li></ul></li><li><a class="tocitem" href="../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>BeerJSON</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>BeerJSON</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/rmsrosa/JSONSchema2Types.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/rmsrosa/JSONSchema2Types.jl/blob/main/docs/src/beerjson.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="beerjson"><a class="docs-heading-anchor" href="#beerjson">BeerJSON</a><a id="beerjson-1"></a><a class="docs-heading-anchor-permalink" href="#beerjson" title="Permalink"></a></h1><p><a href="https://github.com/beerjson/beerjson">BeerJSON</a> is an open format for beer recipes and brewing data: fermentables, hops, cultures, water profiles, styles, equipment, and the mash, boil, fermentation and packaging procedures. Its schema (version 1.0.1 here, in <code>examples/beerjson-1.0.1/</code>) is spread over twenty files, with 92 types once translated.</p><p>The code on this page is run when the documentation is built, on sample documents from the BeerJSON repository (in <code>test/beerjson-1.0.1-samples/</code>).</p><h2 id="Generating-the-types"><a class="docs-heading-anchor" href="#Generating-the-types">Generating the types</a><a id="Generating-the-types-1"></a><a class="docs-heading-anchor-permalink" href="#Generating-the-types" title="Permalink"></a></h2><p>The types are generated into a directory, with one file per schema file:</p><pre><code class="language-julia hljs">schema = joinpath(ROOT, &quot;examples&quot;, &quot;beerjson-1.0.1&quot;, &quot;json&quot;, &quot;beer.json&quot;)
+main = generate_module(schema, joinpath(mktempdir(), &quot;BeerJSONTypes&quot;);
+                       root_name = &quot;BeerJSON&quot;, split = true)
+readdir(dirname(main))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">21-element Vector{String}:
+ &quot;BeerJSONTypes.jl&quot;
+ &quot;beer.jl&quot;
+ &quot;boil.jl&quot;
+ &quot;boil_step.jl&quot;
+ &quot;culture.jl&quot;
+ &quot;equipment.jl&quot;
+ &quot;fermentable.jl&quot;
+ &quot;fermentation.jl&quot;
+ &quot;fermentation_step.jl&quot;
+ &quot;hop.jl&quot;
+ ⋮
+ &quot;measureable_units.jl&quot;
+ &quot;misc.jl&quot;
+ &quot;packaging.jl&quot;
+ &quot;packaging_vessel.jl&quot;
+ &quot;recipe.jl&quot;
+ &quot;runtime.jl&quot;
+ &quot;style.jl&quot;
+ &quot;timing.jl&quot;
+ &quot;water.jl&quot;</code></pre><pre><code class="language-julia hljs">include(main)
+using .BeerJSONTypes</code></pre><p>A BeerJSON document is an object with a single property, <code>beerjson</code>, which holds the version of the format and lists of records: recipes, fermentables, hop varieties, styles, water profiles...</p><pre><code class="language-julia hljs">fieldnames(BeerJSONContent)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(:version, :timing_object, :fermentables, :miscellaneous_ingredients, :hop_varieties, :cultures, :profiles, :styles, :mashes, :fermentations, :recipes, :equipments, :boil, :packaging)</code></pre><p>The types follow the schema. For instance, a hop addition in a recipe:</p><pre><code class="language-julia hljs">@doc HopAdditionType</code></pre><div class="markdown"><pre><code class="language-julia">HopAdditionType&#40;; kwargs...&#41;</code></pre>
+<p>HopAdditionType collects the attributes of each hop ingredient for use in a recipe hop bil.</p>
+<h1>Fields</h1>
+<ul>
+<li><p><code>name::String</code> &#40;required&#41;</p>
+</li>
+<li><p><code>producer::Union&#123;Nothing, String&#125;</code></p>
+</li>
+<li><p><code>product_id::Union&#123;Nothing, String&#125;</code></p>
+</li>
+<li><p><code>origin::Union&#123;Nothing, String&#125;</code></p>
+</li>
+<li><p><code>year::Union&#123;Nothing, String&#125;</code></p>
+</li>
+<li><p><code>form::Union&#123;Nothing, HopVarietyFormEnum&#125;</code></p>
+</li>
+<li><p><code>alpha_acid::PercentType</code> &#40;required&#41;</p>
+</li>
+<li><p><code>beta_acid::Union&#123;Nothing, PercentType&#125;</code></p>
+</li>
+<li><p><code>timing::TimingType</code> &#40;required&#41;: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.</p>
+</li>
+<li><p><code>amount::Union&#123;VolumeType, MassType&#125;</code> &#40;required&#41;</p>
+</li>
+<li><p><code>_extra::Dict&#123;String, Any&#125;</code>: additional properties, not described in the schema</p>
+</li>
+</ul>
+
+
+</div><h2 id="A-recipe"><a class="docs-heading-anchor" href="#A-recipe">A recipe</a><a id="A-recipe-1"></a><a class="docs-heading-anchor-permalink" href="#A-recipe" title="Permalink"></a></h2><p>Let us read a recipe, converted from a BeerXML file of the <a href="https://github.com/Brewtarget/brewtarget">Brewtarget</a> examples:</p><pre><code class="language-julia hljs">doc = readjson(RootType, joinpath(SAMPLES, &quot;converted&quot;, &quot;RRSummerBitter.json&quot;))
+recipe = only(doc.beerjson.recipes)
+table([&quot;Recipe&quot;, &quot;&quot;], [
+    [&quot;Name&quot;, recipe.name],
+    [&quot;Type&quot;, recipe.type],
+    [&quot;Author&quot;, recipe.author],
+    [&quot;Style&quot;, &quot;$(recipe.style.name) ($(recipe.style.category), $(recipe.style.style_guide))&quot;],
+    [&quot;Batch size&quot;, q(recipe.batch_size)],
+    [&quot;Boil time&quot;, q(recipe.boil.boil_time)],
+    [&quot;Brewhouse efficiency&quot;, q(recipe.efficiency.brewhouse)],
+])</code></pre><div class="markdown"><table><tr><th align="left">Recipe</th><th align="left"></th></tr><tr><td align="left">Name</td><td align="left">RR Summer Bitter</td></tr><tr><td align="left">Type</td><td align="left">all grain</td></tr><tr><td align="left">Author</td><td align="left">RomaRoma</td></tr><tr><td align="left">Style</td><td align="left">English Best Bitter &#40;Bitter Ale, AABC 2010&#41;</td></tr><tr><td align="left">Batch size</td><td align="left">40 l</td></tr><tr><td align="left">Boil time</td><td align="left">60 min</td></tr><tr><td align="left">Brewhouse efficiency</td><td align="left">75 &#37;</td></tr></table>
+</div><p>Its ingredients:</p><pre><code class="language-julia hljs">ingredients = recipe.ingredients
+table([&quot;Fermentable&quot;, &quot;Type&quot;, &quot;Amount&quot;, &quot;Color&quot;, &quot;Origin&quot;],
+      [[f.name, f.type, q(f.amount), q(f.color), s(f.origin)]
+       for f in ingredients.fermentable_additions])</code></pre><div class="markdown"><table><tr><th align="left">Fermentable</th><th align="left">Type</th><th align="left">Amount</th><th align="left">Color</th><th align="left">Origin</th></tr><tr><td align="left">Pale Malt, Maris Otter</td><td align="left">grain</td><td align="left">7 kg</td><td align="left">3 Lovi</td><td align="left">United Kingdom</td></tr><tr><td align="left">Cara 50</td><td align="left">grain</td><td align="left">1 kg</td><td align="left">25.38 Lovi</td><td align="left">Belgium</td></tr></table>
+</div><pre><code class="language-julia hljs">table([&quot;Hop&quot;, &quot;Alpha acid&quot;, &quot;Form&quot;, &quot;Amount&quot;, &quot;Added&quot;, &quot;Time&quot;],
+      [[h.name, q(h.alpha_acid), s(h.form), q(h.amount), s(h.timing.use), q(h.timing.time)]
+       for h in ingredients.hop_additions])</code></pre><div class="markdown"><table><tr><th align="left">Hop</th><th align="left">Alpha acid</th><th align="left">Form</th><th align="left">Amount</th><th align="left">Added</th><th align="left">Time</th></tr><tr><td align="left">Target</td><td align="left">11 &#37;</td><td align="left">pellet</td><td align="left">0.04 kg</td><td align="left">add_to_boil</td><td align="left">60 min</td></tr><tr><td align="left">Goldings, East Kent</td><td align="left">5 &#37;</td><td align="left">pellet</td><td align="left">0.015 kg</td><td align="left">add_to_boil</td><td align="left">30 min</td></tr><tr><td align="left">Goldings, East Kent</td><td align="left">5 &#37;</td><td align="left">pellet</td><td align="left">0.015 kg</td><td align="left">add_to_boil</td><td align="left">15 min</td></tr></table>
+</div><pre><code class="language-julia hljs">table([&quot;Culture&quot;, &quot;Type&quot;, &quot;Form&quot;, &quot;Producer&quot;, &quot;Product&quot;],
+      [[c.name, c.type, c.form, s(c.producer), s(c.product_id)]
+       for c in ingredients.culture_additions])</code></pre><div class="markdown"><table><tr><th align="left">Culture</th><th align="left">Type</th><th align="left">Form</th><th align="left">Producer</th><th align="left">Product</th></tr><tr><td align="left">Windsor Yeast</td><td align="left">ale</td><td align="left">dry</td><td align="left"></td><td align="left"></td></tr></table>
+</div><p>And its mash:</p><pre><code class="language-julia hljs">table([&quot;Mash step&quot;, &quot;Type&quot;, &quot;Temperature&quot;, &quot;Time&quot;],
+      [[m.name, m.type, q(m.step_temperature), q(m.step_time)] for m in recipe.mash.mash_steps])</code></pre><div class="markdown"><table><tr><th align="left">Mash step</th><th align="left">Type</th><th align="left">Temperature</th><th align="left">Time</th></tr><tr><td align="left">Saccharification</td><td align="left">infusion</td><td align="left">68.89 C</td><td align="left">40 min</td></tr><tr><td align="left">Mash Out</td><td align="left">temperature</td><td align="left">75.56 C</td><td align="left">10 min</td></tr><tr><td align="left">Sparge</td><td align="left">sparge</td><td align="left">75.56 C</td><td align="left">15 min</td></tr></table>
+</div><p>Values are typed: the amount of a hop is a mass or a volume (a <code>oneOf</code> in the schema), with units from an enumeration:</p><pre><code class="language-julia hljs">hop = first(ingredients.hop_additions)
+hop.amount</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.BeerJSONTypes.MassType(MassUnitType(&quot;kg&quot;), 0.04)</code></pre><h2 id="A-hop-schedule"><a class="docs-heading-anchor" href="#A-hop-schedule">A hop schedule</a><a id="A-hop-schedule-1"></a><a class="docs-heading-anchor-permalink" href="#A-hop-schedule" title="Permalink"></a></h2><p>The BrewDog Punk IPA recipe has fourteen hop additions:</p><pre><code class="language-julia hljs">punk = only(readjson(RootType, joinpath(SAMPLES, &quot;converted&quot;, &quot;punk-ipa-2010-current.json&quot;)).beerjson.recipes)
+table([&quot;Hop&quot;, &quot;Alpha acid&quot;, &quot;Amount&quot;, &quot;Added&quot;, &quot;Time&quot;],
+      [[h.name, q(h.alpha_acid), q(h.amount), s(h.timing.use), q(h.timing.time)]
+       for h in punk.ingredients.hop_additions])</code></pre><div class="markdown"><table><tr><th align="left">Hop</th><th align="left">Alpha acid</th><th align="left">Amount</th><th align="left">Added</th><th align="left">Time</th></tr><tr><td align="left">Chinook</td><td align="left">12.6 &#37;</td><td align="left">0.02 kg</td><td align="left">add_to_boil</td><td align="left">60 min</td></tr><tr><td align="left">Ahtanum</td><td align="left">5.4 &#37;</td><td align="left">0.0125 kg</td><td align="left">add_to_boil</td><td align="left">60 min</td></tr><tr><td align="left">Chinook</td><td align="left">12.6 &#37;</td><td align="left">0.02 kg</td><td align="left">add_to_boil</td><td align="left">30 min</td></tr><tr><td align="left">Ahtanum</td><td align="left">5.4 &#37;</td><td align="left">0.0125 kg</td><td align="left">add_to_boil</td><td align="left">30 min</td></tr><tr><td align="left">Chinook</td><td align="left">12.6 &#37;</td><td align="left">0.0275 kg</td><td align="left">add_to_boil</td><td align="left">0 min</td></tr><tr><td align="left">Ahtanum</td><td align="left">5.4 &#37;</td><td align="left">0.0125 kg</td><td align="left">add_to_boil</td><td align="left">0 min</td></tr><tr><td align="left">Simcoe</td><td align="left">12.8 &#37;</td><td align="left">0.0125 kg</td><td align="left">add_to_boil</td><td align="left">0 min</td></tr><tr><td align="left">Nelson Sauvin</td><td align="left">12 &#37;</td><td align="left">0.0125 kg</td><td align="left">add_to_boil</td><td align="left">0 min</td></tr><tr><td align="left">Chinook</td><td align="left">12.6 &#37;</td><td align="left">0.0475 kg</td><td align="left">add_to_boil</td><td align="left">10080 min</td></tr><tr><td align="left">Ahtanum</td><td align="left">5.4 &#37;</td><td align="left">0.0375 kg</td><td align="left">add_to_boil</td><td align="left">10080 min</td></tr><tr><td align="left">Simcoe</td><td align="left">12.8 &#37;</td><td align="left">0.0375 kg</td><td align="left">add_to_boil</td><td align="left">10080 min</td></tr><tr><td align="left">Nelson Sauvin</td><td align="left">12 &#37;</td><td align="left">0.02 kg</td><td align="left">add_to_boil</td><td align="left">10080 min</td></tr><tr><td align="left">Cascade</td><td align="left">6.8 &#37;</td><td align="left">0.0375 kg</td><td align="left">add_to_boil</td><td align="left">10080 min</td></tr><tr><td align="left">Amarillo</td><td align="left">8.9 &#37;</td><td align="left">0.01 kg</td><td align="left">add_to_boil</td><td align="left">10080 min</td></tr></table>
+</div><p>The total amount of hops, by addition:</p><pre><code class="language-julia hljs">total = Dict{String, Float64}()
+for h in punk.ingredients.hop_additions
+    total[string(h.timing.use)] = get(total, string(h.timing.use), 0.0) + h.amount.value
+end
+table([&quot;Added&quot;, &quot;Total (kg)&quot;], [[k, round(v; digits = 3)] for (k, v) in sort(collect(total))])</code></pre><div class="markdown"><table><tr><th align="left">Added</th><th align="left">Total &#40;kg&#41;</th></tr><tr><td align="left">add_to_boil</td><td align="left">0.32</td></tr></table>
+</div><h2 id="A-style"><a class="docs-heading-anchor" href="#A-style">A style</a><a id="A-style-1"></a><a class="docs-heading-anchor-permalink" href="#A-style" title="Permalink"></a></h2><p>Styles describe the ranges of the vital statistics of a beer:</p><pre><code class="language-julia hljs">style = only(readjson(RootType, joinpath(SAMPLES, &quot;real&quot;, &quot;StyleDryIrishStoutWithAllFields.json&quot;)).beerjson.styles)
+table([&quot;Style&quot;, &quot;&quot;], [
+    [&quot;Style&quot;, &quot;$(style.category_number)$(style.style_letter) $(style.name) ($(style.style_guide))&quot;],
+    [&quot;Original gravity&quot;, r(style.original_gravity)],
+    [&quot;Final gravity&quot;, r(style.final_gravity)],
+    [&quot;Bitterness&quot;, r(style.international_bitterness_units)],
+    [&quot;Color&quot;, r(style.color)],
+    [&quot;Alcohol by volume&quot;, r(style.alcohol_by_volume)],
+    [&quot;Carbonation&quot;, r(style.carbonation)],
+])</code></pre><div class="markdown"><table><tr><th align="left">Style</th><th align="left"></th></tr><tr><td align="left">Style</td><td align="left">16A Dry Stout &#40;BJCP&#41;</td></tr><tr><td align="left">Original gravity</td><td align="left">1.035 sg – 1.05 sg</td></tr><tr><td align="left">Final gravity</td><td align="left">1.007 sg – 1.011 sg</td></tr><tr><td align="left">Bitterness</td><td align="left">30 IBUs – 50 IBUs</td></tr><tr><td align="left">Color</td><td align="left">35 SRM – 200 SRM</td></tr><tr><td align="left">Alcohol by volume</td><td align="left">3.2 &#37; – 5.5 &#37;</td></tr><tr><td align="left">Carbonation</td><td align="left">1.6 vols – 2.1 vols</td></tr></table>
+</div><pre><code class="language-julia hljs">print(style.overall_impression)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Full body perception due to flaked barley, though starting gravity may be low. Dry roasted flavor.</code></pre><h2 id="A-water-profile"><a class="docs-heading-anchor" href="#A-water-profile">A water profile</a><a id="A-water-profile-1"></a><a class="docs-heading-anchor-permalink" href="#A-water-profile" title="Permalink"></a></h2><pre><code class="language-julia hljs">water = only(readjson(RootType, joinpath(SAMPLES, &quot;real&quot;, &quot;SampleWaterProfile.json&quot;)).beerjson.profiles)
+ions = [:calcium, :magnesium, :sodium, :sulfate, :chloride, :bicarbonate]
+table([&quot;$(water.name)&quot;, &quot;&quot;], [[ion, q(getfield(water, ion))] for ion in ions])</code></pre><div class="markdown"><table><tr><th align="left">Burton on Trent, UK</th><th align="left"></th></tr><tr><td align="left">calcium</td><td align="left">295 ppm</td></tr><tr><td align="left">magnesium</td><td align="left">45 ppm</td></tr><tr><td align="left">sodium</td><td align="left">55 ppm</td></tr><tr><td align="left">sulfate</td><td align="left">725 ppm</td></tr><tr><td align="left">chloride</td><td align="left">25 ppm</td></tr><tr><td align="left">bicarbonate</td><td align="left">300 ppm</td></tr></table>
+</div><p>This document also gives the pH of the water, which version 1.0.1 of the schema does not describe for water profiles. It is allowed, since the schema does not forbid additional properties there, so it is kept in the <code>_extra</code> field, and written back:</p><pre><code class="language-julia hljs">water._extra</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Dict{String, Any} with 1 entry:
+  &quot;pH&quot; =&gt; 8.0</code></pre><h2 id="A-hop-variety"><a class="docs-heading-anchor" href="#A-hop-variety">A hop variety</a><a id="A-hop-variety-1"></a><a class="docs-heading-anchor-permalink" href="#A-hop-variety" title="Permalink"></a></h2><p>Records for ingredients have more information than their additions to a recipe:</p><pre><code class="language-julia hljs">variety = first(readjson(RootType, joinpath(SAMPLES, &quot;real&quot;, &quot;HopRecordWithAllFields.json&quot;)).beerjson.hop_varieties)
+oil = variety.oil_content
+table([&quot;Hop variety&quot;, &quot;&quot;], [
+    [&quot;Name&quot;, variety.name],
+    [&quot;Origin&quot;, s(variety.origin)],
+    [&quot;Type&quot;, s(variety.type)],
+    [&quot;Alpha acid&quot;, q(variety.alpha_acid)],
+    [&quot;Beta acid&quot;, q(variety.beta_acid)],
+    [&quot;Substitutes&quot;, s(variety.substitutes)],
+    [&quot;Total oil&quot;, q(oil.total_oil_ml_per_100g)],
+    [&quot;Myrcene&quot;, q(oil.myrcene)],
+    [&quot;Humulene&quot;, q(oil.humulene)],
+    [&quot;Caryophyllene&quot;, q(oil.caryophyllene)],
+    [&quot;Farnesene&quot;, q(oil.farnesene)],
+])</code></pre><div class="markdown"><table><tr><th align="left">Hop variety</th><th align="left"></th></tr><tr><td align="left">Name</td><td align="left">Super Hops</td></tr><tr><td align="left">Origin</td><td align="left">Planet Krypton</td></tr><tr><td align="left">Type</td><td align="left">bittering</td></tr><tr><td align="left">Alpha acid</td><td align="left">4.5 &#37;</td></tr><tr><td align="left">Beta acid</td><td align="left">5.5 &#37;</td></tr><tr><td align="left">Substitutes</td><td align="left">Goldings, Fuggles, Super Alpha</td></tr><tr><td align="left">Total oil</td><td align="left"></td></tr><tr><td align="left">Myrcene</td><td align="left">24.2 &#37;</td></tr><tr><td align="left">Humulene</td><td align="left">2.34 &#37;</td></tr><tr><td align="left">Caryophyllene</td><td align="left">1.23 &#37;</td></tr><tr><td align="left">Farnesene</td><td align="left"></td></tr></table>
+</div><h2 id="Creating-and-writing-a-document"><a class="docs-heading-anchor" href="#Creating-and-writing-a-document">Creating and writing a document</a><a id="Creating-and-writing-a-document-1"></a><a class="docs-heading-anchor-permalink" href="#Creating-and-writing-a-document" title="Permalink"></a></h2><p>New records are created with keyword constructors, which accept plain values, and validate them. A hop addition for a dry hop:</p><pre><code class="language-julia hljs">dry_hop = HopAdditionType(
+    name = &quot;Cascade&quot;,
+    alpha_acid = (unit = &quot;%&quot;, value = 5.5),
+    form = &quot;pellet&quot;,
+    amount = Dict(&quot;unit&quot; =&gt; &quot;g&quot;, &quot;value&quot; =&gt; 50),
+    timing = Dict(&quot;use&quot; =&gt; &quot;add_to_fermentation&quot;, &quot;duration&quot; =&gt; Dict(&quot;unit&quot; =&gt; &quot;day&quot;, &quot;value&quot; =&gt; 4)),
+)
+print(tojson(dry_hop; pretty = true))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">{
+  &quot;name&quot;: &quot;Cascade&quot;,
+  &quot;form&quot;: &quot;pellet&quot;,
+  &quot;alpha_acid&quot;: {
+    &quot;unit&quot;: &quot;%&quot;,
+    &quot;value&quot;: 5.5
+  },
+  &quot;timing&quot;: {
+    &quot;duration&quot;: {
+      &quot;unit&quot;: &quot;day&quot;,
+      &quot;value&quot;: 4
+    },
+    &quot;use&quot;: &quot;add_to_fermentation&quot;
+  },
+  &quot;amount&quot;: {
+    &quot;unit&quot;: &quot;g&quot;,
+    &quot;value&quot;: 50
+  }
+}</code></pre><p>Structs are immutable, so to change a record, build a new one. Here we add the dry hop to the recipe and double the batch size, and then write the recipe to a new BeerJSON document:</p><pre><code class="language-julia hljs">fields(x) = Dict(n =&gt; getfield(x, n) for n in fieldnames(typeof(x)))
+new_ingredients = IngredientsType(; fields(ingredients)...,
+    hop_additions = [ingredients.hop_additions; dry_hop])
+new_recipe = RecipeType(; fields(recipe)...,
+    name = recipe.name * &quot; (dry hopped)&quot;,
+    batch_size = VolumeType(unit = recipe.batch_size.unit, value = 2 * recipe.batch_size.value),
+    ingredients = new_ingredients)
+new_doc = BeerJSON(beerjson = BeerJSONContent(version = 1.0, recipes = [new_recipe]))
+file = writejson(joinpath(mktempdir(), &quot;dry-hopped.json&quot;), new_doc)
+readjson(RootType, file) == new_doc</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><p>Invalid values are rejected, when constructing a value or reading a document:</p><pre><code class="language-julia hljs">try
+    VolumeType(unit = &quot;litre&quot;, value = 20)
+catch err
+    showerror(stdout, err)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SchemaValidationError: invalid value &quot;litre&quot; for `VolumeUnitType`; allowed values are &quot;ml&quot;, &quot;l&quot;, &quot;tsp&quot;, &quot;tbsp&quot;, &quot;floz&quot;, &quot;cup&quot;, &quot;pt&quot;, &quot;qt&quot;, &quot;gal&quot;, &quot;bbl&quot;, &quot;ifloz&quot;, &quot;ipt&quot;, &quot;iqt&quot;, &quot;igal&quot;, &quot;ibbl&quot;</code></pre><pre><code class="language-julia hljs">try
+    HopAdditionType(name = &quot;Cascade&quot;, alpha_acid = Dict(&quot;unit&quot; =&gt; &quot;%&quot;, &quot;value&quot; =&gt; 5.5),
+                    timing = Dict(), amount = Dict(&quot;unit&quot; =&gt; &quot;cm&quot;, &quot;value&quot; =&gt; 50))
+catch err
+    showerror(stdout, err)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SchemaValidationError: value does not match any of the options of `Union{MassType, VolumeType}`:
+  `Main.BeerJSONTypes.MassType`: invalid value &quot;cm&quot; for `MassUnitType`; allowed values are &quot;mg&quot;, &quot;g&quot;, &quot;kg&quot;, &quot;lb&quot;, &quot;oz&quot;
+  `Main.BeerJSONTypes.VolumeType`: invalid value &quot;cm&quot; for `VolumeUnitType`; allowed values are &quot;ml&quot;, &quot;l&quot;, &quot;tsp&quot;, &quot;tbsp&quot;, &quot;floz&quot;, &quot;cup&quot;, &quot;pt&quot;, &quot;qt&quot;, &quot;gal&quot;, &quot;bbl&quot;, &quot;ifloz&quot;, &quot;ipt&quot;, &quot;iqt&quot;, &quot;igal&quot;, &quot;ibbl&quot;</code></pre><h2 id="Reading-every-sample"><a class="docs-heading-anchor" href="#Reading-every-sample">Reading every sample</a><a id="Reading-every-sample-1"></a><a class="docs-heading-anchor-permalink" href="#Reading-every-sample" title="Permalink"></a></h2><p>Every sample document of BeerJSON 1.0.1 can be read, and written back unchanged:</p><pre><code class="language-julia hljs">using JSON
+canon(x::AbstractDict) = Dict(String(k) =&gt; canon(v) for (k, v) in x)
+canon(x::AbstractVector) = Any[canon(v) for v in x]
+canon(x::Real) = x isa Bool ? x : Float64(x)
+canon(x) = x
+files = [joinpath(dir, f) for dir in readdir(SAMPLES; join = true) if isdir(dir)
+         for f in readdir(dir) if endswith(f, &quot;.json&quot;)]
+unchanged = count(files) do f
+    canon(JSON.parse(tojson(readjson(RootType, f)))) == canon(JSON.parse(read(f, String)))
+end
+&quot;$unchanged of $(length(files)) documents read and written back unchanged&quot;</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;43 of 43 documents read and written back unchanged&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../examples/">« Examples</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Friday 13 November 2026 22:52">Friday 13 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
