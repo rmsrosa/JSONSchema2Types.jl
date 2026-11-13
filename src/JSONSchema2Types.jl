@@ -1,9 +1,15 @@
+"""
+    JSONSchema2Types
+
+Generate Julia types from a JSON Schema, together with functions to read and write JSON
+documents conforming to the schema. See [`generate_module`](@ref).
+"""
 module JSONSchema2Types
 
-using JSON3
+using JSON
 
-export generate_types
+export generate_module
 
-include("parser.jl")
+include("generator.jl")
 
-end
+end # module

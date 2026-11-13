@@ -1,0 +1,35 @@
+{
+  "beerjson": {
+    "version": 2.01,
+    "profiles": [
+      {
+        "name": "Burton on Trent, UK",
+        "calcium": {
+            "unit": "ppm",
+            "value": 295.0
+          },
+        "bicarbonate": {
+            "unit": "ppm",
+            "value": 300.0
+          },
+        "sulfate": {
+            "unit": "ppm",
+            "value": 725
+          },
+        "chloride": {
+            "unit": "ppm",
+            "value": 25.0
+          },
+        "sodium": {
+            "unit": "ppm",
+            "value": 55.0
+          },
+        "magnesium": {
+            "unit": "ppm",
+            "value": 45.0
+          },
+        "pH": 8.0
+      }
+    ]
+  }
+}

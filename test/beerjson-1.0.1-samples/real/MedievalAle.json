@@ -1,0 +1,316 @@
+{
+  "beerjson": {
+    "version": 2.06,
+    "recipes": [
+      {
+        "name": "#20 1058 Medieval Ale",
+        "type": "all grain",
+        "author": "",
+        "batch_size": {
+          "unit": "gal",
+          "value": 5.5
+        },
+        "efficiency": {
+          "conversion": {
+            "unit": "%",
+            "value": 92
+          },
+          "lauter": {
+            "unit": "%",
+            "value": 80.5
+          },
+          "mash": {
+            "unit": "%",
+            "value": 74
+          },
+          "brewhouse": {
+            "unit": "%",
+            "value": 74.1
+          }
+        },
+        "style": {
+          "name": "Specialty",
+          "category": "Experimental and Historic",
+          "category_number": 24,
+          "style_letter": "A",
+          "style_guide": "BJCP 1999",
+          "type": "beer"
+        },
+        "ingredients": {
+          "fermentable_additions": [
+            {
+              "name": "Buckwheat Honey",
+              "type": "honey",
+              "color": {
+                "unit": "Lovi",
+                "value": 0
+              },
+              "origin": "America",
+              "amount": {
+                "unit": "lb",
+                "value": 2.148
+              },
+              "yield": {
+                "potential": {
+                  "unit": "sg",
+                  "value": 1037
+                }
+              }
+            },
+            {
+              "name": "Flaked Barley",
+              "type": "grain",
+              "color": {
+                "unit": "Lovi",
+                "value": 2.2
+              },
+              "origin": "America",
+              "amount": {
+                "unit": "lb",
+                "value": 0.5
+              },
+              "yield": {
+                "potential": {
+                  "unit": "sg",
+                  "value": 1033
+                }
+              }
+            },
+            {
+              "name": "Roasted Barley",
+              "type": "grain",
+              "color": {
+                "unit": "Lovi",
+                "value": 450
+              },
+              "origin": "America",
+              "amount": {
+                "unit": "lb",
+                "value": 0.25
+              },
+              "yield": {
+                "potential": {
+                  "unit": "sg",
+                  "value": 1037
+                }
+              }
+            },
+            {
+              "name": "Unmalted Wheat",
+              "type": "grain",
+              "color": {
+                "unit": "Lovi",
+                "value": 2.7
+              },
+              "origin": "America",
+              "amount": {
+                "unit": "lb",
+                "value": 1.5
+              },
+              "yield": {
+                "potential": {
+                  "unit": "sg",
+                  "value": 1037
+                }
+              }
+            },
+            {
+              "name": "Pale Malt(2-row)",
+              "type": "grain",
+              "color": {
+                "unit": "Lovi",
+                "value": 1.8
+              },
+              "origin": "America",
+              "amount": {
+                "unit": "lb",
+                "value": 8
+              },
+              "yield": {
+                "potential": {
+                  "unit": "sg",
+                  "value": 1037
+                }
+              }
+            },
+            {
+              "name": "Crystal Malt",
+              "type": "grain",
+              "color": {
+                "unit": "Lovi",
+                "value": 60
+              },
+              "origin": "America",
+              "amount": {
+                "unit": "lb",
+                "value": 1
+              },
+              "yield": {
+                "potential": {
+                  "unit": "sg",
+                  "value": 1037
+                }
+              }
+            }
+          ],
+          "miscellaneous_additions": [
+            {
+              "name": "Bitter Orange Peel",
+              "type": "spice",
+              "amount": {
+                "unit": "oz",
+                "value": 0.63
+              },
+              "timing": {
+                "time": {
+                  "unit": "min",
+                  "value": 60
+                },
+                "use": "add_to_boil"
+              }
+            },
+            {
+              "name": "Licorice Stick",
+              "type": "spice",
+              "amount": {
+                "unit": "oz",
+                "value": 0.75
+              },
+              "timing": {
+                "time": {
+                  "unit": "min",
+                  "value": 60
+                },
+                "use": "add_to_boil"
+              }
+            },
+            {
+              "name": "Mugwort",
+              "type": "herb",
+              "amount": {
+                "unit": "oz",
+                "value": 1
+              },
+              "timing": {
+                "time": {
+                  "unit": "min",
+                  "value": 60
+                },
+                "use": "add_to_boil"
+              }
+            },
+            {
+              "name": "Juniper Berries",
+              "type": "spice",
+              "amount": {
+                "unit": "oz",
+                "value": 1
+              },
+              "timing": {
+                "time": {
+                  "unit": "day",
+                  "value": 15
+                },
+                "duration": {
+                  "unit": "day",
+                  "value": 14
+                },
+                "use": "add_to_fermentation"
+              }
+            },
+            {
+              "name": "Lemon Balm",
+              "type": "herb",
+              "amount": {
+                "unit": "oz",
+                "value": 3
+              },
+              "timing": {
+                "time": {
+                  "unit": "min",
+                  "value": 0
+                }
+              }
+            }
+          ],
+          "culture_additions": [
+            {
+              "name": "English Ale",
+              "type": "ale",
+              "form": "liquid",
+              "producer": "Ithaca Beer C",
+              "product_id": "",
+              "amount": {
+                "unit": "ml",
+                "value": 0
+              }
+            }
+          ]
+        },
+        "mash": {
+          "name": "Simple Mash Type - Single Step",
+          "grain_temperature": {
+            "unit": "F",
+            "value": 80
+          },
+          "notes": "",
+          "mash_steps": [
+            {
+              "name": "Saccharification Rest",
+              "type": "infusion",
+              "amount": {
+                "unit": "qt",
+                "value": 22.5
+              },
+              "step_temperature": {
+                "unit": "F",
+                "value": 158
+              },
+              "step_time": {
+                "unit": "min",
+                "value": 70
+              },
+              "ramp_time": {
+                "unit": "min",
+                "value": 5
+              },
+              "end_temperature": {
+                "unit": "F",
+                "value": 158
+              },
+              "description": "Add 22.50 qt of water at 165.0 F",
+              "water_grain_ratio": {
+                "unit": "qt/lb",
+                "value": 2.09
+              },
+              "infuse_temperature": {
+                "unit": "F",
+                "value": 165
+              }
+            }
+          ]
+        },
+        "boil": {
+          "name": "60 minute boil",
+          "description": "A standard 60 min boil",
+          "pre_boil_size": {
+            "unit": "gal",
+            "value": 5.5
+          },
+          "boil_time": {
+            "unit": "min",
+            "value": 90
+          }
+        },
+        "notes": "",
+        "original_gravity": {
+          "unit": "sg",
+          "value": 1.059
+        },
+        "ibu_estimate": {
+          "method": "Other"
+        }
+      }
+    ]
+  }
+}

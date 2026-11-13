@@ -1,0 +1,14 @@
+{
+  "beerjson": {
+    "version": 2.06,
+    "cultures": [
+      {
+        "name": "Ole English Ale Yeast",
+        "type": "ale",
+        "form": "liquid",
+        "laboratory": "",
+        "product_id": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "beerjson": {
+    "version": 2.01,
+    "hop_varieties": [
+      {
+        "name": "Super Hops",
+        "origin": "Planet Krypton",
+        "form": "leaf",
+        "alpha_acid": {
+          "unit": "%",
+          "value": 4.5
+        },
+        "beta_acid": {
+          "unit": "%",
+          "value": 5.5
+        },
+        "type": "bittering",
+        "notes": "This hop is a really cool hops - you can use it for anything. It leaps over buildings in a single bound, is faster than a speeding bullet and makes really aromatic beers.",
+        "percent_lost": {
+          "unit": "%",
+          "value": 30
+        },
+        "substitutes": "Goldings, Fuggles, Super Alpha",
+        "inventory": {
+          "amount": {
+            "unit": "oz",
+            "value": 2.0
+          }
+        },
+        "oil_content": {
+          "humulene": {
+            "unit": "%",
+            "value": 2.34
+          },
+          "caryophyllene": {
+            "unit": "%",
+            "value": 1.23
+          },
+          "cohumulone": {
+            "unit": "%",
+            "value": 13.2
+          },
+          "myrcene": {
+            "unit": "%",
+            "value": 24.2
+          }
+        }
+      },
+      {
+        "name": "Lex Luthor Hops",
+        "origin": "Planet Earth",
+        "form": "extract",
+        "alpha_acid": {
+          "unit": "%",
+          "value": 4.5
+        },
+        "beta_acid": {
+          "unit": "%",
+          "value": 5.5
+        },
+        "type": "bittering",
+        "notes": "This hop is a really dangerous hop - you can use it with extreme care. It cracks buildings in a single bound, is smarter than your average vilain, and makes really bitter beer.",
+        "percent_lost": {
+          "unit": "%",
+          "value": 30
+        },
+        "substitutes": "Goldings, Fuggles, Super Alpha",
+        "inventory": {
+          "amount": {
+            "unit": "floz",
+            "value": 2.0
+          }
+        },
+        "oil_content": {
+          "humulene": {
+            "unit": "%",
+            "value": 2.34
+          },
+          "caryophyllene": {
+            "unit": "%",
+            "value": 1.23
+          },
+          "cohumulone": {
+            "unit": "%",
+            "value": 13.2
+          },
+          "myrcene": {
+            "unit": "%",
+            "value": 24.2
+          }
+        }
+      }
+    ]
+  }
+}

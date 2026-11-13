@@ -1,0 +1,49 @@
+{
+  "beerjson": {
+    "version": 2.01,
+    "fermentables": [
+      {
+        "name": "Crystal 40 L",
+        "type": "grain",
+        "color": {
+          "unit": "Lovi",
+          "value": 40.0
+        },
+        "origin": "United Kingdom",
+        "producer": "Fussybrewer Malting",
+        "yield": {
+          "fine_grind": {
+            "unit": "%",
+            "value": 74.0
+          },
+          "fine_coarse_difference": {
+            "unit": "%",
+            "value": 1.5
+          },
+          "coarse_grind": {
+            "unit": "%",
+            "value": 72.5
+          }
+        },
+        "notes": "Darker crystal malt. Adds body and improves head retention. Also called caramel malt.",
+        "moisture": {
+          "unit": "%",
+          "value": 4.0
+        },
+        "diastatic_power": {
+          "unit": "Lintner",
+          "value": 0.0
+        },
+        "protein": {
+          "unit": "%",
+          "value": 13.2
+        },
+        "max_in_batch": {
+          "unit": "%",
+          "value": 10.0
+        },
+        "recommend_mash": false
+      }
+    ]
+  }
+}

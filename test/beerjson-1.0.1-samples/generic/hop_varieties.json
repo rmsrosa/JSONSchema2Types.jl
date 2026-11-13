@@ -1,0 +1,15 @@
+{
+  "beerjson": {
+    "version": 2.06,
+    "hop_varieties": [
+      {
+        "name": "name",
+        "origin": "US",
+        "alpha_acid": {
+          "unit": "%",
+          "value": 5
+        }
+      }
+    ]
+  }
+}
