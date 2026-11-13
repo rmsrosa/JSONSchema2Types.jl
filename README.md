@@ -79,6 +79,8 @@ The generated module exports:
 | optional property, or `null` allowed | `Union{Nothing, T}`; optional fields default to `nothing` and are omitted when writing |
 | `additionalProperties` not `false` | unknown properties are kept in the `_extra::Dict{String, Any}` field, so nothing is lost when a document is read and written back |
 | `additionalProperties: false` | unknown properties are an error |
+| `unevaluatedProperties` (2019-09 and later) | same as `additionalProperties`, applied after merging `allOf`, so `unevaluatedProperties: false` closes an `allOf`-composed type |
+| `deprecated: true` | flagged as deprecated in the docstrings of the field or type |
 
 Type names come from the definition names, for example `#/definitions/VolumeType` becomes
 `VolumeType`. Inline subschemas are named after their `title` if they have one. Otherwise

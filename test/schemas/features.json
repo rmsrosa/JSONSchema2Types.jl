@@ -5,68 +5,211 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "id": { "$ref": "#/definitions/Identifier" },
-    "end": { "type": "integer", "description": "A field named with a Julia keyword." },
-    "first-name": { "type": "string", "minLength": 1, "maxLength": 10 },
-    "score": { "type": "number", "minimum": 0, "exclusiveMaximum": 10, "multipleOf": 0.5 },
-    "nickname": { "type": ["string", "null"] },
-    "color": { "$ref": "#/definitions/Color" },
-    "mixed": { "enum": ["a", 1, 2.5, true] },
+    "id": {
+      "$ref": "#/definitions/Identifier"
+    },
+    "end": {
+      "type": "integer",
+      "description": "A field named with a Julia keyword."
+    },
+    "first-name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10
+    },
+    "score": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMaximum": 10,
+      "multipleOf": 0.5
+    },
+    "nickname": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "color": {
+      "$ref": "#/definitions/Color"
+    },
+    "mixed": {
+      "enum": [
+        "a",
+        1,
+        2.5,
+        true
+      ]
+    },
     "tags": {
       "type": "array",
-      "items": { "$ref": "#/definitions/Identifier" },
+      "items": {
+        "$ref": "#/definitions/Identifier"
+      },
       "minItems": 1,
       "uniqueItems": true
     },
-    "tree": { "$ref": "#/definitions/Node" },
-    "metadata": { "type": "object", "additionalProperties": { "type": "integer" } },
+    "tree": {
+      "$ref": "#/definitions/Node"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      }
+    },
     "shape": {
       "oneOf": [
-        { "$ref": "#/definitions/Circle" },
-        { "$ref": "#/definitions/Square" }
+        {
+          "$ref": "#/definitions/Circle"
+        },
+        {
+          "$ref": "#/definitions/Square"
+        }
       ]
     },
-    "labeled": { "$ref": "#/definitions/LabeledCircle" },
+    "labeled": {
+      "$ref": "#/definitions/LabeledCircle"
+    },
     "counted": {
       "type": "object",
-      "properties": { "a": { "type": "integer" }, "b": { "type": "integer" } },
+      "properties": {
+        "a": {
+          "type": "integer"
+        },
+        "b": {
+          "type": "integer"
+        }
+      },
       "minProperties": 1
+    },
+    "strict": {
+      "$ref": "#/definitions/StrictLabeledCircle"
+    },
+    "typed_extra": {
+      "$ref": "#/definitions/TypedExtra"
+    },
+    "old_name": {
+      "type": "string",
+      "deprecated": true,
+      "description": "Use `first-name` instead."
     }
   },
-  "required": ["id", "end", "nickname"],
+  "required": [
+    "id",
+    "end",
+    "nickname"
+  ],
   "definitions": {
-    "Identifier": { "type": "string", "pattern": "^[a-z]+-[0-9]+$" },
-    "Color": { "type": "string", "enum": ["red", "green", "blue"] },
+    "Identifier": {
+      "type": "string",
+      "pattern": "^[a-z]+-[0-9]+$"
+    },
+    "Color": {
+      "type": "string",
+      "enum": [
+        "red",
+        "green",
+        "blue"
+      ]
+    },
     "Node": {
       "type": "object",
       "properties": {
-        "value": { "type": "integer" },
-        "children": { "type": "array", "items": { "$ref": "#/definitions/Node" } },
-        "parent": { "$ref": "#/definitions/Parent" }
+        "value": {
+          "type": "integer"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Node"
+          }
+        },
+        "parent": {
+          "$ref": "#/definitions/Parent"
+        }
       },
-      "required": ["value"]
+      "required": [
+        "value"
+      ]
     },
     "Parent": {
       "type": "object",
-      "properties": { "node": { "$ref": "#/definitions/Node" } }
+      "properties": {
+        "node": {
+          "$ref": "#/definitions/Node"
+        }
+      }
     },
     "Circle": {
       "type": "object",
       "additionalProperties": false,
-      "properties": { "radius": { "type": "number", "exclusiveMinimum": 0 } },
-      "required": ["radius"]
+      "properties": {
+        "radius": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "radius"
+      ]
     },
     "Square": {
       "type": "object",
       "additionalProperties": false,
-      "properties": { "side": { "type": "number" } },
-      "required": ["side"]
+      "properties": {
+        "side": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "side"
+      ]
     },
     "LabeledCircle": {
       "allOf": [
-        { "$ref": "#/definitions/Circle" },
-        { "properties": { "label": { "type": "string" } }, "required": ["label"] }
+        {
+          "$ref": "#/definitions/Circle"
+        },
+        {
+          "properties": {
+            "label": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "label"
+          ]
+        }
       ]
+    },
+    "StrictLabeledCircle": {
+      "description": "Closed to unknown keys with unevaluatedProperties, as in JSON Schema 2020-12.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Circle"
+        },
+        {
+          "properties": {
+            "label": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "TypedExtra": {
+      "type": "object",
+      "deprecated": true,
+      "description": "Additional values must be numbers.",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "unevaluatedProperties": {
+        "type": "number"
+      }
     }
   }
 }
