@@ -10,6 +10,14 @@ The main motivation is the [BeerJSON](https://github.com/beerjson/beerjson) sche
 large and intricate, so writing the types by hand would take a lot of work. The package is
 general, though, and should be useful for other schemas as well.
 
+## Installation
+
+```julia
+julia> using Pkg
+
+julia> Pkg.add("JSONSchema2Types")
+```
+
 ## Usage
 
 ```julia
