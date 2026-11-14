@@ -21,13 +21,23 @@ for the types generated from it, used to read and display real BeerJSON document
 
 ## Installation
 
-The package is not registered yet. Install it from GitHub:
+Install it from the General registry:
 
 ```julia
 julia> using Pkg
 
-julia> Pkg.add(url = "https://github.com/rmsrosa/JSONSchema2Types.jl")
+julia> Pkg.add("JSONSchema2Types")
 ```
+
+or install the development version from GitHub with
+`Pkg.add(url = "https://github.com/rmsrosa/JSONSchema2Types.jl")`.
+
+## Related packages
+
+* [JSONSchema.jl](https://github.com/JuliaIO/JSONSchema.jl) validates JSON documents
+  against a schema, without generating types.
+* [JSONSchemaGenerator.jl](https://github.com/matthijscox/JSONSchemaGenerator.jl) and
+  [Struct2JSONSchema.jl](https://github.com/abap34/Struct2JSONSchema.jl) go the other way, from Julia types to JSON Schemas.
 
 ## Quick start
 
