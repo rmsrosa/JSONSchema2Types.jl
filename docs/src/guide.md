@@ -157,8 +157,9 @@ readjson(BeerJSON{BigInt, BigFloat}, "recipe.json")   # all the numbers in the d
 VolumeType{Int, Rational{Int}}(unit = "l", value = 0.5).value   # 1//2
 ```
 
-The names `I` and `T` are reserved: a property named `I` or `T` becomes the field `I_` or
-`T_`, and a definition named `I` or `T` gets another type name.
+Properties can be named `I` or `T`, like the type parameters. Types cannot (inside the
+structs, `T` is the type parameter): a definition named `I` or `T` gets another name,
+prefixed with the name of its schema file.
 
 Any `Integer` and `Real` types can be used: `Int32`, `Int128`, `BigInt`; `Float32`,
 `BigFloat`, rationals, or types from other packages that convert from numbers. Values that

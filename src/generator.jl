@@ -31,7 +31,7 @@ const RESERVED_NAMES = Set([
     "import", "in", "isa", "let", "local", "macro", "module", "mutable", "new", "outer",
     "primitive", "public", "quote", "return", "struct", "true", "try", "type", "using",
     "where", "while", "nothing", "missing", "Any", "Nothing", "String", "Bool", "Int64",
-    "Float64", "Vector", "Dict", "Union", "I", "T",
+    "Float64", "Vector", "Dict", "Union",
 ])
 # `type` is not a reserved word in Julia, so we allow it as a field name.
 delete!(RESERVED_NAMES, "type")
@@ -1328,13 +1328,22 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
         println(io, "    ", extra, "::Dict{String, ", extra_type, "}")
         push!(kwargs, extra * " = Dict{String, Any}()")
     end
-    println(io, "    function ", d.name, "{I, T}(; ", join(kwargs, ", "), ") where ", params)
-    for f in d.fields
-        println(io, "        ", f.name, " = _jsfrom(", f.type.expr, ", ", f.name, ")")
+    # In the constructors, the arguments are named after the fields: if a field is named `I`
+    # or `T`, the type parameters are given other names there, so that they are not hidden.
+    allfields = vcat([f.name for f in d.fields], extra === nothing ? String[] : [extra])
+    pI, pT, k = "I", "T", 1
+    while pI in allfields || pT in allfields
+        pI, pT, k = "I$k", "T$k", k + 1
     end
-    extra === nothing || println(io, "        ", extra, " = _jsfrom(Dict{String, ", d.extra_type.expr, "}, ", extra, ")")
+    cparams = "{$pI <: Integer, $pT <: Real}"
+    sub(expr) = pI == "I" ? expr : replace(expr, r"\bI\b" => pI, r"\bT\b" => pT)
+    println(io, "    function ", d.name, "{$pI, $pT}(; ", join(kwargs, ", "), ") where ", cparams)
+    for f in d.fields
+        println(io, "        ", f.name, " = _jsfrom(", sub(f.type.expr), ", ", f.name, ")")
+    end
+    extra === nothing || println(io, "        ", extra, " = _jsfrom(Dict{String, ", sub(d.extra_type.expr), "}, ", extra, ")")
     vals = join([f.name for f in d.fields], ", ")
-    println(io, "        _jscheck(", d.name, "{I, T}, (", vals, isempty(d.fields) || length(d.fields) > 1 ? "" : ",", "), ",
+    println(io, "        _jscheck(", d.name, "{$pI, $pT}, (", vals, isempty(d.fields) || length(d.fields) > 1 ? "" : ",", "), ",
             something(extra, "nothing"), ")")
     println(io, "        return new(", join(vcat([f.name for f in d.fields], extra === nothing ? String[] : [extra]), ", "), ")")
     println(io, "    end")
@@ -1344,11 +1353,10 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
     # (without parameters: the default `Int64` and `Float64` for keyword arguments, and the
     # numeric types of the arguments, if any, for positional ones)
     println(io, d.name, "(; kwargs...) = ", d.name, "{Int64, Float64}(; kwargs...)")
-    allfields = vcat([f.name for f in d.fields], extra === nothing ? String[] : [extra])
     if !isempty(allfields)
         args = join(allfields, ", ")
-        println(io, d.name, "{I, T}(", args, ") where ", params, " = ",
-                d.name, "{I, T}(; ", args, ")")
+        println(io, d.name, "{$pI, $pT}(", args, ") where ", cparams, " = ",
+                d.name, "{$pI, $pT}(; ", args, ")")
         println(io, d.name, "(", args, ") = ", d.name, "{_jsnumbertypes(", args, ")...}(; ", args, ")")
     end
 

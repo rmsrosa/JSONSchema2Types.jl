@@ -398,15 +398,18 @@ end
     # positional constructors infer the numeric types from their arguments
     @test M.VolumeType(M.VolumeUnitType("l"), big"2.5") isa M.VolumeType{Int64, BigFloat}
     @test M.setfields(w; value = 3).value isa BigFloat
-    # the names of the type parameters are reserved
+    # fields can be named like the type parameters, `I` and `T`; types cannot
     dir = mktempdir()
     write(joinpath(dir, "s.json"), """{"title": "R", "type": "object",
         "properties": {"I": {"type": "integer"}, "T": {"\$ref": "#/\$defs/T"}},
         "\$defs": {"T": {"type": "object", "properties": {"x": {"type": "number"}}}}}""")
     N = load_generated(joinpath(dir, "s.json"))
-    @test fieldnames(N.R) == (:I_, :T_, :_extra)
+    @test fieldnames(N.R) == (:I, :T, :_extra)
     r = N.fromjson(N.R{Int, BigFloat}, """{"I": 1, "T": {"x": 2.5}}""")
-    @test r.I_ === 1 && r.T_.x isa BigFloat && N.tojson(r) == """{"I":1,"T":{"x":2.5}}"""
+    @test r.I === 1 && r.T.x isa BigFloat && N.tojson(r) == """{"I":1,"T":{"x":2.5}}"""
+    @test N.R{Int32, Float32}(I = 2).I === Int32(2)
+    @test N.R(I = 1, T = (x = 2,)).T isa N.ST{Int64, Float64}
+    @test N.setfields(r; I = 5).I === 5
 end
 
 @testset "Additional properties are preserved" begin
