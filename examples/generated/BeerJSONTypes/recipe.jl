@@ -40,6 +40,7 @@ struct EfficiencyType <: AbstractSchemaObject
         return new(conversion, lauter, mash, brewhouse)
     end
 end
+EfficiencyType(conversion, lauter, mash, brewhouse) = EfficiencyType(; conversion, lauter, mash, brewhouse)
 _SPECS[EfficiencyType] = (
     fields = (
         (name = :conversion, key = "conversion", required = false, nullable = false, constraints = nothing),
@@ -81,6 +82,7 @@ struct IngredientsType <: AbstractSchemaObject
         return new(fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions)
     end
 end
+IngredientsType(fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions) = IngredientsType(; fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions)
 _SPECS[IngredientsType] = (
     fields = (
         (name = :fermentable_additions, key = "fermentable_additions", required = true, nullable = false, constraints = nothing),
@@ -114,6 +116,7 @@ struct TasteType <: AbstractSchemaObject
         return new(notes, rating)
     end
 end
+TasteType(notes, rating) = TasteType(; notes, rating)
 _SPECS[TasteType] = (
     fields = (
         (name = :notes, key = "notes", required = true, nullable = false, constraints = nothing),
@@ -212,13 +215,14 @@ struct RecipeType <: AbstractSchemaObject
         return new(name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint)
     end
 end
+RecipeType(name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint) = RecipeType(; name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint)
 _SPECS[RecipeType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = true, nullable = false, constraints = nothing),
         (name = :author, key = "author", required = true, nullable = false, constraints = nothing),
         (name = :coauthor, key = "coauthor", required = false, nullable = false, constraints = nothing),
-        (name = :created, key = "created", required = false, nullable = false, constraints = (pattern = Regex("\\d{4}-\\d{2}-\\d{2}|\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"),)),
+        (name = :created, key = "created", required = false, nullable = false, constraints = (pattern = _jsregex("\\d{4}-\\d{2}-\\d{2}|\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"),)),
         (name = :batch_size, key = "batch_size", required = true, nullable = false, constraints = nothing),
         (name = :efficiency, key = "efficiency", required = true, nullable = false, constraints = nothing),
         (name = :style, key = "style", required = false, nullable = false, constraints = nothing),

@@ -51,6 +51,7 @@ struct YieldType <: AbstractSchemaObject
         return new(fine_grind, coarse_grind, fine_coarse_difference, potential)
     end
 end
+YieldType(fine_grind, coarse_grind, fine_coarse_difference, potential) = YieldType(; fine_grind, coarse_grind, fine_coarse_difference, potential)
 _SPECS[YieldType] = (
     fields = (
         (name = :fine_grind, key = "fine_grind", required = false, nullable = false, constraints = nothing),
@@ -80,6 +81,7 @@ struct FermentableInventoryType <: AbstractSchemaObject
         return new(amount)
     end
 end
+FermentableInventoryType(amount) = FermentableInventoryType(; amount)
 _SPECS[FermentableInventoryType] = (
     fields = (
         (name = :amount, key = "amount", required = false, nullable = false, constraints = (schema = JSON.parse("""
@@ -206,6 +208,7 @@ struct FermentableType <: AbstractSchemaObject
         return new(name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra)
     end
 end
+FermentableType(name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra) = FermentableType(; name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra)
 _SPECS[FermentableType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
@@ -292,6 +295,7 @@ struct FermentableAdditionType <: AbstractSchemaObject
         return new(name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra)
     end
 end
+FermentableAdditionType(name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra) = FermentableAdditionType(; name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra)
 _SPECS[FermentableAdditionType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

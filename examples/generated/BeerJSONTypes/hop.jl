@@ -95,6 +95,7 @@ struct OilContentType <: AbstractSchemaObject
         return new(total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra)
     end
 end
+OilContentType(total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra) = OilContentType(; total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra)
 _SPECS[OilContentType] = (
     fields = (
         (name = :total_oil_ml_per_100g, key = "total_oil_ml_per_100g", required = false, nullable = false, constraints = nothing),
@@ -134,6 +135,7 @@ struct HopInventoryType <: AbstractSchemaObject
         return new(amount)
     end
 end
+HopInventoryType(amount) = HopInventoryType(; amount)
 _SPECS[HopInventoryType] = (
     fields = (
         (name = :amount, key = "amount", required = false, nullable = false, constraints = (schema = JSON.parse("""
@@ -215,6 +217,7 @@ struct VarietyInformation <: AbstractSchemaObject
         return new(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra)
     end
 end
+VarietyInformation(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra) = VarietyInformation(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra)
 _SPECS[VarietyInformation] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
@@ -286,6 +289,7 @@ struct HopAdditionType <: AbstractSchemaObject
         return new(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
     end
 end
+HopAdditionType(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra) = HopAdditionType(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
 _SPECS[HopAdditionType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
@@ -337,6 +341,7 @@ struct IBUEstimateType <: AbstractSchemaObject
         return new(method, _extra)
     end
 end
+IBUEstimateType(method, _extra) = IBUEstimateType(; method, _extra)
 _SPECS[IBUEstimateType] = (
     fields = (
         (name = :method, key = "method", required = false, nullable = false, constraints = nothing),

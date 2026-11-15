@@ -14,6 +14,7 @@ generate_module(schema_file, output;
     type_names = Dict(),   # names chosen for some types
     download = false,      # fetch remote schemas referenced by `$ref`
     typed_formats = false, # store `date`, `date-time` and `uuid` strings as Julia types
+    use_defaults = false,  # optional fields default to the schema `default`, not `nothing`
 )
 ```
 
@@ -23,6 +24,7 @@ The generated module only needs JSON.jl. It exports the generated types and:
 |---|---|
 | `readjson(T, filename)`, `fromjson(T, string)` | read a JSON document into a value of type `T`, validating it |
 | `writejson(filename, x)`, `tojson(x)` | write a value as JSON |
+| `setfields(x; kwargs...)` | a copy of `x` with some fields changed, validated |
 | `fromdict(T, x)`, `todict(x)` | convert from and to parsed JSON values (`Dict`s, vectors, numbers...) |
 | `RootType` | alias for the type of the root of the schema |
 | `SchemaValidationError` | error thrown when a value does not conform to the schema |
@@ -71,8 +73,10 @@ Schema validator checks the JSON form of the values against them:
 * `oneOf` and `anyOf`: reading picks the first option of the `Union` whose type fits, and
   the runtime check makes sure that the value satisfies the full schema of an option and,
   for `oneOf`, that it matches *exactly one* option;
-* `format`: `date-time`, `date`, `time`, `email`, `uri`, `uuid`, `ipv4`, `ipv6`, `hostname`
-  and `regex` are checked; other formats are ignored. JSON Schema treats `format` as an
+* `format`: `date-time`, `date`, `time`, `duration`, `email`, `idn-email`,
+  `hostname`, `idn-hostname`, `ipv4`, `ipv6`, `uri`, `uri-reference`, `iri`, `iri-reference`,
+  `uri-template`, `json-pointer`, `relative-json-pointer`, `uuid` and `regex` are checked
+  (`idn-hostname` loosely: the IDNA2008 rules are not), and other formats are ignored. JSON Schema treats `format` as an
   annotation by default, so these checks can be turned off with `check_formats!(false)`.
 
 A value that does not conform throws a `SchemaValidationError` that says where and why.
@@ -137,6 +141,36 @@ tuple cannot have optional elements:
 
 Tuples are written as JSON arrays.
 
+## Changing values
+
+The generated structs are immutable. `setfields(x; field = value, ...)` returns a copy of
+`x` with some fields replaced; the new values are converted and validated as by the
+constructor, so plain values can be given:
+
+```julia
+v = VolumeType(unit = "l", value = 20)
+setfields(v; value = 40)            # VolumeType(VolumeUnitType("l"), 40.0)
+setfields(v; unit = "litre")        # SchemaValidationError
+```
+
+Each struct also has a positional constructor, with its fields in order, so values can be
+written as they are printed (`VolumeType(VolumeUnitType("l"), 20.0)`). This is also what
+[Accessors.jl](https://github.com/JuliaObjects/Accessors.jl) uses, so its `@set` works on
+the generated types, for changes deep inside a document, without further setup:
+
+```julia
+using Accessors
+recipe2 = @set recipe.ingredients.hop_additions[1].amount.value = 0.05
+```
+
+## Default values
+
+By default, an optional property that is missing is `nothing`. With `use_defaults = true`,
+optional properties with a `default` in the schema (or in the schema their `\$ref` points
+to) default to it instead, both in the keyword constructors and when reading a document.
+Since the default values are then written out, a document missing them is not written back
+unchanged: that is why this is not the default.
+
 ## Dates and UUIDs
 
 With `typed_formats = true`, strings with these formats are stored as Julia values:
@@ -174,7 +208,11 @@ schema, e.g. to use a cache.
 
 ## Limitations
 
-* `$dynamicRef`/`$dynamicAnchor` (2020-12) and `$recursiveRef` (2019-09), used for
-  extensible recursive schemas, are not supported.
+See also [Conformance](@ref) for the results of the official JSON Schema Test Suite.
+
+* A schema with `properties` but no `type` is a struct, so it only accepts objects.
+* `$dynamicRef`/`$dynamicAnchor` are resolved statically, like `$ref`/`$anchor`; `$recursiveRef`
+  (2019-09) is not supported.
 * Arrays with optional prefix items are `Vector{Any}`, with their items checked at runtime.
 * `time` strings are not converted to Julia values, even with `typed_formats = true`.
+* Integers are `Int64` and numbers `Float64`.

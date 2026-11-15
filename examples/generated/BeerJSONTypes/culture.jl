@@ -49,6 +49,7 @@ struct CultureInventoryType <: AbstractSchemaObject
         return new(liquid, dry, slant, culture)
     end
 end
+CultureInventoryType(liquid, dry, slant, culture) = CultureInventoryType(; liquid, dry, slant, culture)
 _SPECS[CultureInventoryType] = (
     fields = (
         (name = :liquid, key = "liquid", required = false, nullable = false, constraints = nothing),
@@ -92,6 +93,7 @@ struct Zymocide <: AbstractSchemaObject
         return new(no1, no2, no28, klus, neutral)
     end
 end
+Zymocide(no1, no2, no28, klus, neutral) = Zymocide(; no1, no2, no28, klus, neutral)
 _SPECS[Zymocide] = (
     fields = (
         (name = :no1, key = "no1", required = false, nullable = false, constraints = nothing),
@@ -172,6 +174,7 @@ struct CultureInformation <: AbstractSchemaObject
         return new(name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra)
     end
 end
+CultureInformation(name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra) = CultureInformation(; name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra)
 _SPECS[CultureInformation] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
@@ -245,6 +248,7 @@ struct CultureAdditionType <: AbstractSchemaObject
         return new(name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra)
     end
 end
+CultureAdditionType(name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra) = CultureAdditionType(; name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra)
 _SPECS[CultureAdditionType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

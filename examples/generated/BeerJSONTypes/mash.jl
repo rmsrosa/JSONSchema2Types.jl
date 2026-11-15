@@ -29,6 +29,7 @@ struct MashProcedureType <: AbstractSchemaObject
         return new(name, grain_temperature, notes, mash_steps)
     end
 end
+MashProcedureType(name, grain_temperature, notes, mash_steps) = MashProcedureType(; name, grain_temperature, notes, mash_steps)
 _SPECS[MashProcedureType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

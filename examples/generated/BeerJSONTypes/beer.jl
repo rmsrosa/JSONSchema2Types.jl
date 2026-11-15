@@ -59,6 +59,7 @@ struct BeerJSONContent <: AbstractSchemaObject
         return new(version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging)
     end
 end
+BeerJSONContent(version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging) = BeerJSONContent(; version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging)
 _SPECS[BeerJSONContent] = (
     fields = (
         (name = :version, key = "version", required = true, nullable = false, constraints = nothing),
@@ -98,6 +99,7 @@ struct BeerJSON <: AbstractSchemaObject
         return new(beerjson)
     end
 end
+BeerJSON(beerjson) = BeerJSON(; beerjson)
 _SPECS[BeerJSON] = (
     fields = (
         (name = :beerjson, key = "beerjson", required = true, nullable = false, constraints = nothing),

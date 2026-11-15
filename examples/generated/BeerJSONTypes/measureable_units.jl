@@ -208,6 +208,7 @@ struct TimeType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+TimeType(unit, value) = TimeType(; unit, value)
 _SPECS[TimeType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -240,6 +241,7 @@ struct GravityType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+GravityType(unit, value) = GravityType(; unit, value)
 _SPECS[GravityType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -270,6 +272,7 @@ struct AcidityType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+AcidityType(unit, value) = AcidityType(; unit, value)
 _SPECS[AcidityType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -300,6 +303,7 @@ struct PercentType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+PercentType(unit, value) = PercentType(; unit, value)
 _SPECS[PercentType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -332,6 +336,7 @@ struct ColorType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+ColorType(unit, value) = ColorType(; unit, value)
 _SPECS[ColorType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -364,6 +369,7 @@ struct DiastaticPowerType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+DiastaticPowerType(unit, value) = DiastaticPowerType(; unit, value)
 _SPECS[DiastaticPowerType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -394,6 +400,7 @@ struct VolumeType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+VolumeType(unit, value) = VolumeType(; unit, value)
 _SPECS[VolumeType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -424,6 +431,7 @@ struct MassType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+MassType(unit, value) = MassType(; unit, value)
 _SPECS[MassType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -456,6 +464,7 @@ struct ViscosityType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+ViscosityType(unit, value) = ViscosityType(; unit, value)
 _SPECS[ViscosityType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -488,6 +497,7 @@ struct ConcentrationType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+ConcentrationType(unit, value) = ConcentrationType(; unit, value)
 _SPECS[ConcentrationType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -520,6 +530,7 @@ struct UnitType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+UnitType(unit, value) = UnitType(; unit, value)
 _SPECS[UnitType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -550,6 +561,7 @@ struct TemperatureType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+TemperatureType(unit, value) = TemperatureType(; unit, value)
 _SPECS[TemperatureType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -580,6 +592,7 @@ struct TemperatureRangeType <: AbstractSchemaObject
         return new(minimum, maximum)
     end
 end
+TemperatureRangeType(minimum, maximum) = TemperatureRangeType(; minimum, maximum)
 _SPECS[TemperatureRangeType] = (
     fields = (
         (name = :minimum, key = "minimum", required = true, nullable = false, constraints = nothing),
@@ -610,6 +623,7 @@ struct PercentRangeType <: AbstractSchemaObject
         return new(minimum, maximum)
     end
 end
+PercentRangeType(minimum, maximum) = PercentRangeType(; minimum, maximum)
 _SPECS[PercentRangeType] = (
     fields = (
         (name = :minimum, key = "minimum", required = true, nullable = false, constraints = nothing),
@@ -640,6 +654,7 @@ struct GravityRangeType <: AbstractSchemaObject
         return new(minimum, maximum)
     end
 end
+GravityRangeType(minimum, maximum) = GravityRangeType(; minimum, maximum)
 _SPECS[GravityRangeType] = (
     fields = (
         (name = :minimum, key = "minimum", required = true, nullable = false, constraints = nothing),
@@ -670,6 +685,7 @@ struct BitternessType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+BitternessType(unit, value) = BitternessType(; unit, value)
 _SPECS[BitternessType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -700,6 +716,7 @@ struct BitternessRangeType <: AbstractSchemaObject
         return new(minimum, maximum)
     end
 end
+BitternessRangeType(minimum, maximum) = BitternessRangeType(; minimum, maximum)
 _SPECS[BitternessRangeType] = (
     fields = (
         (name = :minimum, key = "minimum", required = true, nullable = false, constraints = nothing),
@@ -730,6 +747,7 @@ struct ColorRangeType <: AbstractSchemaObject
         return new(minimum, maximum)
     end
 end
+ColorRangeType(minimum, maximum) = ColorRangeType(; minimum, maximum)
 _SPECS[ColorRangeType] = (
     fields = (
         (name = :minimum, key = "minimum", required = true, nullable = false, constraints = nothing),
@@ -760,6 +778,7 @@ struct CarbonationType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+CarbonationType(unit, value) = CarbonationType(; unit, value)
 _SPECS[CarbonationType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -790,6 +809,7 @@ struct CarbonationRangeType <: AbstractSchemaObject
         return new(minimum, maximum)
     end
 end
+CarbonationRangeType(minimum, maximum) = CarbonationRangeType(; minimum, maximum)
 _SPECS[CarbonationRangeType] = (
     fields = (
         (name = :minimum, key = "minimum", required = true, nullable = false, constraints = nothing),
@@ -822,6 +842,7 @@ struct SpecificVolumeType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+SpecificVolumeType(unit, value) = SpecificVolumeType(; unit, value)
 _SPECS[SpecificVolumeType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
@@ -854,6 +875,7 @@ struct SpecificHeatType <: AbstractSchemaObject
         return new(unit, value)
     end
 end
+SpecificHeatType(unit, value) = SpecificHeatType(; unit, value)
 _SPECS[SpecificHeatType] = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),

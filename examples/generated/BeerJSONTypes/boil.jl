@@ -35,6 +35,7 @@ struct BoilProcedureType <: AbstractSchemaObject
         return new(name, description, notes, pre_boil_size, boil_time, boil_steps)
     end
 end
+BoilProcedureType(name, description, notes, pre_boil_size, boil_time, boil_steps) = BoilProcedureType(; name, description, notes, pre_boil_size, boil_time, boil_steps)
 _SPECS[BoilProcedureType] = (
     fields = (
         (name = :name, key = "name", required = false, nullable = false, constraints = nothing),

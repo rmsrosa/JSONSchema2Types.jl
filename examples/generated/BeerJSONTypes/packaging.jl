@@ -32,6 +32,7 @@ struct PackagingProcedureType <: AbstractSchemaObject
         return new(name, packaged_volume, description, notes, packaging_vessels)
     end
 end
+PackagingProcedureType(name, packaged_volume, description, notes, packaging_vessels) = PackagingProcedureType(; name, packaged_volume, description, notes, packaging_vessels)
 _SPECS[PackagingProcedureType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

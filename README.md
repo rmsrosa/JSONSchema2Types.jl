@@ -69,6 +69,8 @@ The generated module exports:
   of type `T`;
 * `writejson(filename, x)` and `tojson(x)` to write a value as JSON;
 * `fromdict(T, x)` and `todict(x)` to convert from and to parsed JSON values;
+* `setfields(x; kwargs...)`, a copy of a value with some fields changed (the structs also
+  work with Accessors.jl's `@set`);
 * `SchemaValidationError`, the error thrown when a value does not conform to the schema;
 * `check_formats!(flag)` to turn the validation of `format` off or on (see below).
 
@@ -88,6 +90,8 @@ The generated module exports:
 * `typed_formats`: store strings with the formats `date`, `date-time` and `uuid` as
   `Dates.Date`, `Dates.DateTime` (UTC) and `UUIDs.UUID`. Defaults to `false`, since these
   values are written back in a normalized form.
+* `use_defaults`: optional fields default to the `default` of their schema, instead of
+  `nothing`. Defaults to `false`, since the defaults are then written out.
 
 ### Splitting into several files
 
@@ -146,8 +150,10 @@ them. These keywords are:
   picks the first option whose type fits. The runtime check then makes sure that the value
   satisfies the full schema of an option (including its constraints) and, for `oneOf`,
   that it matches *exactly one* option;
-* `format`: `date-time`, `date`, `time`, `email`, `uri`, `uuid`, `ipv4`, `ipv6`, `hostname`
-  and `regex` are checked; other formats are ignored. JSON Schema treats `format` as an
+* `format`: `date-time`, `date`, `time`, `duration`, `email`, `idn-email`,
+  `hostname`, `idn-hostname`, `ipv4`, `ipv6`, `uri`, `uri-reference`, `iri`, `iri-reference`,
+  `uri-template`, `json-pointer`, `relative-json-pointer`, `uuid` and `regex` are checked
+  (`idn-hostname` loosely: the IDNA2008 rules are not), and other formats are ignored. JSON Schema treats `format` as an
   annotation by default, so the checks can be turned off with `check_formats!(false)` (and
   back on with `check_formats!(true)`).
 
@@ -191,11 +197,23 @@ pointers (with `definitions` or `$defs`), `$id`s (including nested ones), `$anch
 paths relative to the schema file. Schemas referenced only by their `$id` URL can be given
 in `schemas`, or downloaded with `download = true`.
 
+### Conformance
+
+The validation is checked against the official
+[JSON Schema Test Suite](https://github.com/json-schema-org/JSON-Schema-Test-Suite)
+(2020-12), end to end, in CI: 2175 of its 2288 tests pass (97% of the core keywords, 93% of
+the formats). See the [documentation](https://rmsrosa.github.io/JSONSchema2Types.jl/dev/conformance/)
+for the details, and `test/json-schema-test-suite/run.jl` to run it.
+
 ### Current limitations
 
-* `$dynamicRef`/`$dynamicAnchor` (2020-12) and `$recursiveRef` (2019-09) are not supported.
+* A schema with `properties` but no `type` is a struct, so it only accepts objects.
+* `$dynamicRef`/`$dynamicAnchor` are resolved statically, like `$ref`/`$anchor`; `$recursiveRef`
+  (2019-09) is not supported.
+* `hostname`/`idn-hostname` do not check the IDNA2008 rules.
 * Arrays with optional prefix items are `Vector{Any}`, with their items checked at runtime.
 * `time` strings are not converted to Julia values, even with `typed_formats = true`.
+* Integers are `Int64` and numbers `Float64`.
 
 ## Examples
 

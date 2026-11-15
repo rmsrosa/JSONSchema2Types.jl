@@ -70,12 +70,13 @@ struct PackagingVesselType <: AbstractSchemaObject
         return new(name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity)
     end
 end
+PackagingVesselType(name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity) = PackagingVesselType(; name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity)
 _SPECS[PackagingVesselType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = false, nullable = false, constraints = nothing),
         (name = :description, key = "description", required = false, nullable = false, constraints = nothing),
-        (name = :package_date, key = "package_date", required = false, nullable = false, constraints = (pattern = Regex("\\d{4}-\\d{2}-\\d{2}|\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"),)),
+        (name = :package_date, key = "package_date", required = false, nullable = false, constraints = (pattern = _jsregex("\\d{4}-\\d{2}-\\d{2}|\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"),)),
         (name = :start_temperature, key = "start_temperature", required = false, nullable = false, constraints = nothing),
         (name = :end_temperature, key = "end_temperature", required = false, nullable = false, constraints = nothing),
         (name = :step_time, key = "step_time", required = false, nullable = false, constraints = nothing),

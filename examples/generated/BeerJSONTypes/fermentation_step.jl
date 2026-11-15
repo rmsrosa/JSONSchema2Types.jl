@@ -50,6 +50,7 @@ struct FermentationStepType <: AbstractSchemaObject
         return new(name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel)
     end
 end
+FermentationStepType(name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel) = FermentationStepType(; name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel)
 _SPECS[FermentationStepType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

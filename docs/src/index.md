@@ -63,4 +63,5 @@ julia> writejson("product-copy.json", p);            # and write it back
   displaying recipes, styles, water profiles and hop varieties.
 * [Generated code](@ref): what the generated code looks like and how it works, including
   the internal functions it calls (`_jsfrom`, `_jscheck`, `_jsto`).
+* [Conformance](@ref): the results of the official JSON Schema Test Suite.
 * [API](@ref): the reference of the package and of the generated modules.

@@ -62,6 +62,7 @@ struct WaterBase <: AbstractSchemaObject
         return new(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra)
     end
 end
+WaterBase(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra) = WaterBase(; name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra)
 _SPECS[WaterBase] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
@@ -148,6 +149,7 @@ struct WaterAdditionType <: AbstractSchemaObject
         return new(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra)
     end
 end
+WaterAdditionType(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra) = WaterAdditionType(; name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra)
 _SPECS[WaterAdditionType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

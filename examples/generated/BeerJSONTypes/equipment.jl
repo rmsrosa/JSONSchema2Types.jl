@@ -64,6 +64,7 @@ struct EquipmentItemType <: AbstractSchemaObject
         return new(name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra)
     end
 end
+EquipmentItemType(name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra) = EquipmentItemType(; name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra)
 _SPECS[EquipmentItemType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
@@ -105,6 +106,7 @@ struct EquipmentType <: AbstractSchemaObject
         return new(name, equipment_items)
     end
 end
+EquipmentType(name, equipment_items) = EquipmentType(; name, equipment_items)
 _SPECS[EquipmentType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

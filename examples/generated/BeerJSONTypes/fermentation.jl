@@ -29,6 +29,7 @@ struct FermentationProcedureType <: AbstractSchemaObject
         return new(name, description, notes, fermentation_steps)
     end
 end
+FermentationProcedureType(name, description, notes, fermentation_steps) = FermentationProcedureType(; name, description, notes, fermentation_steps)
 _SPECS[FermentationProcedureType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

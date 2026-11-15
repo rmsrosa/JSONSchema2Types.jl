@@ -42,3 +42,25 @@ jobs:
         run: julia --project=docs docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  test-suite:
+    name: JSON Schema Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: json-schema-org/JSON-Schema-Test-Suite
+          ref: 38dea932b02986f496345bf007108277777630bf
+          path: JSON-Schema-Test-Suite
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1'
+      - uses: julia-actions/cache@v2
+      - uses: julia-actions/julia-buildpkg@v1
+      - name: Run the test suite
+        run: julia --project=. test/json-schema-test-suite/run.jl JSON-Schema-Test-Suite report.md --min-passed=$(cat test/json-schema-test-suite/BASELINE)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: json-schema-test-suite-report
+          path: report.md

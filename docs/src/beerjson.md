@@ -217,20 +217,37 @@ dry_hop = HopAdditionType(
 print(tojson(dry_hop; pretty = true))
 ```
 
-Structs are immutable, so to change a record, build a new one. Here we add the dry hop to
-the recipe and double the batch size, and then write the recipe to a new BeerJSON document:
+Structs are immutable, so to change a record, build a new one. `setfields` returns a copy
+with some fields changed, validating them as the constructor does. Here we add the dry hop
+to the recipe and double the batch size, and then write the recipe to a new BeerJSON
+document:
 
 ```@example beer
-fields(x) = Dict(n => getfield(x, n) for n in fieldnames(typeof(x)))
-new_ingredients = IngredientsType(; fields(ingredients)...,
-    hop_additions = [ingredients.hop_additions; dry_hop])
-new_recipe = RecipeType(; fields(recipe)...,
+new_recipe = setfields(recipe;
     name = recipe.name * " (dry hopped)",
-    batch_size = VolumeType(unit = recipe.batch_size.unit, value = 2 * recipe.batch_size.value),
-    ingredients = new_ingredients)
+    batch_size = setfields(recipe.batch_size; value = 2 * recipe.batch_size.value),
+    ingredients = setfields(ingredients; hop_additions = [ingredients.hop_additions; dry_hop]))
 new_doc = BeerJSON(beerjson = BeerJSONContent(version = 1.0, recipes = [new_recipe]))
 file = writejson(joinpath(mktempdir(), "dry-hopped.json"), new_doc)
 readjson(RootType, file) == new_doc
+```
+
+For changes deep inside a document, the generated structs work with
+[Accessors.jl](https://github.com/JuliaObjects/Accessors.jl), whose `@set` rebuilds the
+values along the way, validating them:
+
+```@example beer
+using Accessors
+bigger = @set recipe.ingredients.hop_additions[1].amount.value = 0.05
+bigger.ingredients.hop_additions[1].amount
+```
+
+```@example beer
+try
+    @set recipe.batch_size.unit = VolumeUnitType("pint")
+catch err
+    showerror(stdout, err)
+end
 ```
 
 Invalid values are rejected, when constructing a value or reading a document:
