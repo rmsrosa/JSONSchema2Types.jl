@@ -157,9 +157,10 @@ readjson(BeerJSON{BigInt, BigFloat}, "recipe.json")   # all the numbers in the d
 VolumeType{Int, Rational{Int}}(unit = "l", value = 0.5).value   # 1//2
 ```
 
-Properties can be named `I` or `T`, like the type parameters. Types cannot (inside the
-structs, `T` is the type parameter): a definition named `I` or `T` gets another name,
-prefixed with the name of its schema file.
+Properties and definitions can be named `I` or `T`, like the type parameters: a struct
+named `T`, or with a field whose type is named `T`, simply uses other names for its type
+parameters (`I1` and `T1`), and so do the constructors of a struct with a field named `I` or
+`T`. This changes nothing for the users of the types.
 
 Any `Integer` and `Real` types can be used: `Int32`, `Int128`, `BigInt`; `Float32`,
 `BigFloat`, rationals, or types from other packages that convert from numbers. Values that

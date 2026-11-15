@@ -398,7 +398,8 @@ end
     # positional constructors infer the numeric types from their arguments
     @test M.VolumeType(M.VolumeUnitType("l"), big"2.5") isa M.VolumeType{Int64, BigFloat}
     @test M.setfields(w; value = 3).value isa BigFloat
-    # fields can be named like the type parameters, `I` and `T`; types cannot
+    # fields and types can be named like the type parameters, `I` and `T`: then the structs
+    # that clash use other names for their parameters
     dir = mktempdir()
     write(joinpath(dir, "s.json"), """{"title": "R", "type": "object",
         "properties": {"I": {"type": "integer"}, "T": {"\$ref": "#/\$defs/T"}},
@@ -408,7 +409,23 @@ end
     r = N.fromjson(N.R{Int, BigFloat}, """{"I": 1, "T": {"x": 2.5}}""")
     @test r.I === 1 && r.T.x isa BigFloat && N.tojson(r) == """{"I":1,"T":{"x":2.5}}"""
     @test N.R{Int32, Float32}(I = 2).I === Int32(2)
-    @test N.R(I = 1, T = (x = 2,)).T isa N.ST{Int64, Float64}
+    @test N.R(I = 1, T = (x = 2,)).T isa N.T{Int64, Float64}
+    @test N.T{Int32, Float32}(x = 1).x === 1.0f0
+    code = read(generate_module(joinpath(dir, "s.json"), joinpath(dir, "s.jl")), String)
+    @test occursin("struct R{I1 <: Integer, T1 <: Real}", code)       # uses the type `T`
+    @test occursin("struct T{I1 <: Integer, T1 <: Real}", code)       # is named `T`
+    @test occursin("    T::Union{Nothing, T{I1, T1}}", code)
+    # a field named like the type it refers to, and like its own struct
+    write(joinpath(dir, "c.json"), """{"title": "Paint", "type": "object",
+        "properties": {"Color": {"\$ref": "#/\$defs/Color"}, "Paint": {"type": "string"},
+                       "Shade": {"\$ref": "#/\$defs/Shade"}},
+        "\$defs": {"Color": {"enum": ["red", "blue"]},
+                   "Shade": {"type": "object", "properties": {"Shade": {"type": "number"}}}}}""")
+    P = load_generated(joinpath(dir, "c.json"))
+    p = P.fromjson(P.Paint, """{"Color": "red", "Paint": "gloss", "Shade": {"Shade": 0.5}}""")
+    @test p.Color == P.Color("red") && p.Paint == "gloss" && p.Shade.Shade == 0.5
+    @test P.Paint(P.Color("blue"), "matte", nothing, Dict{String, Any}()).Color == P.Color("blue")
+    @test_throws P.SchemaValidationError P.Paint(Color = "green")
     @test N.setfields(r; I = 5).I === 5
 end
 
