@@ -5,7 +5,7 @@ module OrderTypes
 
 using JSON
 
-export fromjson, tojson, readjson, writejson, fromdict, todict, check_formats!
+export fromjson, tojson, readjson, writejson, fromdict, todict, setfields, check_formats!
 export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError
 export Customer, OrderItemsItem, Order
 export RootType
@@ -67,6 +67,10 @@ For an enum type, `_SPECS[T]` holds the allowed `values`.
 """
 const _SPECS = Dict{DataType, Any}()
 
+# Constraints on the root of the schema when it is not a generated type (set by the generated
+# code); checked by `fromdict(RootType, x)` and so by `fromjson` and `readjson`.
+const _ROOT_CONSTRAINTS = Ref{Any}(nothing)
+
 _specs(::Type{T}) where {T <: AbstractSchemaObject} = _SPECS[T]
 
 # Metadata of each generated enum type: the allowed values.
@@ -117,6 +121,7 @@ _jsfrom(::Type{Float64}, x) = _jsfail("expected a number, got $(repr(x))")
 
 function _jsfrom(::Type{Int64}, x::Real)
     (x isa Bool || !isinteger(x)) && _jsfail("expected an integer, got $(repr(x))")
+    typemin(Int64) <= x <= typemax(Int64) || _jsfail("the integer $(repr(x)) is out of the range of `Int64`")
     return Int64(x)
 end
 _jsfrom(::Type{Int64}, x) = _jsfail("expected an integer, got $(repr(x))")
@@ -212,9 +217,10 @@ _jslength(x::AbstractString) = length(x)
 # values of typed formats (dates, UUIDs) are validated through their string form
 _jsscalar(x) = x
 
-function _jsvalidate(x, c, where_::String)
+# `nothing` is an absent optional field, unless `null` is a value (e.g. a JSON document `null`)
+function _jsvalidate(x, c, where_::String; null_is_value::Bool = false)
     c === nothing && return nothing
-    x === nothing && return nothing
+    x === nothing && !null_is_value && return nothing
     x = _jsscalar(x)
     if haskey(c, :schema)
         err = _jsvalid(c.schema, _jsto(x))
@@ -236,7 +242,7 @@ function _jsvalidate(x, c, where_::String)
     elseif x isa AbstractVector
         haskey(c, :minItems) && length(x) < c.minItems && _jsfail("$where_ must have at least $(c.minItems) items, got $(length(x))")
         haskey(c, :maxItems) && length(x) > c.maxItems && _jsfail("$where_ must have at most $(c.maxItems) items, got $(length(x))")
-        haskey(c, :uniqueItems) && c.uniqueItems && !allunique(x) && _jsfail("$where_ must have unique items")
+        haskey(c, :uniqueItems) && c.uniqueItems && !_jsallunique(x) && _jsfail("$where_ must have unique items")
         if haskey(c, :items)
             for (i, el) in enumerate(x)
                 _jsvalidate(el, c.items, "$where_[$i]")
@@ -290,7 +296,7 @@ end
 # Called by the inner constructors of the generated enum types.
 function _jscheckenum(::Type{T}, value) where {T <: AbstractSchemaEnum}
     vals = _enumvalues(T)
-    any(v -> isequal(v, value), vals) ||
+    any(v -> _jseq(v, value), vals) ||
         _jsfail("invalid value $(repr(value)) for `$(_jsname(T))`; allowed values are $(join(repr.(vals), ", "))")
     return value
 end
@@ -305,28 +311,267 @@ end
 """
     check_formats!(flag::Bool)
 
-Enable or disable the validation of the `format` keyword (`date-time`, `date`, `time`,
-`email`, `uri`, `uuid`, `ipv4`, `ipv6`, `hostname`, `regex`). Enabled by default. Unknown
-formats are never checked.
+Enable or disable the validation of the `format` keyword. Enabled by default. The formats of
+JSON Schema 2020-12 are checked (`date-time`, `date`, `time`, `duration`, `email`,
+`idn-email`, `hostname`, `idn-hostname`, `ipv4`, `ipv6`, `uri`, `uri-reference`, `iri`,
+`iri-reference`, `uri-template`, `json-pointer`, `relative-json-pointer`, `uuid`, `regex`);
+unknown formats are not.
 """
 check_formats!(flag::Bool) = (_CHECK_FORMATS[] = flag)
 const _CHECK_FORMATS = Ref(true)
 
 const _REGEX_CACHE = Dict{String, Regex}()
-_jsregex(p::AbstractString) = get!(() -> Regex(p), _REGEX_CACHE, p)
+
+# JSON Schema patterns are ECMAScript regular expressions. They are compiled with PCRE without
+# Unicode classes (so `\d` and `\w` are ASCII, as in ECMAScript) and with `$` matching only at
+# the end, after translating `\s` and long Unicode property names, which PCRE lacks.
+const _JS_REGEX_OPTIONS = Base.PCRE.UTF | Base.PCRE.MATCH_INVALID_UTF | Base.PCRE.ALT_BSUX |
+                          Base.PCRE.DOLLAR_ENDONLY
+_jsregex(p::AbstractString) =
+    get!(() -> Regex(_jsecmaregex(p), _JS_REGEX_OPTIONS, Base.DEFAULT_MATCH_OPTS), _REGEX_CACHE, p)
+
+const _JS_SPACES = "\\t\\n\\u000b\\f\\r \\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff"
+const _JS_PROPERTIES = Dict(
+    "Letter" => "L", "Cased_Letter" => "LC", "Uppercase_Letter" => "Lu", "Lowercase_Letter" => "Ll",
+    "Titlecase_Letter" => "Lt", "Modifier_Letter" => "Lm", "Other_Letter" => "Lo", "Mark" => "M",
+    "Nonspacing_Mark" => "Mn", "Spacing_Mark" => "Mc", "Enclosing_Mark" => "Me", "Number" => "N",
+    "Decimal_Number" => "Nd", "digit" => "Nd", "Letter_Number" => "Nl", "Other_Number" => "No",
+    "Punctuation" => "P", "punct" => "P", "Connector_Punctuation" => "Pc", "Dash_Punctuation" => "Pd",
+    "Open_Punctuation" => "Ps", "Close_Punctuation" => "Pe", "Initial_Punctuation" => "Pi",
+    "Final_Punctuation" => "Pf", "Other_Punctuation" => "Po", "Symbol" => "S", "Math_Symbol" => "Sm",
+    "Currency_Symbol" => "Sc", "Modifier_Symbol" => "Sk", "Other_Symbol" => "So", "Separator" => "Z",
+    "Space_Separator" => "Zs", "Line_Separator" => "Zl", "Paragraph_Separator" => "Zp", "Other" => "C",
+    "Control" => "Cc", "cntrl" => "Cc", "Format" => "Cf", "Surrogate" => "Cs", "Private_Use" => "Co",
+    "Unassigned" => "Cn",
+)
+
+function _jsecmaregex(p::AbstractString)
+    out = IOBuffer()
+    inclass = false
+    i = firstindex(p)
+    while i <= lastindex(p)
+        c = p[i]
+        if c == '\\' && i < lastindex(p)
+            n = p[nextind(p, i)]
+            j = nextind(p, nextind(p, i))
+            if n == 's'
+                print(out, inclass ? _JS_SPACES : "[" * _JS_SPACES * "]")
+            elseif n == 'S' && !inclass
+                print(out, "[^", _JS_SPACES, "]")
+            elseif (n == 'p' || n == 'P') && j <= lastindex(p) && p[j] == '{'
+                k = findnext('}', p, j)
+                k === nothing && (print(out, c, n); i = j; continue)
+                name = replace(p[nextind(p, j):prevind(p, k)], r"^(General_Category|gc)=" => "")
+                print(out, '\\', n, '{', get(_JS_PROPERTIES, name, name), '}')
+                j = nextind(p, k)
+            else
+                print(out, c, n)
+            end
+            i = j
+            continue
+        end
+        # `[]` matches nothing and `[^]` anything, in ECMAScript
+        if !inclass && startswith(SubString(p, i), "[^]")
+            print(out, "[\\s\\S]"); i = nextind(p, nextind(p, nextind(p, i))); continue
+        elseif !inclass && startswith(SubString(p, i), "[]")
+            print(out, "(?!)"); i = nextind(p, nextind(p, i)); continue
+        end
+        c == '[' && (inclass = true)
+        c == ']' && (inclass = false)
+        print(out, c)
+        i = nextind(p, i)
+    end
+    return String(take!(out))
+end
+
+# --- Checks of the `format` keyword ---
+#
+# Following the RFCs referenced by JSON Schema; only ASCII digits are digits, and `\z` (not
+# `$`, which allows a trailing newline) anchors the patterns.
+
+_jsleap(y) = y % 4 == 0 && (y % 100 != 0 || y % 400 == 0)
+
+function _jsdate(s)
+    m = match(r"^([0-9]{4})-([0-9]{2})-([0-9]{2})\z", s)
+    m === nothing && return false
+    y, mo, d = parse.(Int, m.captures)
+    days = (31, _jsleap(y) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    return 1 <= mo <= 12 && 1 <= d <= days[mo]
+end
+
+function _jstime(s)
+    m = match(r"^([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]+)?([Zz]|([+-])([0-9]{2}):([0-9]{2}))\z", s)
+    m === nothing && return false
+    h, mi, se = parse(Int, m[1]), parse(Int, m[2]), parse(Int, m[3])
+    oh, om = m[6] === nothing ? (0, 0) : (parse(Int, m[7]), parse(Int, m[8]))
+    (h <= 23 && mi <= 59 && se <= 60 && oh <= 23 && om <= 59) || return false
+    if se == 60
+        # a leap second is only at 23:59:60 UTC
+        utc = mod(h * 60 + mi - (m[6] == "-" ? -1 : 1) * (oh * 60 + om), 24 * 60)
+        utc == 23 * 60 + 59 || return false
+    end
+    return true
+end
+
+function _jsdatetime(s)
+    m = match(r"^([^Tt]*)[Tt](.*)\z", s)
+    return m !== nothing && _jsdate(m[1]) && _jstime(m[2])
+end
+
+function _jsipv4(s)
+    m = match(r"^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\z", s)
+    m === nothing && return false
+    return all(c -> (length(c) == 1 || c[1] != '0') && parse(Int, c) <= 255, m.captures)
+end
+
+function _jsipv6(s)
+    (isascii(s) && !isempty(s) && !occursin(r"[^0-9A-Fa-f:.]", s)) || return false
+    parts = split(s, "::")
+    length(parts) > 2 && return false
+    groups(p) = isempty(p) ? String[] : split(p, ':')
+    gs = vcat([groups(p) for p in parts]...)
+    n = 0
+    for (i, g) in enumerate(gs)
+        if occursin('.', g)
+            # an IPv4 address can only be the last group
+            (i == length(gs) && last(parts) != "" && _jsipv4(g)) || return false
+            n += 2
+        else
+            occursin(r"^[0-9A-Fa-f]{1,4}\z", g) || return false
+            n += 1
+        end
+    end
+    return length(parts) == 2 ? n <= 7 : n == 8
+end
+
+function _jshostname(s)
+    isascii(s) || return false
+    s = endswith(s, ".") && length(s) > 1 ? chop(s) : s
+    (1 <= length(s) <= 253) || return false
+    for label in split(s, '.')
+        occursin(r"^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\z", label) || return false
+        # "--" in the 3rd and 4th positions is reserved (RFC 5891), except for "xn--" labels
+        length(label) >= 4 && label[3:4] == "--" && lowercase(label[1:2]) != "xn" && return false
+    end
+    return true
+end
+
+# Internationalized hostnames: checked as hostnames, allowing non-ASCII letters; the
+# IDNA2008 rules are not checked.
+const _JS_IDN_DOTS = Regex("[\u3002\uFF0E\uFF61]")
+const _JS_IDN_LABEL = Regex("^[\\p{L}\\p{N}\\p{M}\\-\u00B7\u0375\u05F3\u05F4\u30FB\u200C\u200D]+\\z")
+
+function _jsidnhostname(s)
+    s = replace(s, _JS_IDN_DOTS => ".")
+    (1 <= length(s) <= 253) || return false
+    occursin(Regex("[\\s\u302E]"), s) && return false
+    for label in split(endswith(s, ".") && length(s) > 1 ? chop(s) : s, '.')
+        (1 <= length(label) <= 63) || return false
+        (startswith(label, "-") || endswith(label, "-")) && return false
+        occursin(_JS_IDN_LABEL, label) || return false
+        occursin(r"^\p{M}", label) && return false
+    end
+    return true
+end
+
+const _JS_ATEXT = raw"[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]"
+
+function _jsemail(s; idn = false)
+    i = findlast('@', s)
+    i === nothing && return false
+    local_part, domain = s[1:prevind(s, i)], s[nextind(s, i):end]
+    atext = idn ? raw"(?:[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]|[^\x00-\x7F])" : _JS_ATEXT
+    dotatom = Regex("^" * atext * "+(\\." * atext * "+)*\\z")
+    quoted = idn ? r"^\"([\x20\x21\x23-\x5B\x5D-\x7E]|[^\x00-\x7F]|\\[\x20-\x7E])*\"\z" :
+                   r"^\"([\x20\x21\x23-\x5B\x5D-\x7E]|\\[\x20-\x7E])*\"\z"
+    (occursin(dotatom, local_part) || occursin(quoted, local_part)) || return false
+    if startswith(domain, "[") && endswith(domain, "]")
+        lit = domain[2:end-1]
+        return startswith(lowercase(lit), "ipv6:") ? _jsipv6(lit[6:end]) : _jsipv4(lit)
+    end
+    endswith(domain, ".") && return false
+    return idn ? _jsidnhostname(domain) : _jshostname(domain)
+end
+
+# URIs and IRIs (RFC 3986 and 3987): the characters, percent-encodings, scheme and authority
+const _JS_URI_CHARS = raw"A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;="
+function _jsuri(s; absolute = true, iri = false)
+    chars = iri ? "[" * _JS_URI_CHARS * "\u00A0-\U10FFFF]" : "[" * _JS_URI_CHARS * "]"
+    occursin(Regex("^(" * chars * "|%[0-9A-Fa-f]{2})*\\z"), s) || return false
+    m = match(r"^(?:([A-Za-z][A-Za-z0-9+.-]*):)?(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?\z", s)
+    m === nothing && return false
+    absolute && m[1] === nothing && return false
+    # without a scheme, a first path segment with ':' would be read as a scheme
+    m[1] === nothing && m[2] === nothing && occursin(r"^[^/]*:", m[3]) && return false
+    for part in (m[3], m[4], m[5])
+        part === nothing || !occursin(r"[\[\]]", part) || return false
+    end
+    count('#', s) <= 1 || return false
+    if m[2] !== nothing
+        auth = m[2]
+        hm = match(r"^(?:[^@\[\]]*@)?(\[[^\]]*\]|[^:\[\]@]*)(?::([0-9]*))?\z", auth)
+        hm === nothing && return false
+        if startswith(hm[1], "[")
+            h = hm[1][2:end-1]
+            (occursin(r"^[vV][0-9A-Fa-f]+\.", h) || _jsipv6(h)) || return false
+        end
+    end
+    return true
+end
+
+_jsjsonpointer(s) = occursin(r"^(/([^~/]|~[01])*)*\z", s)
+_jsreljsonpointer(s) = occursin(r"^(0|[1-9][0-9]*)(#|(/([^~/]|~[01])*)*)\z", s)
+
+# RFC 6570: literals, and expressions `{[operator]varspec,...}`
+const _JS_URI_TEMPLATE = Regex("^(?:[^\\x00-\\x20\"'%<>\\\\^`{|}\\x7F]|%[0-9A-Fa-f]{2}|" *
+    "\\{[+#./;?&=,!@|]?(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2})(?:\\.?(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2}))*" *
+    "(?::[1-9][0-9]{0,3}|\\*)?(?:,(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2})(?:\\.?(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2}))*" *
+    "(?::[1-9][0-9]{0,3}|\\*)?)*\\})*\\z")
+_jsuritemplate(s) = occursin(_JS_URI_TEMPLATE, s)
+
+# RFC 3339, appendix A: "P" (date [time] / time / week), where e.g. years and days need months
+const _JS_DURATION = let D = "[0-9]+",
+        time = "T(?:$(D)H(?:$(D)M(?:$(D)S)?)?|$(D)M(?:$(D)S)?|$(D)S)",
+        date = "(?:$(D)Y(?:$(D)M(?:$(D)D)?)?|$(D)M(?:$(D)D)?|$(D)D)"
+    Regex("^P(?:$(date)(?:$(time))?|$(time)|$(D)W)\\z")
+end
+_jsduration(s) = occursin(_JS_DURATION, s)
+
+_jsuuid(s) = occursin(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z", s)
+
+function _jsregexformat(s)
+    # syntax of PCRE (or Python) that ECMAScript does not have
+    occursin(r"\(\?(P[<=>]|#|[a-zA-Z]+\))|\\a", s) && return false
+    try
+        _jsregex(s)
+        return true
+    catch
+        # some ECMAScript forms are not supported by PCRE: accept what PCRE rejects only
+        # for lookbehinds, which ECMAScript allows with variable width
+        return occursin("(?<", s)
+    end
+end
 
 const _FORMATS = Dict{String, Function}(
-    "date-time" => s -> occursin(r"^\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}:\d{2}(\.\d+)?([Zz]|[+-]\d{2}:\d{2})$", s),
-    "date" => s -> occursin(r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$", s),
-    "time" => s -> occursin(r"^\d{2}:\d{2}:\d{2}(\.\d+)?([Zz]|[+-]\d{2}:\d{2})?$", s),
-    "email" => s -> occursin(r"^[^@\s]+@[^@\s]+$", s),
-    "uri" => s -> occursin(r"^[A-Za-z][A-Za-z0-9+.-]*:[^\s]*$", s),
-    "uuid" => s -> occursin(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", s),
-    "ipv4" => s -> (m = match(r"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$", s);
-                    m !== nothing && all(c -> parse(Int, c) <= 255, m.captures)),
-    "ipv6" => s -> occursin(r"^[0-9A-Fa-f:.]+$", s) && occursin(':', s) && count("::", s) <= 1,
-    "hostname" => s -> occursin(r"^(?=.{1,253}$)[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$", s),
-    "regex" => s -> (try Regex(s); true catch; false end),
+    "date-time" => _jsdatetime,
+    "date" => _jsdate,
+    "time" => _jstime,
+    "duration" => _jsduration,
+    "email" => _jsemail,
+    "idn-email" => s -> _jsemail(s; idn = true),
+    "hostname" => _jshostname,
+    "idn-hostname" => _jsidnhostname,
+    "ipv4" => _jsipv4,
+    "ipv6" => _jsipv6,
+    "uri" => _jsuri,
+    "uri-reference" => s -> _jsuri(s; absolute = false),
+    "iri" => s -> _jsuri(s; iri = true),
+    "iri-reference" => s -> _jsuri(s; absolute = false, iri = true),
+    "uri-template" => _jsuritemplate,
+    "json-pointer" => _jsjsonpointer,
+    "relative-json-pointer" => _jsreljsonpointer,
+    "uuid" => _jsuuid,
+    "regex" => _jsregexformat,
 )
 
 _jsisinteger(x) = x isa Real && !(x isa Bool) && isinteger(x)
@@ -343,11 +588,17 @@ function _jstypeok(t::AbstractString, x)
     return true
 end
 
-# equality of JSON values, where `1 == 1.0`
-_jseq(a, b) = _jsisnumber(a) && _jsisnumber(b) ? a == b : isequal(a, b)
+# equality of JSON values: `1 == 1.0`, but `true != 1`
+_jseq(a, b) = a isa Bool || b isa Bool ? (a isa Bool && b isa Bool && a == b) :
+              _jsisnumber(a) && _jsisnumber(b) ? a == b : isequal(a, b)
 _jseq(a::AbstractVector, b::AbstractVector) = length(a) == length(b) && all(_jseq(x, y) for (x, y) in zip(a, b))
 _jseq(a::AbstractDict, b::AbstractDict) =
     length(a) == length(b) && all(haskey(b, k) && _jseq(v, b[k]) for (k, v) in a)
+
+function _jsallunique(x)
+    v = Any[_jsto(el) for el in x]
+    return !any(_jseq(v[i], v[j]) for i in eachindex(v) for j in firstindex(v):i-1)
+end
 
 """
     _jsvalid(schema, x) -> Union{Nothing, String}
@@ -614,7 +865,14 @@ Base.print(io::IO, x::AbstractSchemaEnum) = print(io, x.value)
 Convert a parsed JSON value `x` (e.g. a `Dict` or a `JSON.Object`) into a value of type `T`,
 validating it against the constraints of the schema.
 """
-fromdict(::Type{T}, x) where {T} = _jsfrom(T, x)
+function fromdict(::Type{T}, x) where {T}
+    value = _jsfrom(T, x)
+    # the root of the schema may have constraints that its type does not enforce
+    if T === RootType && _ROOT_CONSTRAINTS[] !== nothing
+        _jsvalidate(value, _ROOT_CONSTRAINTS[], "the document"; null_is_value = true)
+    end
+    return value
+end
 
 """
     todict(x)
@@ -623,6 +881,25 @@ Convert `x` into a JSON-compatible value (nested `JSON.Object`s, vectors and sca
 Optional fields set to `nothing` are omitted.
 """
 todict(x) = _jsto(x)
+
+"""
+    setfields(x; kwargs...)
+
+Return a copy of the generated struct `x` with the fields given as keyword arguments
+replaced. The new values are converted and validated as by the constructor, so plain values
+work: `setfields(volume; value = 40)`, `setfields(recipe; batch_size = (unit = "l", value = 40))`.
+Use the Julia names of the fields (e.g. `first_name` for a JSON property `first-name`).
+
+For nested changes, the generated structs also work with
+[Accessors.jl](https://github.com/JuliaObjects/Accessors.jl):
+`@set recipe.batch_size.value = 40`.
+"""
+function setfields(x::T; kwargs...) where {T <: AbstractSchemaObject}
+    for k in keys(kwargs)
+        hasfield(T, k) || throw(ArgumentError("`$(_jsname(T))` has no field `$k`"))
+    end
+    return T(; (n => getfield(x, n) for n in fieldnames(T))..., kwargs...)
+end
 
 """
     fromjson(T, json::AbstractString)
@@ -690,11 +967,12 @@ struct Customer <: AbstractSchemaObject
         return new(id, name, email, _extra)
     end
 end
+Customer(id, name, email, _extra) = Customer(; id, name, email, _extra)
 _SPECS[Customer] = (
     fields = (
         (name = :id, key = "id", required = true, nullable = false, constraints = (multipleOf = 7,)),
         (name = :name, key = "name", required = true, nullable = false, constraints = (maxLength = 50, minLength = 2,)),
-        (name = :email, key = "email", required = false, nullable = false, constraints = (maxLength = 100, minLength = 5, pattern = Regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\$"),)),
+        (name = :email, key = "email", required = false, nullable = false, constraints = (maxLength = 100, minLength = 5, pattern = _jsregex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\$"),)),
     ),
     additionalProperties = true,
     extra = :_extra,
@@ -729,6 +1007,7 @@ struct OrderItemsItem <: AbstractSchemaObject
         return new(productId, quantity, _extra)
     end
 end
+OrderItemsItem(productId, quantity, _extra) = OrderItemsItem(; productId, quantity, _extra)
 _SPECS[OrderItemsItem] = (
     fields = (
         (name = :productId, key = "productId", required = true, nullable = false, constraints = nothing),
@@ -765,6 +1044,7 @@ struct Order <: AbstractSchemaObject
         return new(orderId, customer, items, _extra)
     end
 end
+Order(orderId, customer, items, _extra) = Order(; orderId, customer, items, _extra)
 _SPECS[Order] = (
     fields = (
         (name = :orderId, key = "orderId", required = true, nullable = false, constraints = nothing),

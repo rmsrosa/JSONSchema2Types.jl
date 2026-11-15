@@ -92,6 +92,9 @@
       "type": "string",
       "deprecated": true,
       "description": "Use `first-name` instead."
+    },
+    "closed": {
+      "$ref": "#/definitions/ClosedLabeledCircle"
     }
   },
   "required": [
@@ -168,7 +171,7 @@
     "LabeledCircle": {
       "allOf": [
         {
-          "$ref": "#/definitions/Circle"
+          "$ref": "#/definitions/Round"
         },
         {
           "properties": {
@@ -186,7 +189,7 @@
       "description": "Closed to unknown keys with unevaluatedProperties, as in JSON Schema 2020-12.",
       "allOf": [
         {
-          "$ref": "#/definitions/Circle"
+          "$ref": "#/definitions/Round"
         },
         {
           "properties": {
@@ -210,6 +213,34 @@
       "unevaluatedProperties": {
         "type": "number"
       }
+    },
+    "Round": {
+      "type": "object",
+      "properties": {
+        "radius": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "radius"
+      ]
+    },
+    "ClosedLabeledCircle": {
+      "description": "Circle has additionalProperties: false, which rejects `label` in the allOf.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Circle"
+        },
+        {
+          "properties": {
+            "label": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
     }
   }
 }

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Settings",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "level": { "type": "integer", "default": 3 },
+    "unit": { "$ref": "#/$defs/Unit" },
+    "tags": { "type": "array", "items": { "type": "string" }, "default": ["a", "b"] },
+    "size": { "$ref": "#/$defs/Size", "default": { "width": 1, "height": 2 } },
+    "note": { "type": ["string", "null"], "default": null },
+    "plain": { "type": "string" }
+  },
+  "required": ["name"],
+  "$defs": {
+    "Unit": { "enum": ["l", "gal"], "default": "l" },
+    "Size": {
+      "type": "object",
+      "properties": { "width": { "type": "number" }, "height": { "type": "number" } },
+      "required": ["width", "height"]
+    }
+  }
+}

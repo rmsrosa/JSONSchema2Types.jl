@@ -91,12 +91,13 @@ struct StyleType <: AbstractSchemaObject
         return new(name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra)
     end
 end
+StyleType(name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra) = StyleType(; name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra)
 _SPECS[StyleType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :category, key = "category", required = true, nullable = false, constraints = nothing),
         (name = :category_number, key = "category_number", required = false, nullable = false, constraints = nothing),
-        (name = :style_letter, key = "style_letter", required = false, nullable = false, constraints = (maxLength = 1, minLength = 1, pattern = Regex("[A-Z ]"),)),
+        (name = :style_letter, key = "style_letter", required = false, nullable = false, constraints = (maxLength = 1, minLength = 1, pattern = _jsregex("[A-Z ]"),)),
         (name = :style_guide, key = "style_guide", required = true, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = true, nullable = false, constraints = nothing),
         (name = :original_gravity, key = "original_gravity", required = false, nullable = false, constraints = nothing),
@@ -156,12 +157,13 @@ struct RecipeStyleType <: AbstractSchemaObject
         return new(name, category, category_number, style_letter, style_guide, type, _extra)
     end
 end
+RecipeStyleType(name, category, category_number, style_letter, style_guide, type, _extra) = RecipeStyleType(; name, category, category_number, style_letter, style_guide, type, _extra)
 _SPECS[RecipeStyleType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :category, key = "category", required = true, nullable = false, constraints = nothing),
         (name = :category_number, key = "category_number", required = false, nullable = false, constraints = nothing),
-        (name = :style_letter, key = "style_letter", required = false, nullable = false, constraints = (maxLength = 1, minLength = 1, pattern = Regex("[A-Z ]"),)),
+        (name = :style_letter, key = "style_letter", required = false, nullable = false, constraints = (maxLength = 1, minLength = 1, pattern = _jsregex("[A-Z ]"),)),
         (name = :style_guide, key = "style_guide", required = true, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = true, nullable = false, constraints = nothing),
     ),

@@ -66,6 +66,7 @@ struct FieldDef
     constraints::Union{Nothing, Dict{String, Any}}
     description::String
     deprecated::Bool
+    default::Union{Nothing, Some}   # default value of an optional field (with `use_defaults`)
 end
 
 mutable struct ObjectDef
@@ -104,6 +105,7 @@ mutable struct Generator
     fetch::Union{Nothing, Function}                # downloads remote schemas: url -> content
     typed_formats::Bool                            # translate some string formats into Julia types
     used_formats::Bool                             # whether any typed format was used
+    use_defaults::Bool                             # optional fields default to the schema `default`
     types::Dict{String, Union{ObjectDef, EnumDef}} # location => definition
     names::Dict{String, String}                    # location => type name
     taken::Dict{String, String}                    # type name => location
@@ -114,7 +116,7 @@ end
 
 Generator(root_file::String, root_name::String) = Generator(
     root_file, root_name, Dict{String, Any}(), Dict{String, Tuple{String, String}}(),
-    Dict{String, Vector{Pair{String, String}}}(), Dict{String, String}(), nothing, false, false,
+    Dict{String, Vector{Pair{String, String}}}(), Dict{String, String}(), nothing, false, false, false,
     Dict{String, Union{ObjectDef, EnumDef}}(),
     Dict{String, String}(), Dict{String, String}(), String[], Dict{String, String}(),
     Set{String}(),
@@ -202,9 +204,6 @@ end
 
 file_uri(path::AbstractString) = "file://" * replace(path, '\\' => '/')
 
-# keywords whose values are data, not subschemas, and are not searched for `$id`s
-const DATA_KEYS = ("enum", "const", "examples", "default")
-
 function index_uris!(gen::Generator, path::String, node, pointer::String, base::String)
     if node isa AbstractVector
         for (i, sub) in enumerate(node)
@@ -228,9 +227,24 @@ function index_uris!(gen::Generator, path::String, node, pointer::String, base::
     end
     anchor = get(node, "\$anchor", nothing)
     anchor isa AbstractString && (gen.uris[base * "#" * anchor] = (path, pointer))
+    # `$dynamicAnchor`/`$dynamicRef` are resolved statically, as `$anchor`/`$ref`
+    danchor = get(node, "\$dynamicAnchor", nothing)
+    danchor isa AbstractString && !haskey(gen.uris, base * "#" * danchor) &&
+        (gen.uris[base * "#" * danchor] = (path, pointer))
+    if haskey(node, "\$dynamicRef") && !haskey(node, "\$ref")
+        node["\$ref"] = node["\$dynamicRef"]
+        delete!(node, "\$dynamicRef")
+    end
+    # only subschemas: an `$id` inside an unknown keyword is not an identifier
     for (k, v) in node
-        k in DATA_KEYS && continue
-        index_uris!(gen, path, v, pointer * "/" * escape_pointer_segment(k), base)
+        if k in SCHEMA_KEYS || k in SCHEMA_LIST_KEYS
+            index_uris!(gen, path, v, pointer * "/" * escape_pointer_segment(k), base)
+        elseif (k in SCHEMA_MAP_KEYS || k in ("\$defs", "definitions", "dependencies")) && isobject(v)
+            for (name, sub) in v
+                index_uris!(gen, path, sub, pointer * "/" * escape_pointer_segment(k) * "/" *
+                            escape_pointer_segment(name), base)
+            end
+        end
     end
 end
 
@@ -292,8 +306,9 @@ function percent_unescape(s::AbstractString)
     n = length(bytes)
     j = 1
     while j <= n
-        if bytes[j] == UInt8('%') && j + 2 <= n
-            write(out, parse(UInt8, String(bytes[j+1:j+2]); base = 16))
+        hex = j + 2 <= n ? tryparse(UInt8, String(bytes[j+1:j+2]); base = 16) : nothing
+        if bytes[j] == UInt8('%') && hex !== nothing
+            write(out, hex)
             j += 3
         else
             write(out, bytes[j])
@@ -618,7 +633,8 @@ function resolve_type(gen::Generator, file::String, pointer::String, node, depth
     node isa Bool && return TypeRef("Any"), nothing
     isobject(node) || return TypeRef("Any"), nothing
 
-    if haskey(node, "\$ref")
+    # (with sibling `properties` or `allOf`, the `$ref` is merged into a struct for this node)
+    if haskey(node, "\$ref") && !needs_named_type(gen, file, pointer, node)
         f, p = resolve_ref(gen, file, node["\$ref"], pointer)
         target = get_node(gen, f, p)
         if needs_named_type(gen, f, p, target)
@@ -760,10 +776,20 @@ function generate_named_type!(gen::Generator, file::String, pointer::String, nod
     # After merging `allOf`, the properties of the merged schema are exactly the ones a
     # validator counts as evaluated, so `unevaluatedProperties` (JSON Schema 2019-09 and
     # later) acts on the merged type like `additionalProperties`.
-    extra_schema = haskey(merged, "unevaluatedProperties") && !haskey(merged, "additionalProperties") ?
+    # That is only exact when no other keyword can evaluate properties (`anyOf`, `if`,
+    # `additionalProperties` in a subschema...); otherwise the struct is left open and the
+    # whole schema is checked at runtime.
+    simple = simple_composition(gen, file, pointer, node)
+    exact = simple && !any(k -> haskey(node, k), ("anyOf", "oneOf", "if", "dependentSchemas",
+                                                    "dependencies", "patternProperties"))
+    uneval_at_runtime = haskey(node, "unevaluatedProperties") && !haskey(node, "additionalProperties") && !exact
+    extra_schema = uneval_at_runtime ? "" :
+                   haskey(merged, "unevaluatedProperties") && !haskey(merged, "additionalProperties") ?
                    "unevaluatedProperties" : "additionalProperties"
-    additional = get(merged, extra_schema, true) !== false &&
-                 get(merged, "unevaluatedProperties", true) !== false
+    # (`additionalProperties`, when present, evaluates all the other properties)
+    additional = uneval_at_runtime || (haskey(merged, "additionalProperties") ?
+                                       merged["additionalProperties"] !== false :
+                                       get(merged, "unevaluatedProperties", true) !== false)
     objdef = ObjectDef(name, loc, type_description(merged), FieldDef[],
                        additional, nothing, TypeRef("Any"),
                        get(merged, "minProperties", nothing), get(merged, "maxProperties", nothing),
@@ -794,9 +820,14 @@ function generate_named_type!(gen::Generator, file::String, pointer::String, nod
             c = c === nothing ? Dict{String, Any}() : copy(c)
             c["schema"] = r
         end
-        push!(objdef.fields, FieldDef(fname, key, t, is_required, nullable, c, desc, deprecated))
+        default = is_required || !gen.use_defaults ? nothing : schema_default(gen, f, p, sub)
+        push!(objdef.fields, FieldDef(fname, key, t, is_required, nullable, c, desc, deprecated, default))
     end
     objdef.schema = object_residual(gen, file, pointer, node)
+    if uneval_at_runtime || !simple
+        # the struct does not capture the schema exactly: check all of it at runtime
+        objdef.schema = combine_residuals(Any[objdef.schema, translate_schema(gen, file, node; pointer)])
+    end
     if haskey(merged, "patternProperties")
         # properties matching a pattern are kept in the extra field and checked against
         # their schemas, along with the other additional properties
@@ -821,6 +852,57 @@ function generate_named_type!(gen::Generator, file::String, pointer::String, nod
         end
     end
     return name
+end
+
+# keywords of the subschemas of an `allOf` (or `$ref`) that the merged struct captures exactly
+simple_member_key(k) = k in ("type", "properties", "required", "allOf", "\$ref", "\$dynamicAnchor") ||
+                       k in OBJECT_RESIDUAL_KEYS || k in ANNOTATION_KEYS
+
+"""
+    simple_composition(gen, file, pointer, node)
+
+Whether the struct merged from `node` and the subschemas it combines with `allOf` and `\$ref`
+captures them exactly: each subschema only declares properties (and keywords checked on
+the whole object), and `additionalProperties`, which does not see the properties of the
+subschemas, is not used next to them. Otherwise the whole schema is also checked at runtime.
+"""
+function simple_composition(gen::Generator, file::String, pointer::String, node)
+    (haskey(node, "allOf") || haskey(node, "\$ref")) || return true
+    haskey(node, "additionalProperties") && return false
+    function simple(f, p, n, d)
+        d > 32 && return false
+        n === true && return true
+        isobject(n) || return false
+        all(simple_member_key, keys(n)) || return false
+        get(n, "type", "object") == "object" || return false
+        if haskey(n, "\$ref")
+            f2, p2 = resolve_ref(gen, f, n["\$ref"], p)
+            simple(f2, p2, get_node(gen, f2, p2), d + 1) || return false
+        end
+        for (i, sub) in enumerate(get(n, "allOf", ()))
+            simple(f, p * "/allOf/" * string(i - 1), sub, d + 1) || return false
+        end
+        return true
+    end
+    for (i, sub) in enumerate(get(node, "allOf", ()))
+        simple(file, pointer * "/allOf/" * string(i - 1), sub, 1) || return false
+    end
+    if haskey(node, "\$ref")
+        f2, p2 = resolve_ref(gen, file, node["\$ref"], pointer)
+        simple(f2, p2, get_node(gen, f2, p2), 1) || return false
+    end
+    return true
+end
+
+# The `default` of a property schema, or of the schema it references.
+function schema_default(gen::Generator, file::String, pointer::String, node, depth::Int = 0)
+    (isobject(node) && depth <= 32) || return nothing
+    haskey(node, "default") && return Some(node["default"])
+    if haskey(node, "\$ref")
+        f, p = resolve_ref(gen, file, node["\$ref"], pointer)
+        return schema_default(gen, f, p, get_node(gen, f, p), depth + 1)
+    end
+    return nothing
 end
 
 # Description of a type, flagged when the schema marks it as deprecated.
@@ -860,8 +942,8 @@ const ANNOTATION_KEYS = ("title", "description", "examples", "default", "depreca
 # keywords always left to the runtime validator, for fields and for objects
 const FIELD_RESIDUAL_KEYS = ("not", "if", "then", "else", "format", "contains", "minContains",
                              "maxContains", "propertyNames", "dependentRequired",
-                             "dependentSchemas", "dependencies", "prefixItems")
-const OBJECT_RESIDUAL_KEYS = ("not", "if", "then", "else", "propertyNames",
+                             "dependentSchemas", "dependencies", "prefixItems", "required")
+const OBJECT_RESIDUAL_KEYS = ("not", "if", "then", "else", "propertyNames", "anyOf", "oneOf",
                               "dependentRequired", "dependentSchemas", "dependencies")
 
 """
@@ -937,6 +1019,20 @@ function combine_residuals(parts::Vector)
     return Dict{String, Any}("allOf" => parts)
 end
 
+# Whether a subschema that is not a generated type is checked as a whole at runtime: when it
+# has no `type` (so its Julia type is `Any`), or combines subschemas in ways that the
+# Julia type does not capture (`allOf`, or `oneOf`/`anyOf` next to other keywords).
+function whole_at_runtime(node)
+    isobject(node) || return false
+    validation = [k for k in keys(node) if !(k in ANNOTATION_KEYS)]
+    isempty(validation) && return false
+    haskey(node, "allOf") && return true
+    if haskey(node, "oneOf") || haskey(node, "anyOf")
+        return any(k -> !(k in ("oneOf", "anyOf")), validation)
+    end
+    return !haskey(node, "type") && !haskey(node, "\$ref") && !haskey(node, "enum") && !haskey(node, "const")
+end
+
 """
     field_residual(gen, file, pointer, node) -> Union{Nothing, Dict}
 
@@ -944,10 +1040,17 @@ Subschema with the keywords of the property schema `node` that are not enforced 
 type of the field and its constraints.
 """
 function field_residual(gen::Generator, file::String, pointer::String, node, depth::Int = 0)
+    node === false && return false     # the boolean schema `false`: no value is valid
     isobject(node) || return nothing
     depth > 32 && return nothing
     # named types check their own residual keywords
     needs_named_type(gen, file, pointer, node) && return nothing
+    # `unevaluatedItems`/`unevaluatedProperties` depend on the annotations of all the other
+    # keywords, so the whole subschema is checked at runtime
+    if haskey(node, "unevaluatedItems") || haskey(node, "unevaluatedProperties") || whole_at_runtime(node)
+        t = translate_schema(gen, file, node; pointer)
+        return t isa AbstractDict && isempty(t) ? nothing : t
+    end
     parts = Any[]
     if haskey(node, "\$ref")
         f, p = resolve_ref(gen, file, node["\$ref"], pointer)
@@ -988,6 +1091,7 @@ function field_residual(gen::Generator, file::String, pointer::String, node, dep
         ap = get(node, apkey, nothing)
         ap === nothing || (r[apkey] = translate_schema(gen, file, ap; pointer = pointer * "/" * apkey))
     else
+        get(node, "additionalProperties", nothing) === false && (r["additionalProperties"] = false)
         for key in ("additionalProperties", "unevaluatedProperties")
             ap = get(node, key, nothing)
             isobject(ap) || continue
@@ -1138,7 +1242,7 @@ function constraints_literal(c)
     parts = String[]
     for k in sort!(collect(keys(c)))
         v = c[k]
-        lit = k == "pattern" ? "Regex($(repr(String(v))))" :
+        lit = k == "pattern" ? "_jsregex($(repr(String(v))))" :
               k == "items" ? constraints_literal(v) : julia_literal(v)
         k == "schema" && (lit = schema_literal(v, "        "))
         push!(parts, "$k = $lit")
@@ -1175,6 +1279,8 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
             keynote = f.name == f.key ? "" : " (JSON property `$(escape_docstring(f.key))`)"
             line = "- `$(f.name)::$(f.type.expr)`$req$keynote"
             isempty(f.description) || (line *= ": " * escape_docstring(f.description))
+            f.default === nothing ||
+                (line *= (isempty(f.description) ? ": d" : " D") * "efaults to `" * escape_docstring(julia_literal(something(f.default))) * "`.")
             println(io, line)
         end
     end
@@ -1193,7 +1299,8 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
         declared == f.type.expr || println(io, "    # declared as `Any` due to a cyclic dependency; actual type is `$(f.type.expr)`")
         println(io, "    ", f.name, "::", declared)
     end
-    kwargs = [f.required ? f.name : f.name * " = nothing" for f in d.fields]
+    kwargs = [f.required ? f.name : f.name * " = " * (f.default === nothing ? "nothing" : julia_literal(something(f.default)))
+              for f in d.fields]
     extra = d.extra_field
     if extra !== nothing
         extra_type = all(dep -> dep in defined || dep == d.name, d.extra_type.deps) ? d.extra_type.expr : "Any"
@@ -1211,6 +1318,12 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
     println(io, "        return new(", join(vcat([f.name for f in d.fields], extra === nothing ? String[] : [extra]), ", "), ")")
     println(io, "    end")
     println(io, "end")
+    # positional constructor, with the fields in order (as printed, and as used by
+    # ConstructionBase.jl/Accessors.jl to rebuild a value)
+    allfields = vcat([f.name for f in d.fields], extra === nothing ? String[] : [extra])
+    if !isempty(allfields)
+        println(io, d.name, "(", join(allfields, ", "), ") = ", d.name, "(; ", join(allfields, ", "), ")")
+    end
 
     # metadata
     println(io, "_SPECS[", d.name, "] = (")
@@ -1230,7 +1343,8 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
 end
 
 """
-    generate_module(schema_file, output; root_name, module_name, schemas, split, type_names) -> String
+    generate_module(schema_file, output; root_name, module_name, schemas, split, type_names,
+                    download, typed_formats, use_defaults) -> String
 
 Read the JSON Schema in `schema_file` (and every schema file it references through
 `\$ref`) and write to `output_file` a Julia module defining types for all the objects and
@@ -1239,14 +1353,22 @@ enums in the schema, together with functions to read and write JSON documents wi
 * `readjson(T, filename)` and `fromjson(T, string)` parse a JSON document into a value of
   type `T` (e.g. the root type), validating it against the schema;
 * `writejson(filename, x)` and `tojson(x)` write a value back to JSON;
-* `fromdict(T, x)` and `todict(x)` convert from/to parsed JSON values.
+* `fromdict(T, x)` and `todict(x)` convert from/to parsed JSON values;
+* `setfields(x; kwargs...)` returns a copy of a value with some fields changed.
 
 The generated module only depends on JSON.jl.
 
-References (`\$ref`) are resolved relative to the file containing them, or by the `\$id`
-of the loaded schemas. Additional schema files that are only referenced by their `\$id`
-(e.g. `https://example.com/address.schema.json`) can be given in `schemas`. Remote
-schemas are not downloaded.
+References (`\$ref`) are resolved as URIs, against the base URI set by the enclosing
+`\$id`s: JSON pointers, `\$id`s, `\$anchor`s, and paths relative to the file containing
+them. Additional schema files that are only referenced by their `\$id` (e.g.
+`https://example.com/address.schema.json`) can be given in `schemas`. Remote schemas are
+downloaded only with `download = true` (or `download = url -> content`).
+
+With `typed_formats = true`, strings with the formats `date`, `date-time` and `uuid` are
+stored as `Dates.Date`, `Dates.DateTime` (in UTC) and `UUIDs.UUID`. With
+`use_defaults = true`, optional fields default to the `default` given in the schema, instead
+of `nothing`. Both are off by default, since documents are then written back in a different
+form (normalized dates, defaults filled in).
 
 The name of the root type is `root_name`, which defaults to the `title` of the schema or
 else to the name of the schema file. The module name defaults to the root type name
@@ -1276,10 +1398,12 @@ function generate_module(
     type_names::AbstractDict{<:AbstractString, <:AbstractString} = Dict{String, String}(),
     download::Union{Bool, Function} = false,
     typed_formats::Bool = false,
+    use_defaults::Bool = false,
 )
     root_file = abspath(normpath(schema_file))
     gen = Generator(root_file, "")
     gen.typed_formats = typed_formats
+    gen.use_defaults = use_defaults
     gen.fetch = download === true ? download_schema : download === false ? nothing : download
     for (k, v) in type_names
         key = startswith(k, "#") ? basename(root_file) * k : String(k)
@@ -1297,12 +1421,19 @@ function generate_module(
     gen.root_name = type_identifier(root_name)
     module_name = module_name === nothing ? gen.root_name * "Types" : type_identifier(module_name)
 
-    root_type, _ = resolve_type(gen, root_file, "", root)
+    root_type, root_constraints = resolve_type(gen, root_file, "", root)
+    # the constraints and runtime-checked keywords of a root that is not a generated type
+    # (e.g. `{"type": "array", "maxItems": 2}`) are checked when reading a document
+    root_residual = field_residual(gen, root_file, "", root)
+    if root_residual !== nothing
+        root_constraints = root_constraints === nothing ? Dict{String, Any}() : copy(root_constraints)
+        root_constraints["schema"] = root_residual
+    end
     for k in setdiff(keys(gen.overrides), gen.used_overrides)
         @warn "`type_names` entry `$k` does not name a generated type; it was ignored"
     end
 
-    files = generate_files(gen, module_name, root_type, basename(schema_file), split)
+    files = generate_files(gen, module_name, root_type, basename(schema_file), split; root_constraints)
     if split
         mkpath(output_file)
         for (name, code) in files
@@ -1324,7 +1455,7 @@ Generate the code of the module, as a list of `filename => code`, the main file 
 Without `split`, everything goes into the single main file.
 """
 function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
-                        schema_name::String, split::Bool)
+                        schema_name::String, split::Bool; root_constraints = nothing)
     groups = group_types(gen)
     names = [d.name for (_, ds) in groups for d in ds]
     if module_name in names
@@ -1359,7 +1490,7 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
     println(io)
     println(io, "using JSON")
     println(io)
-    println(io, "export fromjson, tojson, readjson, writejson, fromdict, todict, check_formats!")
+    println(io, "export fromjson, tojson, readjson, writejson, fromdict, todict, setfields, check_formats!")
     println(io, "export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError")
     for chunk in Iterators.partition(names, 6)
         println(io, "export ", join(chunk, ", "))
@@ -1397,6 +1528,11 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
     end
     println(io, "\"\"\"")
     println(io, "const RootType = ", root_type.expr)
+    if root_constraints !== nothing
+        println(io)
+        println(io, "# constraints on the root of the schema, checked when reading a document")
+        println(io, "_ROOT_CONSTRAINTS[] = ", constraints_literal(root_constraints))
+    end
     println(io)
     println(io, "end # module ", module_name)
     files = [main_file => String(take!(io))]

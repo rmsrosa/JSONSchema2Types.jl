@@ -104,6 +104,10 @@ end
     @test t._extra == Dict("weight" => 2.0) && fieldtype(M.TypedExtra, :_extra) == Dict{String, Float64}
     @test_throws E M.fromdict(M.TypedExtra, Dict("name" => "n", "weight" => "heavy"))
     @test bad("strict", Dict("radius" => 1)).strict isa M.StrictLabeledCircle
+    # `additionalProperties: false` in a subschema of `allOf` applies to the instance as a
+    # whole, as JSON Schema specifies: it rejects the `label` of the other subschema
+    @test M.fromdict(M.ClosedLabeledCircle, Dict("radius" => 1)).radius == 1.0
+    @test_throws E M.fromdict(M.ClosedLabeledCircle, Dict("radius" => 1, "label" => "c"))
 
     # `deprecated` is flagged in the docstrings
     code = read(generate_module(joinpath(@__DIR__, "schemas", "features.json"),
@@ -311,6 +315,47 @@ end
     @test "runtime_formats.jl" in readdir(dir)
     N = Base.include(Module(), main)
     @test Base.invokelatest(N.Event; day = "2026-01-01").day isa Dates.Date
+end
+
+@testset "Defaults" begin
+    schema = joinpath(@__DIR__, "schemas", "defaults.json")
+    # by default, optional fields are `nothing`
+    S = load_generated(schema)
+    @test S.Settings(name = "n").level === nothing
+    M = load_generated(schema; use_defaults = true)
+    x = M.Settings(name = "n")
+    @test x.level == 3
+    @test x.unit == M.Unit("l")                         # default of the referenced schema
+    @test x.tags == ["a", "b"]
+    @test x.size == M.Size(width = 1, height = 2)
+    @test x.note === nothing && x.plain === nothing
+    # missing properties get their defaults when reading, and are written out
+    y = M.fromjson(M.Settings, """{"name": "n", "level": 5}""")
+    @test y.level == 5 && y.unit == M.Unit("l")
+    @test JSON.parse(M.tojson(y))["tags"] == ["a", "b"]
+    # each value gets its own copy of a mutable default
+    push!(x.tags, "c")
+    @test M.Settings(name = "n").tags == ["a", "b"]
+    code = read(generate_module(schema, joinpath(mktempdir(), "d.jl"); use_defaults = true), String)
+    @test occursin("- `level::Union{Nothing, Int64}`: defaults to `3`.", code)
+end
+
+@testset "setfields and positional constructors" begin
+    M = load_generated(joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json"); root_name = "BeerJSON")
+    v = M.VolumeType(unit = "l", value = 20)
+    @test M.setfields(v; value = 40) == M.VolumeType(unit = "l", value = 40)
+    @test M.setfields(v; unit = "gal").unit == M.VolumeUnitType("gal")
+    @test v.value == 20.0                                   # unchanged
+    @test_throws M.SchemaValidationError M.setfields(v; unit = "litre")
+    @test_throws ArgumentError M.setfields(v; colour = "red")
+    # positional constructors, as printed, and as used by ConstructionBase.jl/Accessors.jl
+    @test M.VolumeType(M.VolumeUnitType("l"), 20.0) == v
+    @test Core.eval(M, Meta.parse(sprint(show, v; context = :module => M))) == v
+    @test M.VolumeType(getfield.(Ref(v), fieldnames(M.VolumeType))...) == v
+    hop = M.fromjson(M.HopAdditionType, """{"name": "x", "alpha_acid": {"unit": "%", "value": 5},
+                                            "timing": {}, "amount": {"unit": "g", "value": 2}}""")
+    @test M.HopAdditionType(getfield.(Ref(hop), fieldnames(M.HopAdditionType))...) == hop
+    @test M.setfields(hop; amount = (unit = "kg", value = 1)).amount isa M.MassType
 end
 
 @testset "Additional properties are preserved" begin

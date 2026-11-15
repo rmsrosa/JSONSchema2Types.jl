@@ -51,6 +51,7 @@ struct TimingType <: AbstractSchemaObject
         return new(time, duration, continuous, specific_gravity, pH, step, use)
     end
 end
+TimingType(time, duration, continuous, specific_gravity, pH, step, use) = TimingType(; time, duration, continuous, specific_gravity, pH, step, use)
 _SPECS[TimingType] = (
     fields = (
         (name = :time, key = "time", required = false, nullable = false, constraints = nothing),

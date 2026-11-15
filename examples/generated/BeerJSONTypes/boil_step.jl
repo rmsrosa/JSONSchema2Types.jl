@@ -63,6 +63,7 @@ struct BoilStepType <: AbstractSchemaObject
         return new(name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type)
     end
 end
+BoilStepType(name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type) = BoilStepType(; name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type)
 _SPECS[BoilStepType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

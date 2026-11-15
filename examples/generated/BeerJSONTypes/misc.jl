@@ -29,6 +29,7 @@ struct MiscellaneousInventoryType <: AbstractSchemaObject
         return new(amount)
     end
 end
+MiscellaneousInventoryType(amount) = MiscellaneousInventoryType(; amount)
 _SPECS[MiscellaneousInventoryType] = (
     fields = (
         (name = :amount, key = "amount", required = true, nullable = false, constraints = (schema = JSON.parse("""
@@ -92,6 +93,7 @@ struct MiscellaneousType <: AbstractSchemaObject
         return new(name, producer, product_id, type, use_for, notes, inventory, _extra)
     end
 end
+MiscellaneousType(name, producer, product_id, type, use_for, notes, inventory, _extra) = MiscellaneousType(; name, producer, product_id, type, use_for, notes, inventory, _extra)
 _SPECS[MiscellaneousType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
@@ -144,6 +146,7 @@ struct MiscellaneousAdditionType <: AbstractSchemaObject
         return new(name, producer, product_id, type, timing, amount, _extra)
     end
 end
+MiscellaneousAdditionType(name, producer, product_id, type, timing, amount, _extra) = MiscellaneousAdditionType(; name, producer, product_id, type, timing, amount, _extra)
 _SPECS[MiscellaneousAdditionType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

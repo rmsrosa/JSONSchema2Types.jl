@@ -64,6 +64,7 @@ struct MashStepType <: AbstractSchemaObject
         return new(name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph)
     end
 end
+MashStepType(name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph) = MashStepType(; name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph)
 _SPECS[MashStepType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

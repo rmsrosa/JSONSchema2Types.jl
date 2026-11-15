@@ -21,6 +21,7 @@ code, so in the REPL, `?readjson` shows their documentation once the module is l
 | `tojson(x; pretty = false)` | convert `x` into a JSON string |
 | `fromdict(T, x)` | convert a parsed JSON value into a value of type `T` |
 | `todict(x)` | convert `x` into a JSON-compatible value |
+| `setfields(x; kwargs...)` | a copy of the struct `x` with some fields changed, validated |
 | `check_formats!(flag)` | turn the validation of the `format` keyword off or on |
 | `AbstractSchemaObject` | supertype of the generated structs |
 | `AbstractSchemaEnum` | supertype of the generated enum types; the value is in the field `value` |
