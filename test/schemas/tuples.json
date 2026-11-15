@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tuples",
+  "type": "object",
+  "properties": {
+    "point": {
+      "description": "A closed tuple: exactly two numbers.",
+      "type": "array",
+      "prefixItems": [{ "type": "number" }, { "type": "number" }],
+      "items": false,
+      "minItems": 2
+    },
+    "row": {
+      "description": "A label followed by any number of integers.",
+      "type": "array",
+      "prefixItems": [{ "type": "string" }],
+      "items": { "type": "integer", "minimum": 0 },
+      "minItems": 1
+    },
+    "tagged": {
+      "description": "An enum and an object, with anything after them.",
+      "type": "array",
+      "prefixItems": [
+        { "enum": ["a", "b"] },
+        { "type": "object", "properties": { "x": { "type": "integer" } }, "required": ["x"] }
+      ],
+      "minItems": 2
+    },
+    "optional": {
+      "description": "The second element may be missing: not a Julia tuple.",
+      "type": "array",
+      "prefixItems": [{ "type": "string" }, { "type": "integer" }],
+      "minItems": 1
+    },
+    "draft7": {
+      "description": "Tuple in the draft-07 style.",
+      "type": "array",
+      "items": [{ "type": "string" }, { "type": "boolean" }],
+      "additionalItems": false,
+      "minItems": 2
+    }
+  }
+}

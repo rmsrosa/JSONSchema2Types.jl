@@ -77,6 +77,22 @@ end
 # named tuples, such as `(unit = "l", value = 20)`, are accepted as objects
 _jsobject(x) = x isa NamedTuple ? Dict{String, Any}(String(k) => v for (k, v) in pairs(x)) : x
 
+# tuples, from `prefixItems`, possibly ending with `Vararg{T}` for the remaining items
+function _jsfrom(::Type{T}, x) where {T <: Tuple}
+    T isa Union && return _jsfromunion(T, x)
+    x isa T && return x
+    x isa Tuple && (x = collect(Any, x))
+    x isa AbstractVector || _jsfail("expected an array, got $(repr(x))")
+    params = collect(Any, fieldtypes(Tuple{T.parameters[1:end-(Base.isvarargtype(last(T.parameters)) ? 1 : 0)]...}))
+    if !isempty(T.parameters) && Base.isvarargtype(last(T.parameters))
+        length(x) >= length(params) || _jsfail("expected at least $(length(params)) items, got $(length(x))")
+        append!(params, fill(Base.unwrapva(last(T.parameters)), length(x) - length(params)))
+    else
+        length(x) == length(params) || _jsfail("expected $(length(params)) items, got $(length(x))")
+    end
+    return Tuple(_jsfrom(S, el) for (S, el) in zip(params, x))
+end
+
 function _jsfrom(::Type{Dict{String, T}}, x) where {T}
     x = _jsobject(x)
     x isa AbstractDict || _jsfail("expected an object, got $(repr(x))")
@@ -419,6 +435,7 @@ _jsto(x) = x
 _jsto(x::Float64) = isinteger(x) && abs(x) < 2.0^53 ? Int64(x) : x
 _jsto(x::AbstractSchemaEnum) = x.value
 _jsto(x::AbstractVector) = Any[_jsto(el) for el in x]
+_jsto(x::Tuple) = Any[_jsto(el) for el in x]
 _jsto(x::AbstractDict) = JSON.Object{String, Any}(String(k) => _jsto(v) for (k, v) in x)
 
 function _jsto(x::T) where {T <: AbstractSchemaObject}

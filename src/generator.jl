@@ -404,6 +404,9 @@ function name_hint(gen::Generator, file::String, pointer::String)
         elseif seg in ("oneOf", "anyOf") && nxt !== nothing
             base *= "Option" * string(parse(Int, nxt) + 1)
             step = 2
+        elseif seg in ("items", "prefixItems") && nxt !== nothing && occursin(r"^\d+$", nxt)
+            base *= "Item" * string(parse(Int, nxt) + 1)
+            step = 2
         elseif seg == "items"
             base *= "Item"
         elseif seg in ("additionalProperties", "unevaluatedProperties")
@@ -522,7 +525,8 @@ function collect_constraints(gen::Generator, file::String, node; pointer::String
         end
         c[k] = v
     end
-    if get(node, "type", nothing) == "array" && isobject(get(node, "items", nothing))
+    # (with `prefixItems`, `items` only applies to the items after the prefix: checked at runtime)
+    if get(node, "type", nothing) == "array" && isobject(get(node, "items", nothing)) && !haskey(node, "prefixItems")
         ic = item_constraints(gen, file, node["items"]; pointer = pointer * "/items")
         ic !== nothing && (c["items"] = ic)
     end
@@ -652,6 +656,27 @@ function resolve_type(gen::Generator, file::String, pointer::String, node, depth
     constraints = collect_constraints(gen, file, node; pointer)
     if jtype == "array"
         items = get(node, "items", nothing)
+        # tuples: `prefixItems` (2020-12), or `items` as a list (earlier drafts)
+        prefix_key, rest_key = haskey(node, "prefixItems") ? ("prefixItems", "items") :
+                               items isa AbstractVector ? ("items", "additionalItems") : ("", "")
+        if !isempty(prefix_key)
+            prefix = node[prefix_key]
+            # a Julia tuple has no optional elements, so all of them must be required
+            get(node, "minItems", 0) >= length(prefix) || return TypeRef("Vector{Any}"), constraints
+            elems = TypeRef[first(resolve_type(gen, file, pointer * "/$prefix_key/" * string(i - 1), sub, depth + 1))
+                            for (i, sub) in enumerate(prefix)]
+            exprs = [e.expr for e in elems]
+            deps = unique(reduce(vcat, [e.deps for e in elems]; init = String[]))
+            rest = get(node, rest_key, true)
+            if rest === true || (isobject(rest) && isempty(rest))
+                push!(exprs, "Vararg{Any}")
+            elseif isobject(rest)
+                t, _ = resolve_type(gen, file, pointer * "/" * rest_key, rest, depth + 1)
+                push!(exprs, "Vararg{$(t.expr)}")
+                append!(deps, t.deps)
+            end
+            return TypeRef("Tuple{" * join(exprs, ", ") * "}", unique(deps)), constraints
+        end
         if isobject(items)
             t, _ = resolve_type(gen, file, pointer * "/items", items, depth + 1)
             return TypeRef("Vector{$(t.expr)}", t.deps), constraints
@@ -929,11 +954,17 @@ function field_residual(gen::Generator, file::String, pointer::String, node, dep
                k == "dependencies" ? translate_schema(gen, file, Dict("dependencies" => v); pointer)["dependencies"] : v
     end
     items = get(node, "items", nothing)
-    if isobject(items)
+    if isobject(items) && haskey(node, "prefixItems")
+        r["items"] = translate_schema(gen, file, items; pointer = pointer * "/items")
+    elseif isobject(items)
         ir = field_residual(gen, file, pointer * "/items", items, depth + 1)
         ir === nothing || (r["items"] = ir)
     elseif items isa AbstractVector
         r["items"] = translate_schema(gen, file, items; kind = :list, pointer = pointer * "/items")
+        ai = get(node, "additionalItems", nothing)
+        ai === nothing || (r["additionalItems"] = translate_schema(gen, file, ai; pointer = pointer * "/additionalItems"))
+    elseif items === false && haskey(node, "prefixItems")
+        r["items"] = false
     end
     if haskey(node, "patternProperties")
         r["patternProperties"] = translate_schema(gen, file, node["patternProperties"]; kind = :map,

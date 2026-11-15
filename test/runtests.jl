@@ -222,6 +222,30 @@ end
     @test R("https://a.org/x/y.json", "urn:example:z") == "urn:example:z"
 end
 
+@testset "Tuples" begin
+    M = load_generated(joinpath(@__DIR__, "schemas", "tuples.json"))
+    T = M.Tuples
+    @test fieldtype(T, :point) == Union{Nothing, Tuple{Float64, Float64}}
+    @test fieldtype(T, :row) == Union{Nothing, Tuple{String, Vararg{Int64}}}
+    @test fieldtype(T, :tagged) == Union{Nothing, Tuple{M.TuplesTaggedItem1Enum, M.TuplesTaggedItem2, Vararg{Any}}}
+    @test fieldtype(T, :optional) == Union{Nothing, Vector{Any}}
+    @test fieldtype(T, :draft7) == Union{Nothing, Tuple{String, Bool}}
+    json = """{"point": [1, 2.5], "row": ["r", 1, 2, 3], "tagged": ["a", {"x": 1}, null, 7],
+               "optional": ["s"], "draft7": ["s", true]}"""
+    x = M.fromjson(T, json)
+    @test x.point == (1.0, 2.5) && x.row == ("r", 1, 2, 3) && x.draft7 == ("s", true)
+    @test x.tagged[2].x == 1 && x.tagged[3] === nothing
+    @test canon(JSON.parse(M.tojson(x))) == canon(JSON.parse(json))
+    @test T(point = (3, 4)).point == (3.0, 4.0)
+    E = M.SchemaValidationError
+    @test_throws E M.fromjson(T, """{"point": [1, 2, 3]}""")      # closed tuple
+    @test_throws E M.fromjson(T, """{"point": [1]}""")
+    @test_throws E M.fromjson(T, """{"row": ["r", -1]}""")         # rest items checked
+    @test_throws E M.fromjson(T, """{"tagged": ["c", {"x": 1}]}""")
+    @test_throws E M.fromjson(T, """{"optional": ["s", "t"]}""")   # prefixItems checked at runtime
+    @test_throws E M.fromjson(T, """{"draft7": ["s", true, 1]}""")
+end
+
 @testset "Additional properties are preserved" begin
     M = load_generated(joinpath(EXAMPLES, "acme_schemas", "acme_nestedschema.json"))
     json = """{"productId": 1, "productName": "x", "price": 1.5, "extra": {"a": [1, 2]}}"""
