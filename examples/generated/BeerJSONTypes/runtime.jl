@@ -40,7 +40,22 @@ _jsfail(msg) = throw(SchemaValidationError(msg))
 _jsname(T) = T isa Union ? "Union{" * join(map(_jsname, Base.uniontypes(T)), ", ") * "}" :
              T isa DataType && isempty(T.parameters) ? string(nameof(T)) : string(T)
 
-# Metadata of each generated struct, filled in right after each struct definition.
+"""
+    _SPECS
+
+Metadata of the generated types, filled in right after each type definition. For a struct
+`T`, `_SPECS[T]` is a named tuple with:
+
+* `fields`: for each field, its Julia `name`, its JSON `key`, whether it is `required` and
+  `nullable`, and its `constraints` (`minimum`, `pattern`...; and `schema`, the subschema
+  checked at runtime, if any);
+* `additionalProperties`, and `extra`, the name of the field that keeps the properties not
+  described by the schema (or `nothing`);
+* `minProperties`, `maxProperties`, and `schema`, the subschema checked on the object as a
+  whole at runtime (or `nothing`).
+
+For an enum type, `_SPECS[T]` holds the allowed `values`.
+"""
 const _SPECS = Dict{DataType, Any}()
 
 _specs(::Type{T}) where {T <: AbstractSchemaObject} = _SPECS[T]
@@ -49,6 +64,34 @@ _specs(::Type{T}) where {T <: AbstractSchemaObject} = _SPECS[T]
 _enumvalues(::Type{T}) where {T <: AbstractSchemaEnum} = _SPECS[T].values
 
 # --- Conversion from parsed JSON values into Julia values ---
+
+"""
+    _jsfrom(T, x)
+
+Convert `x` into a value of type `T`, validating it against the schema; "from JSON".
+
+This is the core of reading documents and of the keyword constructors: every argument of
+a generated constructor goes through `_jsfrom` with the type of its field, and reading a
+document is `_jsfrom(RootType, JSON.parse(text))`. `x` can be:
+
+* a value of type `T`, returned as it is;
+* a parsed JSON value, or a plain Julia one: a `Dict` or a named tuple for an object, a
+  vector for an array, a string, number, boolean or `nothing`.
+
+The conversion is recursive and depends on `T`:
+
+* a generated struct: from a dict, the keyword constructor is called with the properties
+  (unknown properties go to the extra field, or are an error);
+* a generated enum type: its constructor, which checks the value;
+* `Vector{S}`, `Dict{String, S}`, tuples: element by element;
+* `String`, `Float64`, `Int64`, `Bool`, `Nothing`: checked, with numbers converted (`20` is a
+  valid `Float64`, `2.0` a valid `Int64`, but `2.5` is not);
+* a `Union` (from `oneOf`, `anyOf`, optional fields...): the first option that works.
+
+Throws a [`SchemaValidationError`](@ref) when `x` does not fit. Its inverse is
+[`_jsto`](@ref).
+"""
+function _jsfrom end
 
 _jsfrom(::Type{Any}, x) = x
 _jsfrom(::Type{Nothing}, ::Nothing) = nothing
@@ -197,7 +240,16 @@ function _jsvalidate(x, c, where_::String)
     return nothing
 end
 
-# Called by the inner constructors of the generated structs, after converting the fields.
+"""
+    _jscheck(T, values, extra)
+
+Check the constraints of the generated struct `T` (recorded in [`_SPECS`](@ref)) on the
+converted field `values` and the additional properties `extra`. Called by the inner
+constructor of `T`, after [`_jsfrom`](@ref) converted each argument: it checks that
+required fields are set, the constraints of each field (`minimum`, `pattern`,
+`minItems`...), the subschemas checked at runtime (`not`, `oneOf`, `format`...) and the
+constraints on the object as a whole (`minProperties`, `if`/`then`/`else`...).
+"""
 function _jscheck(::Type{T}, values::Tuple, extra) where {T <: AbstractSchemaObject}
     spec = _specs(T)
     nprops = extra === nothing ? 0 : length(extra)
@@ -493,6 +545,16 @@ function _jsvalidann(s, x)
 end
 
 # --- Conversion from Julia values into JSON-compatible values ---
+
+"""
+    _jsto(x)
+
+Convert `x` into a JSON-compatible value ("to JSON"): structs become `JSON.Object`s with the
+original JSON property names (optional fields set to `nothing` are left out, the extra
+properties are put back), enums become their values, vectors and tuples become vectors.
+The inverse of [`_jsfrom`](@ref); used by `todict`, `tojson` and `writejson`.
+"""
+function _jsto end
 
 _jsto(x) = x
 # whole numbers are written without a decimal point, as they usually appear in JSON files

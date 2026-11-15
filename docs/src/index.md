@@ -64,4 +64,6 @@ julia> writejson("product-copy.json", p);            # and write it back
 * [Examples](@ref): small schemas from the JSON Schema documentation, step by step.
 * [BeerJSON](@ref beerjson): the types generated from the BeerJSON schema, reading and
   displaying recipes, styles, water profiles and hop varieties.
+* [Generated code](@ref): what the generated code looks like and how it works, including
+  the internal functions it calls (`_jsfrom`, `_jscheck`, `_jsto`).
 * [API](@ref): the reference of the package and of the generated modules.
