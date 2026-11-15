@@ -191,6 +191,37 @@ end
                                                type_names = Dict("#" => "not valid"))
 end
 
+@testset "References: \$id, \$anchor and downloads" begin
+    remote = Dict("https://example.org/remote/color.json" =>
+                  """{"\$id": "https://example.org/remote/color.json", "enum": ["red", "blue"]}""")
+    fetched = String[]
+    fetch(url) = (push!(fetched, url); remote[url])
+    schema = joinpath(@__DIR__, "schemas", "ids", "root.json")
+    @test_throws ErrorException generate_module(schema, joinpath(mktempdir(), "x.jl"))  # remote, no downloads
+    M = load_generated(schema; download = fetch)
+    @test fetched == ["https://example.org/remote/color.json"]
+    T = M.Customer
+    # `#name` is an `$anchor`; `address.json` is a nested `$id`, resolved against the
+    # `$id` of the root, and `#/$defs/Street` inside it is relative to that nested resource
+    @test fieldtype(T, :address) == Union{Nothing, M.Address}
+    x = M.fromdict(T, Dict("name" => "Ann", "address" => Dict("street" => "1 Main St"),
+                           "street" => "2 Side St", "favorite" => "red", "legacy" => 3))
+    @test x.address.street == "1 Main St" && x.favorite.value == "red"
+    E = M.SchemaValidationError
+    @test_throws E M.fromdict(T, Dict("name" => ""))                                   # anchor's minLength
+    @test_throws E M.fromdict(T, Dict("name" => "A", "address" => Dict("street" => "Main")))  # nested pattern
+    @test_throws E M.fromdict(T, Dict("name" => "A", "street" => "Main"))              # absolute URI + pointer
+    @test_throws E M.fromdict(T, Dict("name" => "A", "favorite" => "green"))           # downloaded enum
+    @test_throws E M.fromdict(T, Dict("name" => "A", "legacy" => -1))                  # `"$id": "#legacy"`
+    # URI resolution
+    R = JSONSchema2Types.resolve_uri
+    @test R("https://a.org/x/y.json", "z.json") == "https://a.org/x/z.json"
+    @test R("https://a.org/x/y.json", "../z.json#/a") == "https://a.org/z.json#/a"
+    @test R("https://a.org/x/y.json", "/z.json") == "https://a.org/z.json"
+    @test R("https://a.org/x/y.json", "#foo") == "https://a.org/x/y.json#foo"
+    @test R("https://a.org/x/y.json", "urn:example:z") == "urn:example:z"
+end
+
 @testset "Additional properties are preserved" begin
     M = load_generated(joinpath(EXAMPLES, "acme_schemas", "acme_nestedschema.json"))
     json = """{"productId": 1, "productName": "x", "price": 1.5, "extra": {"a": [1, 2]}}"""

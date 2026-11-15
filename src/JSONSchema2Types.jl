@@ -7,6 +7,7 @@ documents conforming to the schema. See [`generate_module`](@ref).
 module JSONSchema2Types
 
 using JSON
+using Downloads
 
 export generate_module
 
