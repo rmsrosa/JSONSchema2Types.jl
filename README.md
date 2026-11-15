@@ -12,10 +12,12 @@ general, though, and should be useful for other schemas as well.
 
 ## Installation
 
+The package is not registered yet. Install it from GitHub:
+
 ```julia
 julia> using Pkg
 
-julia> Pkg.add("JSONSchema2Types")
+julia> Pkg.add(url = "https://github.com/rmsrosa/JSONSchema2Types.jl")
 ```
 
 ## Usage

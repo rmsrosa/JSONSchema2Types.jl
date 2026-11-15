@@ -21,16 +21,13 @@ for the types generated from it, used to read and display real BeerJSON document
 
 ## Installation
 
-Install it from the General registry:
+The package is not registered yet. Install it from GitHub:
 
 ```julia
 julia> using Pkg
 
-julia> Pkg.add("JSONSchema2Types")
+julia> Pkg.add(url = "https://github.com/rmsrosa/JSONSchema2Types.jl")
 ```
-
-or install the development version from GitHub with
-`Pkg.add(url = "https://github.com/rmsrosa/JSONSchema2Types.jl")`.
 
 ## Related packages
 
