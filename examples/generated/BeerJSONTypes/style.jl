@@ -16,27 +16,27 @@ _SPECS[StyleCategories] = (values = Any["beer", "cider", "kombucha", "mead", "ot
 
 """
     StyleType(; kwargs...)
-    StyleType{IntType, FloatType}(; kwargs...)
+    StyleType{I, T}(; kwargs...)
 
 StyleType provide information for Style categorization
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `name::String` (required)
 - `category::String` (required)
-- `category_number::Union{Nothing, IntType}`
+- `category_number::Union{Nothing, I}`
 - `style_letter::Union{Nothing, String}`
 - `style_guide::String` (required)
 - `type::StyleCategories` (required)
-- `original_gravity::Union{Nothing, GravityRangeType{IntType, FloatType}}`
-- `final_gravity::Union{Nothing, GravityRangeType{IntType, FloatType}}`
-- `international_bitterness_units::Union{Nothing, BitternessRangeType{IntType, FloatType}}`
-- `color::Union{Nothing, ColorRangeType{IntType, FloatType}}`
-- `carbonation::Union{Nothing, CarbonationRangeType{IntType, FloatType}}`
-- `alcohol_by_volume::Union{Nothing, PercentRangeType{IntType, FloatType}}`
+- `original_gravity::Union{Nothing, GravityRangeType{I, T}}`
+- `final_gravity::Union{Nothing, GravityRangeType{I, T}}`
+- `international_bitterness_units::Union{Nothing, BitternessRangeType{I, T}}`
+- `color::Union{Nothing, ColorRangeType{I, T}}`
+- `carbonation::Union{Nothing, CarbonationRangeType{I, T}}`
+- `alcohol_by_volume::Union{Nothing, PercentRangeType{I, T}}`
 - `notes::Union{Nothing, String}`
 - `aroma::Union{Nothing, String}`
 - `appearance::Union{Nothing, String}`
@@ -47,19 +47,19 @@ and `Float64`.
 - `examples::Union{Nothing, String}`
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct StyleType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct StyleType{I <: Integer, T <: Real} <: AbstractSchemaObject
     name::String
     category::String
-    category_number::Union{Nothing, IntType}
+    category_number::Union{Nothing, I}
     style_letter::Union{Nothing, String}
     style_guide::String
     type::StyleCategories
-    original_gravity::Union{Nothing, GravityRangeType{IntType, FloatType}}
-    final_gravity::Union{Nothing, GravityRangeType{IntType, FloatType}}
-    international_bitterness_units::Union{Nothing, BitternessRangeType{IntType, FloatType}}
-    color::Union{Nothing, ColorRangeType{IntType, FloatType}}
-    carbonation::Union{Nothing, CarbonationRangeType{IntType, FloatType}}
-    alcohol_by_volume::Union{Nothing, PercentRangeType{IntType, FloatType}}
+    original_gravity::Union{Nothing, GravityRangeType{I, T}}
+    final_gravity::Union{Nothing, GravityRangeType{I, T}}
+    international_bitterness_units::Union{Nothing, BitternessRangeType{I, T}}
+    color::Union{Nothing, ColorRangeType{I, T}}
+    carbonation::Union{Nothing, CarbonationRangeType{I, T}}
+    alcohol_by_volume::Union{Nothing, PercentRangeType{I, T}}
     notes::Union{Nothing, String}
     aroma::Union{Nothing, String}
     appearance::Union{Nothing, String}
@@ -69,19 +69,19 @@ struct StyleType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     ingredients::Union{Nothing, String}
     examples::Union{Nothing, String}
     _extra::Dict{String, Any}
-    function StyleType{IntType, FloatType}(; name, category, category_number = nothing, style_letter = nothing, style_guide, type, original_gravity = nothing, final_gravity = nothing, international_bitterness_units = nothing, color = nothing, carbonation = nothing, alcohol_by_volume = nothing, notes = nothing, aroma = nothing, appearance = nothing, flavor = nothing, mouthfeel = nothing, overall_impression = nothing, ingredients = nothing, examples = nothing, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function StyleType{I, T}(; name, category, category_number = nothing, style_letter = nothing, style_guide, type, original_gravity = nothing, final_gravity = nothing, international_bitterness_units = nothing, color = nothing, carbonation = nothing, alcohol_by_volume = nothing, notes = nothing, aroma = nothing, appearance = nothing, flavor = nothing, mouthfeel = nothing, overall_impression = nothing, ingredients = nothing, examples = nothing, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         name = _jsfrom(String, name)
         category = _jsfrom(String, category)
-        category_number = _jsfrom(Union{Nothing, IntType}, category_number)
+        category_number = _jsfrom(Union{Nothing, I}, category_number)
         style_letter = _jsfrom(Union{Nothing, String}, style_letter)
         style_guide = _jsfrom(String, style_guide)
         type = _jsfrom(StyleCategories, type)
-        original_gravity = _jsfrom(Union{Nothing, GravityRangeType{IntType, FloatType}}, original_gravity)
-        final_gravity = _jsfrom(Union{Nothing, GravityRangeType{IntType, FloatType}}, final_gravity)
-        international_bitterness_units = _jsfrom(Union{Nothing, BitternessRangeType{IntType, FloatType}}, international_bitterness_units)
-        color = _jsfrom(Union{Nothing, ColorRangeType{IntType, FloatType}}, color)
-        carbonation = _jsfrom(Union{Nothing, CarbonationRangeType{IntType, FloatType}}, carbonation)
-        alcohol_by_volume = _jsfrom(Union{Nothing, PercentRangeType{IntType, FloatType}}, alcohol_by_volume)
+        original_gravity = _jsfrom(Union{Nothing, GravityRangeType{I, T}}, original_gravity)
+        final_gravity = _jsfrom(Union{Nothing, GravityRangeType{I, T}}, final_gravity)
+        international_bitterness_units = _jsfrom(Union{Nothing, BitternessRangeType{I, T}}, international_bitterness_units)
+        color = _jsfrom(Union{Nothing, ColorRangeType{I, T}}, color)
+        carbonation = _jsfrom(Union{Nothing, CarbonationRangeType{I, T}}, carbonation)
+        alcohol_by_volume = _jsfrom(Union{Nothing, PercentRangeType{I, T}}, alcohol_by_volume)
         notes = _jsfrom(Union{Nothing, String}, notes)
         aroma = _jsfrom(Union{Nothing, String}, aroma)
         appearance = _jsfrom(Union{Nothing, String}, appearance)
@@ -91,12 +91,12 @@ struct StyleType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
         ingredients = _jsfrom(Union{Nothing, String}, ingredients)
         examples = _jsfrom(Union{Nothing, String}, examples)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(StyleType{IntType, FloatType}, (name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples), _extra)
+        _jscheck(StyleType{I, T}, (name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples), _extra)
         return new(name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra)
     end
 end
 StyleType(; kwargs...) = StyleType{Int64, Float64}(; kwargs...)
-StyleType{IntType, FloatType}(name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra) where {IntType <: Integer, FloatType <: Real} = StyleType{IntType, FloatType}(; name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra)
+StyleType{I, T}(name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra) where {I <: Integer, T <: Real} = StyleType{I, T}(; name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra)
 StyleType(name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra) = StyleType{_jsnumbertypes(name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra)...}(; name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra)
 _SPECS[StyleType] = (
     fields = (
@@ -130,45 +130,45 @@ _SPECS[StyleType] = (
 
 """
     RecipeStyleType(; kwargs...)
-    RecipeStyleType{IntType, FloatType}(; kwargs...)
+    RecipeStyleType{I, T}(; kwargs...)
 
 RecipeStyleType defines style information stored in a recipe record
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `name::String` (required)
 - `category::String` (required)
-- `category_number::Union{Nothing, IntType}`
+- `category_number::Union{Nothing, I}`
 - `style_letter::Union{Nothing, String}`
 - `style_guide::String` (required)
 - `type::StyleCategories` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct RecipeStyleType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct RecipeStyleType{I <: Integer, T <: Real} <: AbstractSchemaObject
     name::String
     category::String
-    category_number::Union{Nothing, IntType}
+    category_number::Union{Nothing, I}
     style_letter::Union{Nothing, String}
     style_guide::String
     type::StyleCategories
     _extra::Dict{String, Any}
-    function RecipeStyleType{IntType, FloatType}(; name, category, category_number = nothing, style_letter = nothing, style_guide, type, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function RecipeStyleType{I, T}(; name, category, category_number = nothing, style_letter = nothing, style_guide, type, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         name = _jsfrom(String, name)
         category = _jsfrom(String, category)
-        category_number = _jsfrom(Union{Nothing, IntType}, category_number)
+        category_number = _jsfrom(Union{Nothing, I}, category_number)
         style_letter = _jsfrom(Union{Nothing, String}, style_letter)
         style_guide = _jsfrom(String, style_guide)
         type = _jsfrom(StyleCategories, type)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(RecipeStyleType{IntType, FloatType}, (name, category, category_number, style_letter, style_guide, type), _extra)
+        _jscheck(RecipeStyleType{I, T}, (name, category, category_number, style_letter, style_guide, type), _extra)
         return new(name, category, category_number, style_letter, style_guide, type, _extra)
     end
 end
 RecipeStyleType(; kwargs...) = RecipeStyleType{Int64, Float64}(; kwargs...)
-RecipeStyleType{IntType, FloatType}(name, category, category_number, style_letter, style_guide, type, _extra) where {IntType <: Integer, FloatType <: Real} = RecipeStyleType{IntType, FloatType}(; name, category, category_number, style_letter, style_guide, type, _extra)
+RecipeStyleType{I, T}(name, category, category_number, style_letter, style_guide, type, _extra) where {I <: Integer, T <: Real} = RecipeStyleType{I, T}(; name, category, category_number, style_letter, style_guide, type, _extra)
 RecipeStyleType(name, category, category_number, style_letter, style_guide, type, _extra) = RecipeStyleType{_jsnumbertypes(name, category, category_number, style_letter, style_guide, type, _extra)...}(; name, category, category_number, style_letter, style_guide, type, _extra)
 _SPECS[RecipeStyleType] = (
     fields = (

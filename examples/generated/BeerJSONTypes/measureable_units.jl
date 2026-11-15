@@ -192,28 +192,28 @@ _SPECS[SpecificHeatUnitType] = (values = Any["Cal/(g C)", "J/(kg K)", "BTU/(lb F
 
 """
     TimeType(; kwargs...)
-    TimeType{IntType, FloatType}(; kwargs...)
+    TimeType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::TimeUnitType` (required)
-- `value::IntType` (required)
+- `value::I` (required)
 """
-struct TimeType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct TimeType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::TimeUnitType
-    value::IntType
-    function TimeType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::I
+    function TimeType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(TimeUnitType, unit)
-        value = _jsfrom(IntType, value)
-        _jscheck(TimeType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(I, value)
+        _jscheck(TimeType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 TimeType(; kwargs...) = TimeType{Int64, Float64}(; kwargs...)
-TimeType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = TimeType{IntType, FloatType}(; unit, value)
+TimeType{I, T}(unit, value) where {I <: Integer, T <: Real} = TimeType{I, T}(; unit, value)
 TimeType(unit, value) = TimeType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[TimeType] = (
     fields = (
@@ -229,30 +229,30 @@ _SPECS[TimeType] = (
 
 """
     GravityType(; kwargs...)
-    GravityType{IntType, FloatType}(; kwargs...)
+    GravityType{I, T}(; kwargs...)
 
 Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::GravityUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct GravityType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct GravityType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::GravityUnitType
-    value::FloatType
-    function GravityType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function GravityType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(GravityUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(GravityType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(GravityType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 GravityType(; kwargs...) = GravityType{Int64, Float64}(; kwargs...)
-GravityType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = GravityType{IntType, FloatType}(; unit, value)
+GravityType{I, T}(unit, value) where {I <: Integer, T <: Real} = GravityType{I, T}(; unit, value)
 GravityType(unit, value) = GravityType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[GravityType] = (
     fields = (
@@ -268,28 +268,28 @@ _SPECS[GravityType] = (
 
 """
     AcidityType(; kwargs...)
-    AcidityType{IntType, FloatType}(; kwargs...)
+    AcidityType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::AcidityUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct AcidityType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct AcidityType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::AcidityUnitType
-    value::FloatType
-    function AcidityType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function AcidityType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(AcidityUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(AcidityType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(AcidityType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 AcidityType(; kwargs...) = AcidityType{Int64, Float64}(; kwargs...)
-AcidityType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = AcidityType{IntType, FloatType}(; unit, value)
+AcidityType{I, T}(unit, value) where {I <: Integer, T <: Real} = AcidityType{I, T}(; unit, value)
 AcidityType(unit, value) = AcidityType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[AcidityType] = (
     fields = (
@@ -305,28 +305,28 @@ _SPECS[AcidityType] = (
 
 """
     PercentType(; kwargs...)
-    PercentType{IntType, FloatType}(; kwargs...)
+    PercentType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::PercentUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct PercentType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct PercentType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::PercentUnitType
-    value::FloatType
-    function PercentType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function PercentType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(PercentUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(PercentType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(PercentType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 PercentType(; kwargs...) = PercentType{Int64, Float64}(; kwargs...)
-PercentType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = PercentType{IntType, FloatType}(; unit, value)
+PercentType{I, T}(unit, value) where {I <: Integer, T <: Real} = PercentType{I, T}(; unit, value)
 PercentType(unit, value) = PercentType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[PercentType] = (
     fields = (
@@ -342,30 +342,30 @@ _SPECS[PercentType] = (
 
 """
     ColorType(; kwargs...)
-    ColorType{IntType, FloatType}(; kwargs...)
+    ColorType{I, T}(; kwargs...)
 
 ColorType supports both grain color properties, such as Lovibond, and wort color properties such as SRM and EBC.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::ColorUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct ColorType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct ColorType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::ColorUnitType
-    value::FloatType
-    function ColorType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function ColorType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(ColorUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(ColorType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(ColorType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 ColorType(; kwargs...) = ColorType{Int64, Float64}(; kwargs...)
-ColorType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = ColorType{IntType, FloatType}(; unit, value)
+ColorType{I, T}(unit, value) where {I <: Integer, T <: Real} = ColorType{I, T}(; unit, value)
 ColorType(unit, value) = ColorType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[ColorType] = (
     fields = (
@@ -381,30 +381,30 @@ _SPECS[ColorType] = (
 
 """
     DiastaticPowerType(; kwargs...)
-    DiastaticPowerType{IntType, FloatType}(; kwargs...)
+    DiastaticPowerType{I, T}(; kwargs...)
 
 Diastatic power is a measurement of malted grains enzymatic content. A value of 35 Lintner is needed to self convert, while a value of 100 or more is desirable for base malts.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::DiastaticPowerUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct DiastaticPowerType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct DiastaticPowerType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::DiastaticPowerUnitType
-    value::FloatType
-    function DiastaticPowerType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function DiastaticPowerType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(DiastaticPowerUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(DiastaticPowerType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(DiastaticPowerType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 DiastaticPowerType(; kwargs...) = DiastaticPowerType{Int64, Float64}(; kwargs...)
-DiastaticPowerType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = DiastaticPowerType{IntType, FloatType}(; unit, value)
+DiastaticPowerType{I, T}(unit, value) where {I <: Integer, T <: Real} = DiastaticPowerType{I, T}(; unit, value)
 DiastaticPowerType(unit, value) = DiastaticPowerType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[DiastaticPowerType] = (
     fields = (
@@ -420,28 +420,28 @@ _SPECS[DiastaticPowerType] = (
 
 """
     VolumeType(; kwargs...)
-    VolumeType{IntType, FloatType}(; kwargs...)
+    VolumeType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::VolumeUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct VolumeType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct VolumeType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::VolumeUnitType
-    value::FloatType
-    function VolumeType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function VolumeType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(VolumeUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(VolumeType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(VolumeType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 VolumeType(; kwargs...) = VolumeType{Int64, Float64}(; kwargs...)
-VolumeType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = VolumeType{IntType, FloatType}(; unit, value)
+VolumeType{I, T}(unit, value) where {I <: Integer, T <: Real} = VolumeType{I, T}(; unit, value)
 VolumeType(unit, value) = VolumeType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[VolumeType] = (
     fields = (
@@ -457,28 +457,28 @@ _SPECS[VolumeType] = (
 
 """
     MassType(; kwargs...)
-    MassType{IntType, FloatType}(; kwargs...)
+    MassType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::MassUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct MassType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct MassType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::MassUnitType
-    value::FloatType
-    function MassType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function MassType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(MassUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(MassType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(MassType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 MassType(; kwargs...) = MassType{Int64, Float64}(; kwargs...)
-MassType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = MassType{IntType, FloatType}(; unit, value)
+MassType{I, T}(unit, value) where {I <: Integer, T <: Real} = MassType{I, T}(; unit, value)
 MassType(unit, value) = MassType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[MassType] = (
     fields = (
@@ -494,30 +494,30 @@ _SPECS[MassType] = (
 
 """
     ViscosityType(; kwargs...)
-    ViscosityType{IntType, FloatType}(; kwargs...)
+    ViscosityType{I, T}(; kwargs...)
 
 Viscosity of fluids
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::ViscosityUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct ViscosityType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct ViscosityType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::ViscosityUnitType
-    value::FloatType
-    function ViscosityType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function ViscosityType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(ViscosityUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(ViscosityType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(ViscosityType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 ViscosityType(; kwargs...) = ViscosityType{Int64, Float64}(; kwargs...)
-ViscosityType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = ViscosityType{IntType, FloatType}(; unit, value)
+ViscosityType{I, T}(unit, value) where {I <: Integer, T <: Real} = ViscosityType{I, T}(; unit, value)
 ViscosityType(unit, value) = ViscosityType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[ViscosityType] = (
     fields = (
@@ -533,30 +533,30 @@ _SPECS[ViscosityType] = (
 
 """
     ConcentrationType(; kwargs...)
-    ConcentrationType{IntType, FloatType}(; kwargs...)
+    ConcentrationType{I, T}(; kwargs...)
 
 Examples for concentration include ppm, ppb, and mg/l. 
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::ConcentrationUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct ConcentrationType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct ConcentrationType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::ConcentrationUnitType
-    value::FloatType
-    function ConcentrationType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function ConcentrationType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(ConcentrationUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(ConcentrationType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(ConcentrationType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 ConcentrationType(; kwargs...) = ConcentrationType{Int64, Float64}(; kwargs...)
-ConcentrationType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = ConcentrationType{IntType, FloatType}(; unit, value)
+ConcentrationType{I, T}(unit, value) where {I <: Integer, T <: Real} = ConcentrationType{I, T}(; unit, value)
 ConcentrationType(unit, value) = ConcentrationType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[ConcentrationType] = (
     fields = (
@@ -572,30 +572,30 @@ _SPECS[ConcentrationType] = (
 
 """
     UnitType(; kwargs...)
-    UnitType{IntType, FloatType}(; kwargs...)
+    UnitType{I, T}(; kwargs...)
 
 UnitType is used where unitless amounts are required, such as 1 apple, or 1 yeast packet.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::UnitUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct UnitType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct UnitType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::UnitUnitType
-    value::FloatType
-    function UnitType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function UnitType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(UnitUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(UnitType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(UnitType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 UnitType(; kwargs...) = UnitType{Int64, Float64}(; kwargs...)
-UnitType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = UnitType{IntType, FloatType}(; unit, value)
+UnitType{I, T}(unit, value) where {I <: Integer, T <: Real} = UnitType{I, T}(; unit, value)
 UnitType(unit, value) = UnitType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[UnitType] = (
     fields = (
@@ -611,28 +611,28 @@ _SPECS[UnitType] = (
 
 """
     TemperatureType(; kwargs...)
-    TemperatureType{IntType, FloatType}(; kwargs...)
+    TemperatureType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::TemperatureUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct TemperatureType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct TemperatureType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::TemperatureUnitType
-    value::FloatType
-    function TemperatureType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function TemperatureType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(TemperatureUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(TemperatureType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(TemperatureType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 TemperatureType(; kwargs...) = TemperatureType{Int64, Float64}(; kwargs...)
-TemperatureType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = TemperatureType{IntType, FloatType}(; unit, value)
+TemperatureType{I, T}(unit, value) where {I <: Integer, T <: Real} = TemperatureType{I, T}(; unit, value)
 TemperatureType(unit, value) = TemperatureType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[TemperatureType] = (
     fields = (
@@ -648,28 +648,28 @@ _SPECS[TemperatureType] = (
 
 """
     TemperatureRangeType(; kwargs...)
-    TemperatureRangeType{IntType, FloatType}(; kwargs...)
+    TemperatureRangeType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `minimum::TemperatureType{IntType, FloatType}` (required)
-- `maximum::TemperatureType{IntType, FloatType}` (required)
+- `minimum::TemperatureType{I, T}` (required)
+- `maximum::TemperatureType{I, T}` (required)
 """
-struct TemperatureRangeType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    minimum::TemperatureType{IntType, FloatType}
-    maximum::TemperatureType{IntType, FloatType}
-    function TemperatureRangeType{IntType, FloatType}(; minimum, maximum) where {IntType <: Integer, FloatType <: Real}
-        minimum = _jsfrom(TemperatureType{IntType, FloatType}, minimum)
-        maximum = _jsfrom(TemperatureType{IntType, FloatType}, maximum)
-        _jscheck(TemperatureRangeType{IntType, FloatType}, (minimum, maximum), nothing)
+struct TemperatureRangeType{I <: Integer, T <: Real} <: AbstractSchemaObject
+    minimum::TemperatureType{I, T}
+    maximum::TemperatureType{I, T}
+    function TemperatureRangeType{I, T}(; minimum, maximum) where {I <: Integer, T <: Real}
+        minimum = _jsfrom(TemperatureType{I, T}, minimum)
+        maximum = _jsfrom(TemperatureType{I, T}, maximum)
+        _jscheck(TemperatureRangeType{I, T}, (minimum, maximum), nothing)
         return new(minimum, maximum)
     end
 end
 TemperatureRangeType(; kwargs...) = TemperatureRangeType{Int64, Float64}(; kwargs...)
-TemperatureRangeType{IntType, FloatType}(minimum, maximum) where {IntType <: Integer, FloatType <: Real} = TemperatureRangeType{IntType, FloatType}(; minimum, maximum)
+TemperatureRangeType{I, T}(minimum, maximum) where {I <: Integer, T <: Real} = TemperatureRangeType{I, T}(; minimum, maximum)
 TemperatureRangeType(minimum, maximum) = TemperatureRangeType{_jsnumbertypes(minimum, maximum)...}(; minimum, maximum)
 _SPECS[TemperatureRangeType] = (
     fields = (
@@ -685,28 +685,28 @@ _SPECS[TemperatureRangeType] = (
 
 """
     PercentRangeType(; kwargs...)
-    PercentRangeType{IntType, FloatType}(; kwargs...)
+    PercentRangeType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `minimum::PercentType{IntType, FloatType}` (required)
-- `maximum::PercentType{IntType, FloatType}` (required)
+- `minimum::PercentType{I, T}` (required)
+- `maximum::PercentType{I, T}` (required)
 """
-struct PercentRangeType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    minimum::PercentType{IntType, FloatType}
-    maximum::PercentType{IntType, FloatType}
-    function PercentRangeType{IntType, FloatType}(; minimum, maximum) where {IntType <: Integer, FloatType <: Real}
-        minimum = _jsfrom(PercentType{IntType, FloatType}, minimum)
-        maximum = _jsfrom(PercentType{IntType, FloatType}, maximum)
-        _jscheck(PercentRangeType{IntType, FloatType}, (minimum, maximum), nothing)
+struct PercentRangeType{I <: Integer, T <: Real} <: AbstractSchemaObject
+    minimum::PercentType{I, T}
+    maximum::PercentType{I, T}
+    function PercentRangeType{I, T}(; minimum, maximum) where {I <: Integer, T <: Real}
+        minimum = _jsfrom(PercentType{I, T}, minimum)
+        maximum = _jsfrom(PercentType{I, T}, maximum)
+        _jscheck(PercentRangeType{I, T}, (minimum, maximum), nothing)
         return new(minimum, maximum)
     end
 end
 PercentRangeType(; kwargs...) = PercentRangeType{Int64, Float64}(; kwargs...)
-PercentRangeType{IntType, FloatType}(minimum, maximum) where {IntType <: Integer, FloatType <: Real} = PercentRangeType{IntType, FloatType}(; minimum, maximum)
+PercentRangeType{I, T}(minimum, maximum) where {I <: Integer, T <: Real} = PercentRangeType{I, T}(; minimum, maximum)
 PercentRangeType(minimum, maximum) = PercentRangeType{_jsnumbertypes(minimum, maximum)...}(; minimum, maximum)
 _SPECS[PercentRangeType] = (
     fields = (
@@ -722,28 +722,28 @@ _SPECS[PercentRangeType] = (
 
 """
     GravityRangeType(; kwargs...)
-    GravityRangeType{IntType, FloatType}(; kwargs...)
+    GravityRangeType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `minimum::GravityType{IntType, FloatType}` (required): Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
-- `maximum::GravityType{IntType, FloatType}` (required): Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
+- `minimum::GravityType{I, T}` (required): Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
+- `maximum::GravityType{I, T}` (required): Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
 """
-struct GravityRangeType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    minimum::GravityType{IntType, FloatType}
-    maximum::GravityType{IntType, FloatType}
-    function GravityRangeType{IntType, FloatType}(; minimum, maximum) where {IntType <: Integer, FloatType <: Real}
-        minimum = _jsfrom(GravityType{IntType, FloatType}, minimum)
-        maximum = _jsfrom(GravityType{IntType, FloatType}, maximum)
-        _jscheck(GravityRangeType{IntType, FloatType}, (minimum, maximum), nothing)
+struct GravityRangeType{I <: Integer, T <: Real} <: AbstractSchemaObject
+    minimum::GravityType{I, T}
+    maximum::GravityType{I, T}
+    function GravityRangeType{I, T}(; minimum, maximum) where {I <: Integer, T <: Real}
+        minimum = _jsfrom(GravityType{I, T}, minimum)
+        maximum = _jsfrom(GravityType{I, T}, maximum)
+        _jscheck(GravityRangeType{I, T}, (minimum, maximum), nothing)
         return new(minimum, maximum)
     end
 end
 GravityRangeType(; kwargs...) = GravityRangeType{Int64, Float64}(; kwargs...)
-GravityRangeType{IntType, FloatType}(minimum, maximum) where {IntType <: Integer, FloatType <: Real} = GravityRangeType{IntType, FloatType}(; minimum, maximum)
+GravityRangeType{I, T}(minimum, maximum) where {I <: Integer, T <: Real} = GravityRangeType{I, T}(; minimum, maximum)
 GravityRangeType(minimum, maximum) = GravityRangeType{_jsnumbertypes(minimum, maximum)...}(; minimum, maximum)
 _SPECS[GravityRangeType] = (
     fields = (
@@ -759,28 +759,28 @@ _SPECS[GravityRangeType] = (
 
 """
     BitternessType(; kwargs...)
-    BitternessType{IntType, FloatType}(; kwargs...)
+    BitternessType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::BitternessUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct BitternessType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct BitternessType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::BitternessUnitType
-    value::FloatType
-    function BitternessType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function BitternessType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(BitternessUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(BitternessType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(BitternessType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 BitternessType(; kwargs...) = BitternessType{Int64, Float64}(; kwargs...)
-BitternessType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = BitternessType{IntType, FloatType}(; unit, value)
+BitternessType{I, T}(unit, value) where {I <: Integer, T <: Real} = BitternessType{I, T}(; unit, value)
 BitternessType(unit, value) = BitternessType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[BitternessType] = (
     fields = (
@@ -796,28 +796,28 @@ _SPECS[BitternessType] = (
 
 """
     BitternessRangeType(; kwargs...)
-    BitternessRangeType{IntType, FloatType}(; kwargs...)
+    BitternessRangeType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `minimum::BitternessType{IntType, FloatType}` (required)
-- `maximum::BitternessType{IntType, FloatType}` (required)
+- `minimum::BitternessType{I, T}` (required)
+- `maximum::BitternessType{I, T}` (required)
 """
-struct BitternessRangeType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    minimum::BitternessType{IntType, FloatType}
-    maximum::BitternessType{IntType, FloatType}
-    function BitternessRangeType{IntType, FloatType}(; minimum, maximum) where {IntType <: Integer, FloatType <: Real}
-        minimum = _jsfrom(BitternessType{IntType, FloatType}, minimum)
-        maximum = _jsfrom(BitternessType{IntType, FloatType}, maximum)
-        _jscheck(BitternessRangeType{IntType, FloatType}, (minimum, maximum), nothing)
+struct BitternessRangeType{I <: Integer, T <: Real} <: AbstractSchemaObject
+    minimum::BitternessType{I, T}
+    maximum::BitternessType{I, T}
+    function BitternessRangeType{I, T}(; minimum, maximum) where {I <: Integer, T <: Real}
+        minimum = _jsfrom(BitternessType{I, T}, minimum)
+        maximum = _jsfrom(BitternessType{I, T}, maximum)
+        _jscheck(BitternessRangeType{I, T}, (minimum, maximum), nothing)
         return new(minimum, maximum)
     end
 end
 BitternessRangeType(; kwargs...) = BitternessRangeType{Int64, Float64}(; kwargs...)
-BitternessRangeType{IntType, FloatType}(minimum, maximum) where {IntType <: Integer, FloatType <: Real} = BitternessRangeType{IntType, FloatType}(; minimum, maximum)
+BitternessRangeType{I, T}(minimum, maximum) where {I <: Integer, T <: Real} = BitternessRangeType{I, T}(; minimum, maximum)
 BitternessRangeType(minimum, maximum) = BitternessRangeType{_jsnumbertypes(minimum, maximum)...}(; minimum, maximum)
 _SPECS[BitternessRangeType] = (
     fields = (
@@ -833,28 +833,28 @@ _SPECS[BitternessRangeType] = (
 
 """
     ColorRangeType(; kwargs...)
-    ColorRangeType{IntType, FloatType}(; kwargs...)
+    ColorRangeType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `minimum::ColorType{IntType, FloatType}` (required): ColorType supports both grain color properties, such as Lovibond, and wort color properties such as SRM and EBC.
-- `maximum::ColorType{IntType, FloatType}` (required): ColorType supports both grain color properties, such as Lovibond, and wort color properties such as SRM and EBC.
+- `minimum::ColorType{I, T}` (required): ColorType supports both grain color properties, such as Lovibond, and wort color properties such as SRM and EBC.
+- `maximum::ColorType{I, T}` (required): ColorType supports both grain color properties, such as Lovibond, and wort color properties such as SRM and EBC.
 """
-struct ColorRangeType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    minimum::ColorType{IntType, FloatType}
-    maximum::ColorType{IntType, FloatType}
-    function ColorRangeType{IntType, FloatType}(; minimum, maximum) where {IntType <: Integer, FloatType <: Real}
-        minimum = _jsfrom(ColorType{IntType, FloatType}, minimum)
-        maximum = _jsfrom(ColorType{IntType, FloatType}, maximum)
-        _jscheck(ColorRangeType{IntType, FloatType}, (minimum, maximum), nothing)
+struct ColorRangeType{I <: Integer, T <: Real} <: AbstractSchemaObject
+    minimum::ColorType{I, T}
+    maximum::ColorType{I, T}
+    function ColorRangeType{I, T}(; minimum, maximum) where {I <: Integer, T <: Real}
+        minimum = _jsfrom(ColorType{I, T}, minimum)
+        maximum = _jsfrom(ColorType{I, T}, maximum)
+        _jscheck(ColorRangeType{I, T}, (minimum, maximum), nothing)
         return new(minimum, maximum)
     end
 end
 ColorRangeType(; kwargs...) = ColorRangeType{Int64, Float64}(; kwargs...)
-ColorRangeType{IntType, FloatType}(minimum, maximum) where {IntType <: Integer, FloatType <: Real} = ColorRangeType{IntType, FloatType}(; minimum, maximum)
+ColorRangeType{I, T}(minimum, maximum) where {I <: Integer, T <: Real} = ColorRangeType{I, T}(; minimum, maximum)
 ColorRangeType(minimum, maximum) = ColorRangeType{_jsnumbertypes(minimum, maximum)...}(; minimum, maximum)
 _SPECS[ColorRangeType] = (
     fields = (
@@ -870,28 +870,28 @@ _SPECS[ColorRangeType] = (
 
 """
     CarbonationType(; kwargs...)
-    CarbonationType{IntType, FloatType}(; kwargs...)
+    CarbonationType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::CarbonationUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct CarbonationType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct CarbonationType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::CarbonationUnitType
-    value::FloatType
-    function CarbonationType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function CarbonationType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(CarbonationUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(CarbonationType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(CarbonationType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 CarbonationType(; kwargs...) = CarbonationType{Int64, Float64}(; kwargs...)
-CarbonationType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = CarbonationType{IntType, FloatType}(; unit, value)
+CarbonationType{I, T}(unit, value) where {I <: Integer, T <: Real} = CarbonationType{I, T}(; unit, value)
 CarbonationType(unit, value) = CarbonationType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[CarbonationType] = (
     fields = (
@@ -907,28 +907,28 @@ _SPECS[CarbonationType] = (
 
 """
     CarbonationRangeType(; kwargs...)
-    CarbonationRangeType{IntType, FloatType}(; kwargs...)
+    CarbonationRangeType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `minimum::CarbonationType{IntType, FloatType}` (required)
-- `maximum::CarbonationType{IntType, FloatType}` (required)
+- `minimum::CarbonationType{I, T}` (required)
+- `maximum::CarbonationType{I, T}` (required)
 """
-struct CarbonationRangeType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    minimum::CarbonationType{IntType, FloatType}
-    maximum::CarbonationType{IntType, FloatType}
-    function CarbonationRangeType{IntType, FloatType}(; minimum, maximum) where {IntType <: Integer, FloatType <: Real}
-        minimum = _jsfrom(CarbonationType{IntType, FloatType}, minimum)
-        maximum = _jsfrom(CarbonationType{IntType, FloatType}, maximum)
-        _jscheck(CarbonationRangeType{IntType, FloatType}, (minimum, maximum), nothing)
+struct CarbonationRangeType{I <: Integer, T <: Real} <: AbstractSchemaObject
+    minimum::CarbonationType{I, T}
+    maximum::CarbonationType{I, T}
+    function CarbonationRangeType{I, T}(; minimum, maximum) where {I <: Integer, T <: Real}
+        minimum = _jsfrom(CarbonationType{I, T}, minimum)
+        maximum = _jsfrom(CarbonationType{I, T}, maximum)
+        _jscheck(CarbonationRangeType{I, T}, (minimum, maximum), nothing)
         return new(minimum, maximum)
     end
 end
 CarbonationRangeType(; kwargs...) = CarbonationRangeType{Int64, Float64}(; kwargs...)
-CarbonationRangeType{IntType, FloatType}(minimum, maximum) where {IntType <: Integer, FloatType <: Real} = CarbonationRangeType{IntType, FloatType}(; minimum, maximum)
+CarbonationRangeType{I, T}(minimum, maximum) where {I <: Integer, T <: Real} = CarbonationRangeType{I, T}(; minimum, maximum)
 CarbonationRangeType(minimum, maximum) = CarbonationRangeType{_jsnumbertypes(minimum, maximum)...}(; minimum, maximum)
 _SPECS[CarbonationRangeType] = (
     fields = (
@@ -944,30 +944,30 @@ _SPECS[CarbonationRangeType] = (
 
 """
     SpecificVolumeType(; kwargs...)
-    SpecificVolumeType{IntType, FloatType}(; kwargs...)
+    SpecificVolumeType{I, T}(; kwargs...)
 
 Specific volume is the inverse of density, with units of volume over mass, ie qt/lb or L/kg. Commonly used for mash thickness.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::SpecificVolumeUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct SpecificVolumeType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct SpecificVolumeType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::SpecificVolumeUnitType
-    value::FloatType
-    function SpecificVolumeType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function SpecificVolumeType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(SpecificVolumeUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(SpecificVolumeType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(SpecificVolumeType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 SpecificVolumeType(; kwargs...) = SpecificVolumeType{Int64, Float64}(; kwargs...)
-SpecificVolumeType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = SpecificVolumeType{IntType, FloatType}(; unit, value)
+SpecificVolumeType{I, T}(unit, value) where {I <: Integer, T <: Real} = SpecificVolumeType{I, T}(; unit, value)
 SpecificVolumeType(unit, value) = SpecificVolumeType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[SpecificVolumeType] = (
     fields = (
@@ -983,30 +983,30 @@ _SPECS[SpecificVolumeType] = (
 
 """
     SpecificHeatType(; kwargs...)
-    SpecificHeatType{IntType, FloatType}(; kwargs...)
+    SpecificHeatType{I, T}(; kwargs...)
 
 Specific heat is the measurement of the amount of heat required to raise a given mass one degree..
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::SpecificHeatUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 """
-struct SpecificHeatType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct SpecificHeatType{I <: Integer, T <: Real} <: AbstractSchemaObject
     unit::SpecificHeatUnitType
-    value::FloatType
-    function SpecificHeatType{IntType, FloatType}(; unit, value) where {IntType <: Integer, FloatType <: Real}
+    value::T
+    function SpecificHeatType{I, T}(; unit, value) where {I <: Integer, T <: Real}
         unit = _jsfrom(SpecificHeatUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(SpecificHeatType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(SpecificHeatType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 SpecificHeatType(; kwargs...) = SpecificHeatType{Int64, Float64}(; kwargs...)
-SpecificHeatType{IntType, FloatType}(unit, value) where {IntType <: Integer, FloatType <: Real} = SpecificHeatType{IntType, FloatType}(; unit, value)
+SpecificHeatType{I, T}(unit, value) where {I <: Integer, T <: Real} = SpecificHeatType{I, T}(; unit, value)
 SpecificHeatType(unit, value) = SpecificHeatType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[SpecificHeatType] = (
     fields = (

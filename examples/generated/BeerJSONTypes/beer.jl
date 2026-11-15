@@ -5,66 +5,66 @@
 
 """
     BeerJSONContent(; kwargs...)
-    BeerJSONContent{IntType, FloatType}(; kwargs...)
+    BeerJSONContent{I, T}(; kwargs...)
 
 Root element of all beerjson documents.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `version::FloatType` (required): Explicitly encode beerjson version within list of records.
-- `timing_object::Union{Nothing, TimingType{IntType, FloatType}}`: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
-- `fermentables::Union{Nothing, Vector{FermentableType{IntType, FloatType}}}`: Records for any ingredient that contributes to the gravity of the beer.
-- `miscellaneous_ingredients::Union{Nothing, Vector{MiscellaneousType{IntType, FloatType}}}`: Records for adjuncts which do not contribute to the gravity of the beer.
-- `hop_varieties::Union{Nothing, Vector{VarietyInformation{IntType, FloatType}}}`: Records detailing the many properties of unique hop varieties.
-- `cultures::Union{Nothing, Vector{CultureInformation{IntType, FloatType}}}`: Records detailing the wide array of unique cultures.
-- `profiles::Union{Nothing, Vector{WaterBase{IntType, FloatType}}}`: Records for water profiles used in brewing.
-- `styles::Union{Nothing, Vector{StyleType{IntType, FloatType}}}`: Records detailing the characteristics of the beer styles for which judging guidelines have been established.
-- `mashes::Union{Nothing, Vector{MashProcedureType{IntType, FloatType}}}`: A collection of steps providing process information for common mashing procedures.
-- `fermentations::Union{Nothing, Vector{FermentationProcedureType{IntType, FloatType}}}`: A collection of steps providing process information for common fermentation procedures.
-- `recipes::Union{Nothing, Vector{RecipeType{IntType, FloatType}}}`: Records containing a minimal collection of the description of ingredients, procedures and other required parameters necessary to recreate a batch of beer.
-- `equipments::Union{Nothing, Vector{EquipmentType{IntType, FloatType}}}`: Provides necessary information for brewing equipment.
-- `boil::Union{Nothing, Vector{BoilProcedureType{IntType, FloatType}}}`: A collection of steps providing process information for common boil procedures.
-- `packaging::Union{Nothing, Vector{PackagingProcedureType{IntType, FloatType}}}`: A collection of steps providing process information for common packaging procedures.
+- `version::T` (required): Explicitly encode beerjson version within list of records.
+- `timing_object::Union{Nothing, TimingType{I, T}}`: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
+- `fermentables::Union{Nothing, Vector{FermentableType{I, T}}}`: Records for any ingredient that contributes to the gravity of the beer.
+- `miscellaneous_ingredients::Union{Nothing, Vector{MiscellaneousType{I, T}}}`: Records for adjuncts which do not contribute to the gravity of the beer.
+- `hop_varieties::Union{Nothing, Vector{VarietyInformation{I, T}}}`: Records detailing the many properties of unique hop varieties.
+- `cultures::Union{Nothing, Vector{CultureInformation{I, T}}}`: Records detailing the wide array of unique cultures.
+- `profiles::Union{Nothing, Vector{WaterBase{I, T}}}`: Records for water profiles used in brewing.
+- `styles::Union{Nothing, Vector{StyleType{I, T}}}`: Records detailing the characteristics of the beer styles for which judging guidelines have been established.
+- `mashes::Union{Nothing, Vector{MashProcedureType{I, T}}}`: A collection of steps providing process information for common mashing procedures.
+- `fermentations::Union{Nothing, Vector{FermentationProcedureType{I, T}}}`: A collection of steps providing process information for common fermentation procedures.
+- `recipes::Union{Nothing, Vector{RecipeType{I, T}}}`: Records containing a minimal collection of the description of ingredients, procedures and other required parameters necessary to recreate a batch of beer.
+- `equipments::Union{Nothing, Vector{EquipmentType{I, T}}}`: Provides necessary information for brewing equipment.
+- `boil::Union{Nothing, Vector{BoilProcedureType{I, T}}}`: A collection of steps providing process information for common boil procedures.
+- `packaging::Union{Nothing, Vector{PackagingProcedureType{I, T}}}`: A collection of steps providing process information for common packaging procedures.
 """
-struct BeerJSONContent{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    version::FloatType
-    timing_object::Union{Nothing, TimingType{IntType, FloatType}}
-    fermentables::Union{Nothing, Vector{FermentableType{IntType, FloatType}}}
-    miscellaneous_ingredients::Union{Nothing, Vector{MiscellaneousType{IntType, FloatType}}}
-    hop_varieties::Union{Nothing, Vector{VarietyInformation{IntType, FloatType}}}
-    cultures::Union{Nothing, Vector{CultureInformation{IntType, FloatType}}}
-    profiles::Union{Nothing, Vector{WaterBase{IntType, FloatType}}}
-    styles::Union{Nothing, Vector{StyleType{IntType, FloatType}}}
-    mashes::Union{Nothing, Vector{MashProcedureType{IntType, FloatType}}}
-    fermentations::Union{Nothing, Vector{FermentationProcedureType{IntType, FloatType}}}
-    recipes::Union{Nothing, Vector{RecipeType{IntType, FloatType}}}
-    equipments::Union{Nothing, Vector{EquipmentType{IntType, FloatType}}}
-    boil::Union{Nothing, Vector{BoilProcedureType{IntType, FloatType}}}
-    packaging::Union{Nothing, Vector{PackagingProcedureType{IntType, FloatType}}}
-    function BeerJSONContent{IntType, FloatType}(; version, timing_object = nothing, fermentables = nothing, miscellaneous_ingredients = nothing, hop_varieties = nothing, cultures = nothing, profiles = nothing, styles = nothing, mashes = nothing, fermentations = nothing, recipes = nothing, equipments = nothing, boil = nothing, packaging = nothing) where {IntType <: Integer, FloatType <: Real}
-        version = _jsfrom(FloatType, version)
-        timing_object = _jsfrom(Union{Nothing, TimingType{IntType, FloatType}}, timing_object)
-        fermentables = _jsfrom(Union{Nothing, Vector{FermentableType{IntType, FloatType}}}, fermentables)
-        miscellaneous_ingredients = _jsfrom(Union{Nothing, Vector{MiscellaneousType{IntType, FloatType}}}, miscellaneous_ingredients)
-        hop_varieties = _jsfrom(Union{Nothing, Vector{VarietyInformation{IntType, FloatType}}}, hop_varieties)
-        cultures = _jsfrom(Union{Nothing, Vector{CultureInformation{IntType, FloatType}}}, cultures)
-        profiles = _jsfrom(Union{Nothing, Vector{WaterBase{IntType, FloatType}}}, profiles)
-        styles = _jsfrom(Union{Nothing, Vector{StyleType{IntType, FloatType}}}, styles)
-        mashes = _jsfrom(Union{Nothing, Vector{MashProcedureType{IntType, FloatType}}}, mashes)
-        fermentations = _jsfrom(Union{Nothing, Vector{FermentationProcedureType{IntType, FloatType}}}, fermentations)
-        recipes = _jsfrom(Union{Nothing, Vector{RecipeType{IntType, FloatType}}}, recipes)
-        equipments = _jsfrom(Union{Nothing, Vector{EquipmentType{IntType, FloatType}}}, equipments)
-        boil = _jsfrom(Union{Nothing, Vector{BoilProcedureType{IntType, FloatType}}}, boil)
-        packaging = _jsfrom(Union{Nothing, Vector{PackagingProcedureType{IntType, FloatType}}}, packaging)
-        _jscheck(BeerJSONContent{IntType, FloatType}, (version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging), nothing)
+struct BeerJSONContent{I <: Integer, T <: Real} <: AbstractSchemaObject
+    version::T
+    timing_object::Union{Nothing, TimingType{I, T}}
+    fermentables::Union{Nothing, Vector{FermentableType{I, T}}}
+    miscellaneous_ingredients::Union{Nothing, Vector{MiscellaneousType{I, T}}}
+    hop_varieties::Union{Nothing, Vector{VarietyInformation{I, T}}}
+    cultures::Union{Nothing, Vector{CultureInformation{I, T}}}
+    profiles::Union{Nothing, Vector{WaterBase{I, T}}}
+    styles::Union{Nothing, Vector{StyleType{I, T}}}
+    mashes::Union{Nothing, Vector{MashProcedureType{I, T}}}
+    fermentations::Union{Nothing, Vector{FermentationProcedureType{I, T}}}
+    recipes::Union{Nothing, Vector{RecipeType{I, T}}}
+    equipments::Union{Nothing, Vector{EquipmentType{I, T}}}
+    boil::Union{Nothing, Vector{BoilProcedureType{I, T}}}
+    packaging::Union{Nothing, Vector{PackagingProcedureType{I, T}}}
+    function BeerJSONContent{I, T}(; version, timing_object = nothing, fermentables = nothing, miscellaneous_ingredients = nothing, hop_varieties = nothing, cultures = nothing, profiles = nothing, styles = nothing, mashes = nothing, fermentations = nothing, recipes = nothing, equipments = nothing, boil = nothing, packaging = nothing) where {I <: Integer, T <: Real}
+        version = _jsfrom(T, version)
+        timing_object = _jsfrom(Union{Nothing, TimingType{I, T}}, timing_object)
+        fermentables = _jsfrom(Union{Nothing, Vector{FermentableType{I, T}}}, fermentables)
+        miscellaneous_ingredients = _jsfrom(Union{Nothing, Vector{MiscellaneousType{I, T}}}, miscellaneous_ingredients)
+        hop_varieties = _jsfrom(Union{Nothing, Vector{VarietyInformation{I, T}}}, hop_varieties)
+        cultures = _jsfrom(Union{Nothing, Vector{CultureInformation{I, T}}}, cultures)
+        profiles = _jsfrom(Union{Nothing, Vector{WaterBase{I, T}}}, profiles)
+        styles = _jsfrom(Union{Nothing, Vector{StyleType{I, T}}}, styles)
+        mashes = _jsfrom(Union{Nothing, Vector{MashProcedureType{I, T}}}, mashes)
+        fermentations = _jsfrom(Union{Nothing, Vector{FermentationProcedureType{I, T}}}, fermentations)
+        recipes = _jsfrom(Union{Nothing, Vector{RecipeType{I, T}}}, recipes)
+        equipments = _jsfrom(Union{Nothing, Vector{EquipmentType{I, T}}}, equipments)
+        boil = _jsfrom(Union{Nothing, Vector{BoilProcedureType{I, T}}}, boil)
+        packaging = _jsfrom(Union{Nothing, Vector{PackagingProcedureType{I, T}}}, packaging)
+        _jscheck(BeerJSONContent{I, T}, (version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging), nothing)
         return new(version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging)
     end
 end
 BeerJSONContent(; kwargs...) = BeerJSONContent{Int64, Float64}(; kwargs...)
-BeerJSONContent{IntType, FloatType}(version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging) where {IntType <: Integer, FloatType <: Real} = BeerJSONContent{IntType, FloatType}(; version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging)
+BeerJSONContent{I, T}(version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging) where {I <: Integer, T <: Real} = BeerJSONContent{I, T}(; version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging)
 BeerJSONContent(version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging) = BeerJSONContent{_jsnumbertypes(version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging)...}(; version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging)
 _SPECS[BeerJSONContent] = (
     fields = (
@@ -92,25 +92,25 @@ _SPECS[BeerJSONContent] = (
 
 """
     BeerJSON(; kwargs...)
-    BeerJSON{IntType, FloatType}(; kwargs...)
+    BeerJSON{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `beerjson::BeerJSONContent{IntType, FloatType}` (required): Root element of all beerjson documents.
+- `beerjson::BeerJSONContent{I, T}` (required): Root element of all beerjson documents.
 """
-struct BeerJSON{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    beerjson::BeerJSONContent{IntType, FloatType}
-    function BeerJSON{IntType, FloatType}(; beerjson) where {IntType <: Integer, FloatType <: Real}
-        beerjson = _jsfrom(BeerJSONContent{IntType, FloatType}, beerjson)
-        _jscheck(BeerJSON{IntType, FloatType}, (beerjson,), nothing)
+struct BeerJSON{I <: Integer, T <: Real} <: AbstractSchemaObject
+    beerjson::BeerJSONContent{I, T}
+    function BeerJSON{I, T}(; beerjson) where {I <: Integer, T <: Real}
+        beerjson = _jsfrom(BeerJSONContent{I, T}, beerjson)
+        _jscheck(BeerJSON{I, T}, (beerjson,), nothing)
         return new(beerjson)
     end
 end
 BeerJSON(; kwargs...) = BeerJSON{Int64, Float64}(; kwargs...)
-BeerJSON{IntType, FloatType}(beerjson) where {IntType <: Integer, FloatType <: Real} = BeerJSON{IntType, FloatType}(; beerjson)
+BeerJSON{I, T}(beerjson) where {I <: Integer, T <: Real} = BeerJSON{I, T}(; beerjson)
 BeerJSON(beerjson) = BeerJSON{_jsnumbertypes(beerjson)...}(; beerjson)
 _SPECS[BeerJSON] = (
     fields = (

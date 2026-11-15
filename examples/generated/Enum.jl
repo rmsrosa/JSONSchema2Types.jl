@@ -121,8 +121,8 @@ _jsfrom(::Type{Bool}, x) = _jsfail("expected a boolean, got $(repr(x))")
 
 _jsfrom(::Type{Bool}, x::Real) = x isa Bool ? x : _jsfail("expected a boolean, got $(repr(x))")
 
-# Numbers: `T` is the `FloatType` (any `Real`, e.g. `Float64`, `BigFloat`, `Rational{BigInt}`)
-# or the `IntType` (any `Integer`, e.g. `Int64`, `Int128`, `BigInt`) of the generated structs.
+# Numbers: `T` is one of the numeric types `I <: Integer` (e.g. `Int64`, `Int128`, `BigInt`)
+# or `T <: Real` (e.g. `Float64`, `BigFloat`, `Rational{BigInt}`) of the generated structs.
 function _jsfrom(::Type{T}, x::Real) where {T <: Real}
     x isa Bool && _jsfail("expected a number, got $(repr(x))")
     x isa T && return x
@@ -1079,11 +1079,11 @@ _SPECS[ComplexEnumExampleMixedEnumTestEnum] = (values = Any["a", 1, true],)
 
 """
     ComplexEnumExampleProduct(; kwargs...)
-    ComplexEnumExampleProduct{IntType, FloatType}(; kwargs...)
+    ComplexEnumExampleProduct{I, T}(; kwargs...)
 
 A product with a nested shipping status.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -1092,20 +1092,20 @@ and `Float64`.
 - `shipping_status::ComplexEnumExampleProductShippingStatusEnum` (required): The current shipping status of the product.
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct ComplexEnumExampleProduct{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct ComplexEnumExampleProduct{I <: Integer, T <: Real} <: AbstractSchemaObject
     id::String
     shipping_status::ComplexEnumExampleProductShippingStatusEnum
     _extra::Dict{String, Any}
-    function ComplexEnumExampleProduct{IntType, FloatType}(; id, shipping_status, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function ComplexEnumExampleProduct{I, T}(; id, shipping_status, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         id = _jsfrom(String, id)
         shipping_status = _jsfrom(ComplexEnumExampleProductShippingStatusEnum, shipping_status)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(ComplexEnumExampleProduct{IntType, FloatType}, (id, shipping_status), _extra)
+        _jscheck(ComplexEnumExampleProduct{I, T}, (id, shipping_status), _extra)
         return new(id, shipping_status, _extra)
     end
 end
 ComplexEnumExampleProduct(; kwargs...) = ComplexEnumExampleProduct{Int64, Float64}(; kwargs...)
-ComplexEnumExampleProduct{IntType, FloatType}(id, shipping_status, _extra) where {IntType <: Integer, FloatType <: Real} = ComplexEnumExampleProduct{IntType, FloatType}(; id, shipping_status, _extra)
+ComplexEnumExampleProduct{I, T}(id, shipping_status, _extra) where {I <: Integer, T <: Real} = ComplexEnumExampleProduct{I, T}(; id, shipping_status, _extra)
 ComplexEnumExampleProduct(id, shipping_status, _extra) = ComplexEnumExampleProduct{_jsnumbertypes(id, shipping_status, _extra)...}(; id, shipping_status, _extra)
 _SPECS[ComplexEnumExampleProduct] = (
     fields = (
@@ -1121,11 +1121,11 @@ _SPECS[ComplexEnumExampleProduct] = (
 
 """
     ComplexEnumExampleOrderStatus(; kwargs...)
-    ComplexEnumExampleOrderStatus{IntType, FloatType}(; kwargs...)
+    ComplexEnumExampleOrderStatus{I, T}(; kwargs...)
 
 The current status of the entire order.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -1134,20 +1134,20 @@ and `Float64`.
 - `payment_status::PaymentStatus` (required): The status of a payment, defined as a reusable component.
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct ComplexEnumExampleOrderStatus{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct ComplexEnumExampleOrderStatus{I <: Integer, T <: Real} <: AbstractSchemaObject
     priority::ComplexEnumExampleOrderStatusPriorityEnum
     payment_status::PaymentStatus
     _extra::Dict{String, Any}
-    function ComplexEnumExampleOrderStatus{IntType, FloatType}(; priority, payment_status, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function ComplexEnumExampleOrderStatus{I, T}(; priority, payment_status, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         priority = _jsfrom(ComplexEnumExampleOrderStatusPriorityEnum, priority)
         payment_status = _jsfrom(PaymentStatus, payment_status)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(ComplexEnumExampleOrderStatus{IntType, FloatType}, (priority, payment_status), _extra)
+        _jscheck(ComplexEnumExampleOrderStatus{I, T}, (priority, payment_status), _extra)
         return new(priority, payment_status, _extra)
     end
 end
 ComplexEnumExampleOrderStatus(; kwargs...) = ComplexEnumExampleOrderStatus{Int64, Float64}(; kwargs...)
-ComplexEnumExampleOrderStatus{IntType, FloatType}(priority, payment_status, _extra) where {IntType <: Integer, FloatType <: Real} = ComplexEnumExampleOrderStatus{IntType, FloatType}(; priority, payment_status, _extra)
+ComplexEnumExampleOrderStatus{I, T}(priority, payment_status, _extra) where {I <: Integer, T <: Real} = ComplexEnumExampleOrderStatus{I, T}(; priority, payment_status, _extra)
 ComplexEnumExampleOrderStatus(priority, payment_status, _extra) = ComplexEnumExampleOrderStatus{_jsnumbertypes(priority, payment_status, _extra)...}(; priority, payment_status, _extra)
 _SPECS[ComplexEnumExampleOrderStatus] = (
     fields = (
@@ -1163,36 +1163,36 @@ _SPECS[ComplexEnumExampleOrderStatus] = (
 
 """
     ComplexEnumExample(; kwargs...)
-    ComplexEnumExample{IntType, FloatType}(; kwargs...)
+    ComplexEnumExample{I, T}(; kwargs...)
 
 An example schema to test deeply nested enumerated types within objects and references.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `product::ComplexEnumExampleProduct{IntType, FloatType}` (required): A product with a nested shipping status.
-- `order_status::ComplexEnumExampleOrderStatus{IntType, FloatType}` (required): The current status of the entire order.
+- `product::ComplexEnumExampleProduct{I, T}` (required): A product with a nested shipping status.
+- `order_status::ComplexEnumExampleOrderStatus{I, T}` (required): The current status of the entire order.
 - `mixed_enum_test::ComplexEnumExampleMixedEnumTestEnum` (required): An intentionally mixed-type enum to test union type generation.
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct ComplexEnumExample{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    product::ComplexEnumExampleProduct{IntType, FloatType}
-    order_status::ComplexEnumExampleOrderStatus{IntType, FloatType}
+struct ComplexEnumExample{I <: Integer, T <: Real} <: AbstractSchemaObject
+    product::ComplexEnumExampleProduct{I, T}
+    order_status::ComplexEnumExampleOrderStatus{I, T}
     mixed_enum_test::ComplexEnumExampleMixedEnumTestEnum
     _extra::Dict{String, Any}
-    function ComplexEnumExample{IntType, FloatType}(; product, order_status, mixed_enum_test, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
-        product = _jsfrom(ComplexEnumExampleProduct{IntType, FloatType}, product)
-        order_status = _jsfrom(ComplexEnumExampleOrderStatus{IntType, FloatType}, order_status)
+    function ComplexEnumExample{I, T}(; product, order_status, mixed_enum_test, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
+        product = _jsfrom(ComplexEnumExampleProduct{I, T}, product)
+        order_status = _jsfrom(ComplexEnumExampleOrderStatus{I, T}, order_status)
         mixed_enum_test = _jsfrom(ComplexEnumExampleMixedEnumTestEnum, mixed_enum_test)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(ComplexEnumExample{IntType, FloatType}, (product, order_status, mixed_enum_test), _extra)
+        _jscheck(ComplexEnumExample{I, T}, (product, order_status, mixed_enum_test), _extra)
         return new(product, order_status, mixed_enum_test, _extra)
     end
 end
 ComplexEnumExample(; kwargs...) = ComplexEnumExample{Int64, Float64}(; kwargs...)
-ComplexEnumExample{IntType, FloatType}(product, order_status, mixed_enum_test, _extra) where {IntType <: Integer, FloatType <: Real} = ComplexEnumExample{IntType, FloatType}(; product, order_status, mixed_enum_test, _extra)
+ComplexEnumExample{I, T}(product, order_status, mixed_enum_test, _extra) where {I <: Integer, T <: Real} = ComplexEnumExample{I, T}(; product, order_status, mixed_enum_test, _extra)
 ComplexEnumExample(product, order_status, mixed_enum_test, _extra) = ComplexEnumExample{_jsnumbertypes(product, order_status, mixed_enum_test, _extra)...}(; product, order_status, mixed_enum_test, _extra)
 _SPECS[ComplexEnumExample] = (
     fields = (

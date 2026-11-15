@@ -18,45 +18,45 @@ _SPECS[UseType] = (values = Any["add_to_mash", "add_to_boil", "add_to_fermentati
 
 """
     TimingType(; kwargs...)
-    TimingType{IntType, FloatType}(; kwargs...)
+    TimingType{I, T}(; kwargs...)
 
 The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `time::Union{Nothing, TimeType{IntType, FloatType}}`: What time during a process step is added, eg a value of 2 days for a dry hop addition would be added 2 days into the fermentation step.
-- `duration::Union{Nothing, TimeType{IntType, FloatType}}`: How long an ingredient addition remains, this was referred to as time in the BeerXML standard. E.G. A 40 minute hop boil additions means to boil for 40 minutes, and a 2 day duration for a dry hop means to remove it after 2 days.
+- `time::Union{Nothing, TimeType{I, T}}`: What time during a process step is added, eg a value of 2 days for a dry hop addition would be added 2 days into the fermentation step.
+- `duration::Union{Nothing, TimeType{I, T}}`: How long an ingredient addition remains, this was referred to as time in the BeerXML standard. E.G. A 40 minute hop boil additions means to boil for 40 minutes, and a 2 day duration for a dry hop means to remove it after 2 days.
 - `continuous::Union{Nothing, Bool}`: A continuous addition is spread out evenly and added during the entire process step, eg 60 minute IPA by dogfish head takes all ofthe hop additions and adds them throughout the entire boil.
-- `specific_gravity::Union{Nothing, GravityType{IntType, FloatType}}`: Used to indicate when an addition is added based on a desired specific gravity. E.G. Add dry hop at when SG is 1.018.
-- `pH::Union{Nothing, AcidityType{IntType, FloatType}}`: Used to indicate when an addition is added based on a desired specific gravity. eg Add brett when pH is 3.4.
-- `step::Union{Nothing, IntType}`: Used to indicate what step this ingredient timing addition is referencing. EG A value of 2 for add_to_fermentation would mean to add during the second fermentation step.
+- `specific_gravity::Union{Nothing, GravityType{I, T}}`: Used to indicate when an addition is added based on a desired specific gravity. E.G. Add dry hop at when SG is 1.018.
+- `pH::Union{Nothing, AcidityType{I, T}}`: Used to indicate when an addition is added based on a desired specific gravity. eg Add brett when pH is 3.4.
+- `step::Union{Nothing, I}`: Used to indicate what step this ingredient timing addition is referencing. EG A value of 2 for add_to_fermentation would mean to add during the second fermentation step.
 - `use::Union{Nothing, UseType}`: Differentiates the specific process type when this ingredient addition is used.
 """
-struct TimingType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    time::Union{Nothing, TimeType{IntType, FloatType}}
-    duration::Union{Nothing, TimeType{IntType, FloatType}}
+struct TimingType{I <: Integer, T <: Real} <: AbstractSchemaObject
+    time::Union{Nothing, TimeType{I, T}}
+    duration::Union{Nothing, TimeType{I, T}}
     continuous::Union{Nothing, Bool}
-    specific_gravity::Union{Nothing, GravityType{IntType, FloatType}}
-    pH::Union{Nothing, AcidityType{IntType, FloatType}}
-    step::Union{Nothing, IntType}
+    specific_gravity::Union{Nothing, GravityType{I, T}}
+    pH::Union{Nothing, AcidityType{I, T}}
+    step::Union{Nothing, I}
     use::Union{Nothing, UseType}
-    function TimingType{IntType, FloatType}(; time = nothing, duration = nothing, continuous = nothing, specific_gravity = nothing, pH = nothing, step = nothing, use = nothing) where {IntType <: Integer, FloatType <: Real}
-        time = _jsfrom(Union{Nothing, TimeType{IntType, FloatType}}, time)
-        duration = _jsfrom(Union{Nothing, TimeType{IntType, FloatType}}, duration)
+    function TimingType{I, T}(; time = nothing, duration = nothing, continuous = nothing, specific_gravity = nothing, pH = nothing, step = nothing, use = nothing) where {I <: Integer, T <: Real}
+        time = _jsfrom(Union{Nothing, TimeType{I, T}}, time)
+        duration = _jsfrom(Union{Nothing, TimeType{I, T}}, duration)
         continuous = _jsfrom(Union{Nothing, Bool}, continuous)
-        specific_gravity = _jsfrom(Union{Nothing, GravityType{IntType, FloatType}}, specific_gravity)
-        pH = _jsfrom(Union{Nothing, AcidityType{IntType, FloatType}}, pH)
-        step = _jsfrom(Union{Nothing, IntType}, step)
+        specific_gravity = _jsfrom(Union{Nothing, GravityType{I, T}}, specific_gravity)
+        pH = _jsfrom(Union{Nothing, AcidityType{I, T}}, pH)
+        step = _jsfrom(Union{Nothing, I}, step)
         use = _jsfrom(Union{Nothing, UseType}, use)
-        _jscheck(TimingType{IntType, FloatType}, (time, duration, continuous, specific_gravity, pH, step, use), nothing)
+        _jscheck(TimingType{I, T}, (time, duration, continuous, specific_gravity, pH, step, use), nothing)
         return new(time, duration, continuous, specific_gravity, pH, step, use)
     end
 end
 TimingType(; kwargs...) = TimingType{Int64, Float64}(; kwargs...)
-TimingType{IntType, FloatType}(time, duration, continuous, specific_gravity, pH, step, use) where {IntType <: Integer, FloatType <: Real} = TimingType{IntType, FloatType}(; time, duration, continuous, specific_gravity, pH, step, use)
+TimingType{I, T}(time, duration, continuous, specific_gravity, pH, step, use) where {I <: Integer, T <: Real} = TimingType{I, T}(; time, duration, continuous, specific_gravity, pH, step, use)
 TimingType(time, duration, continuous, specific_gravity, pH, step, use) = TimingType{_jsnumbertypes(time, duration, continuous, specific_gravity, pH, step, use)...}(; time, duration, continuous, specific_gravity, pH, step, use)
 _SPECS[TimingType] = (
     fields = (

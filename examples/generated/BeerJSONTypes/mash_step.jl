@@ -16,60 +16,60 @@ _SPECS[MashStepTypeEnum] = (values = Any["infusion", "temperature", "decoction",
 
 """
     MashStepType(; kwargs...)
-    MashStepType{IntType, FloatType}(; kwargs...)
+    MashStepType{I, T}(; kwargs...)
 
 MashStepType - a per step representation occurring during the mash.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `name::String` (required)
 - `type::MashStepTypeEnum` (required)
-- `amount::Union{Nothing, VolumeType{IntType, FloatType}}`
-- `step_temperature::TemperatureType{IntType, FloatType}` (required)
-- `step_time::TimeType{IntType, FloatType}` (required)
-- `ramp_time::Union{Nothing, TimeType{IntType, FloatType}}`: The amount of time  that passes before this step begins. eg moving from a mash step (step 1) of 148F, to a new temperature step of 156F (step 2) may take 8 minutes to heat the mash. Step 2 would have a ramp time of 8 minutes.
-- `end_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}`
+- `amount::Union{Nothing, VolumeType{I, T}}`
+- `step_temperature::TemperatureType{I, T}` (required)
+- `step_time::TimeType{I, T}` (required)
+- `ramp_time::Union{Nothing, TimeType{I, T}}`: The amount of time  that passes before this step begins. eg moving from a mash step (step 1) of 148F, to a new temperature step of 156F (step 2) may take 8 minutes to heat the mash. Step 2 would have a ramp time of 8 minutes.
+- `end_temperature::Union{Nothing, TemperatureType{I, T}}`
 - `description::Union{Nothing, String}`
-- `water_grain_ratio::Union{Nothing, SpecificVolumeType{IntType, FloatType}}`: Also known as the mash thickness. eg 1.75 qt/lb or 3.65 L/kg.
-- `infuse_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}`: Temperature of the water for an infusion step.
-- `start_ph::Union{Nothing, AcidityType{IntType, FloatType}}`
-- `end_ph::Union{Nothing, AcidityType{IntType, FloatType}}`
+- `water_grain_ratio::Union{Nothing, SpecificVolumeType{I, T}}`: Also known as the mash thickness. eg 1.75 qt/lb or 3.65 L/kg.
+- `infuse_temperature::Union{Nothing, TemperatureType{I, T}}`: Temperature of the water for an infusion step.
+- `start_ph::Union{Nothing, AcidityType{I, T}}`
+- `end_ph::Union{Nothing, AcidityType{I, T}}`
 """
-struct MashStepType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct MashStepType{I <: Integer, T <: Real} <: AbstractSchemaObject
     name::String
     type::MashStepTypeEnum
-    amount::Union{Nothing, VolumeType{IntType, FloatType}}
-    step_temperature::TemperatureType{IntType, FloatType}
-    step_time::TimeType{IntType, FloatType}
-    ramp_time::Union{Nothing, TimeType{IntType, FloatType}}
-    end_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}
+    amount::Union{Nothing, VolumeType{I, T}}
+    step_temperature::TemperatureType{I, T}
+    step_time::TimeType{I, T}
+    ramp_time::Union{Nothing, TimeType{I, T}}
+    end_temperature::Union{Nothing, TemperatureType{I, T}}
     description::Union{Nothing, String}
-    water_grain_ratio::Union{Nothing, SpecificVolumeType{IntType, FloatType}}
-    infuse_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}
-    start_ph::Union{Nothing, AcidityType{IntType, FloatType}}
-    end_ph::Union{Nothing, AcidityType{IntType, FloatType}}
-    function MashStepType{IntType, FloatType}(; name, type, amount = nothing, step_temperature, step_time, ramp_time = nothing, end_temperature = nothing, description = nothing, water_grain_ratio = nothing, infuse_temperature = nothing, start_ph = nothing, end_ph = nothing) where {IntType <: Integer, FloatType <: Real}
+    water_grain_ratio::Union{Nothing, SpecificVolumeType{I, T}}
+    infuse_temperature::Union{Nothing, TemperatureType{I, T}}
+    start_ph::Union{Nothing, AcidityType{I, T}}
+    end_ph::Union{Nothing, AcidityType{I, T}}
+    function MashStepType{I, T}(; name, type, amount = nothing, step_temperature, step_time, ramp_time = nothing, end_temperature = nothing, description = nothing, water_grain_ratio = nothing, infuse_temperature = nothing, start_ph = nothing, end_ph = nothing) where {I <: Integer, T <: Real}
         name = _jsfrom(String, name)
         type = _jsfrom(MashStepTypeEnum, type)
-        amount = _jsfrom(Union{Nothing, VolumeType{IntType, FloatType}}, amount)
-        step_temperature = _jsfrom(TemperatureType{IntType, FloatType}, step_temperature)
-        step_time = _jsfrom(TimeType{IntType, FloatType}, step_time)
-        ramp_time = _jsfrom(Union{Nothing, TimeType{IntType, FloatType}}, ramp_time)
-        end_temperature = _jsfrom(Union{Nothing, TemperatureType{IntType, FloatType}}, end_temperature)
+        amount = _jsfrom(Union{Nothing, VolumeType{I, T}}, amount)
+        step_temperature = _jsfrom(TemperatureType{I, T}, step_temperature)
+        step_time = _jsfrom(TimeType{I, T}, step_time)
+        ramp_time = _jsfrom(Union{Nothing, TimeType{I, T}}, ramp_time)
+        end_temperature = _jsfrom(Union{Nothing, TemperatureType{I, T}}, end_temperature)
         description = _jsfrom(Union{Nothing, String}, description)
-        water_grain_ratio = _jsfrom(Union{Nothing, SpecificVolumeType{IntType, FloatType}}, water_grain_ratio)
-        infuse_temperature = _jsfrom(Union{Nothing, TemperatureType{IntType, FloatType}}, infuse_temperature)
-        start_ph = _jsfrom(Union{Nothing, AcidityType{IntType, FloatType}}, start_ph)
-        end_ph = _jsfrom(Union{Nothing, AcidityType{IntType, FloatType}}, end_ph)
-        _jscheck(MashStepType{IntType, FloatType}, (name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph), nothing)
+        water_grain_ratio = _jsfrom(Union{Nothing, SpecificVolumeType{I, T}}, water_grain_ratio)
+        infuse_temperature = _jsfrom(Union{Nothing, TemperatureType{I, T}}, infuse_temperature)
+        start_ph = _jsfrom(Union{Nothing, AcidityType{I, T}}, start_ph)
+        end_ph = _jsfrom(Union{Nothing, AcidityType{I, T}}, end_ph)
+        _jscheck(MashStepType{I, T}, (name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph), nothing)
         return new(name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph)
     end
 end
 MashStepType(; kwargs...) = MashStepType{Int64, Float64}(; kwargs...)
-MashStepType{IntType, FloatType}(name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph) where {IntType <: Integer, FloatType <: Real} = MashStepType{IntType, FloatType}(; name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph)
+MashStepType{I, T}(name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph) where {I <: Integer, T <: Real} = MashStepType{I, T}(; name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph)
 MashStepType(name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph) = MashStepType{_jsnumbertypes(name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph)...}(; name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph)
 _SPECS[MashStepType] = (
     fields = (

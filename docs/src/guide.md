@@ -42,7 +42,7 @@ The generated module only needs JSON.jl. It exports the generated types and:
 | `prefixItems` (or `items` as a list), all required | `Tuple{A, B}`, or `Tuple{A, B, Vararg{T}}` when more items are allowed |
 | `object` without `properties` | `Dict{String, T}` (`T` from `additionalProperties`, or `Any`) |
 | `string`, `boolean`, `null` | `String`, `Bool`, `Nothing` |
-| `integer`, `number` | the type parameters `IntType` and `FloatType` of the structs; `Int64` and `Float64` by default (see [Numeric types](@ref)) |
+| `integer`, `number` | the type parameters `I <: Integer` and `T <: Real` of the structs; `Int64` and `Float64` by default (see [Numeric types](@ref)) |
 | optional property, or `null` allowed | `Union{Nothing, T}`; optional fields default to `nothing` and are omitted when writing |
 | `additionalProperties` not `false` | unknown properties are kept in the `_extra` field, so nothing is lost when a document is read and written back |
 | `additionalProperties: false`, `unevaluatedProperties: false` | unknown properties are an error |
@@ -146,8 +146,8 @@ Tuples are written as JSON arrays.
 
 JSON Schema has two numeric types, `integer` and `number`, with no limit on their size or
 precision. The generated structs leave the choice of the Julia types to their users: each
-struct has two type parameters, `IntType <: Integer` for the integers and
-`FloatType <: Real` for the other numbers, and passes them on to the structs it contains.
+struct has two type parameters, `I <: Integer` for the integers and `T <: Real` for the
+other numbers (`VolumeType{I, T}`), and passes them on to the structs it contains.
 Without them, the defaults are `Int64` and `Float64`:
 
 ```julia
@@ -156,6 +156,11 @@ VolumeType{Int, BigFloat}(unit = "l", value = 20)     # values as BigFloat
 readjson(BeerJSON{BigInt, BigFloat}, "recipe.json")   # all the numbers in the document
 VolumeType{Int, Rational{Int}}(unit = "l", value = 0.5).value   # 1//2
 ```
+
+Properties and definitions can be named `I` or `T`, like the type parameters: a struct
+named `T`, or with a field whose type is named `T`, simply uses other names for its type
+parameters (`I1` and `T1`), and so do the constructors of a struct with a field named `I` or
+`T`. This changes nothing for the users of the types.
 
 Any `Integer` and `Real` types can be used: `Int32`, `Int128`, `BigInt`; `Float32`,
 `BigFloat`, rationals, or types from other packages that convert from numbers. Values that

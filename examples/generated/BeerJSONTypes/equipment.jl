@@ -16,11 +16,11 @@ _SPECS[EquipmentFormEnum] = (values = Any["HLT", "Mash Tun", "Lauter Tun", "Brew
 
 """
     EquipmentItemType(; kwargs...)
-    EquipmentItemType{IntType, FloatType}(; kwargs...)
+    EquipmentItemType{I, T}(; kwargs...)
 
 EquipmentType provides necessary information for individual brewing equipment.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -28,48 +28,48 @@ and `Float64`.
 - `name::String` (required)
 - `type::Union{Nothing, String}`
 - `form::EquipmentFormEnum` (required)
-- `maximum_volume::VolumeType{IntType, FloatType}` (required)
-- `loss::VolumeType{IntType, FloatType}` (required)
-- `grain_absorption_rate::Union{Nothing, SpecificVolumeType{IntType, FloatType}}`: The apparent volume absorbed by grain, typical values are 0.125 qt/lb (1.04 L/kg) for a mashtun, 0.08 gal/lb (0.66 L/kg) for BIAB.
-- `boil_rate_per_hour::Union{Nothing, VolumeType{IntType, FloatType}}`: The volume boiled off during 1 hour, measured before and after at room temperature.
-- `drain_rate_per_minute::Union{Nothing, VolumeType{IntType, FloatType}}`: The volume that leaves the kettle, especially important for non-immersion chillers that cool the wort as it leaves the kettle.
-- `weight::Union{Nothing, MassType{IntType, FloatType}}`: The weight of the piece of equipment, especially important for when the mashtun is not preheated.
-- `specific_heat::Union{Nothing, SpecificHeatType{IntType, FloatType}}`: The specific heat of the piece of equipment, expressed in Cal/(g*C), especially important for when the mashtun is not preheated.
+- `maximum_volume::VolumeType{I, T}` (required)
+- `loss::VolumeType{I, T}` (required)
+- `grain_absorption_rate::Union{Nothing, SpecificVolumeType{I, T}}`: The apparent volume absorbed by grain, typical values are 0.125 qt/lb (1.04 L/kg) for a mashtun, 0.08 gal/lb (0.66 L/kg) for BIAB.
+- `boil_rate_per_hour::Union{Nothing, VolumeType{I, T}}`: The volume boiled off during 1 hour, measured before and after at room temperature.
+- `drain_rate_per_minute::Union{Nothing, VolumeType{I, T}}`: The volume that leaves the kettle, especially important for non-immersion chillers that cool the wort as it leaves the kettle.
+- `weight::Union{Nothing, MassType{I, T}}`: The weight of the piece of equipment, especially important for when the mashtun is not preheated.
+- `specific_heat::Union{Nothing, SpecificHeatType{I, T}}`: The specific heat of the piece of equipment, expressed in Cal/(g*C), especially important for when the mashtun is not preheated.
 - `notes::Union{Nothing, String}`
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct EquipmentItemType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct EquipmentItemType{I <: Integer, T <: Real} <: AbstractSchemaObject
     name::String
     type::Union{Nothing, String}
     form::EquipmentFormEnum
-    maximum_volume::VolumeType{IntType, FloatType}
-    loss::VolumeType{IntType, FloatType}
-    grain_absorption_rate::Union{Nothing, SpecificVolumeType{IntType, FloatType}}
-    boil_rate_per_hour::Union{Nothing, VolumeType{IntType, FloatType}}
-    drain_rate_per_minute::Union{Nothing, VolumeType{IntType, FloatType}}
-    weight::Union{Nothing, MassType{IntType, FloatType}}
-    specific_heat::Union{Nothing, SpecificHeatType{IntType, FloatType}}
+    maximum_volume::VolumeType{I, T}
+    loss::VolumeType{I, T}
+    grain_absorption_rate::Union{Nothing, SpecificVolumeType{I, T}}
+    boil_rate_per_hour::Union{Nothing, VolumeType{I, T}}
+    drain_rate_per_minute::Union{Nothing, VolumeType{I, T}}
+    weight::Union{Nothing, MassType{I, T}}
+    specific_heat::Union{Nothing, SpecificHeatType{I, T}}
     notes::Union{Nothing, String}
     _extra::Dict{String, Any}
-    function EquipmentItemType{IntType, FloatType}(; name, type = nothing, form, maximum_volume, loss, grain_absorption_rate = nothing, boil_rate_per_hour = nothing, drain_rate_per_minute = nothing, weight = nothing, specific_heat = nothing, notes = nothing, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function EquipmentItemType{I, T}(; name, type = nothing, form, maximum_volume, loss, grain_absorption_rate = nothing, boil_rate_per_hour = nothing, drain_rate_per_minute = nothing, weight = nothing, specific_heat = nothing, notes = nothing, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         name = _jsfrom(String, name)
         type = _jsfrom(Union{Nothing, String}, type)
         form = _jsfrom(EquipmentFormEnum, form)
-        maximum_volume = _jsfrom(VolumeType{IntType, FloatType}, maximum_volume)
-        loss = _jsfrom(VolumeType{IntType, FloatType}, loss)
-        grain_absorption_rate = _jsfrom(Union{Nothing, SpecificVolumeType{IntType, FloatType}}, grain_absorption_rate)
-        boil_rate_per_hour = _jsfrom(Union{Nothing, VolumeType{IntType, FloatType}}, boil_rate_per_hour)
-        drain_rate_per_minute = _jsfrom(Union{Nothing, VolumeType{IntType, FloatType}}, drain_rate_per_minute)
-        weight = _jsfrom(Union{Nothing, MassType{IntType, FloatType}}, weight)
-        specific_heat = _jsfrom(Union{Nothing, SpecificHeatType{IntType, FloatType}}, specific_heat)
+        maximum_volume = _jsfrom(VolumeType{I, T}, maximum_volume)
+        loss = _jsfrom(VolumeType{I, T}, loss)
+        grain_absorption_rate = _jsfrom(Union{Nothing, SpecificVolumeType{I, T}}, grain_absorption_rate)
+        boil_rate_per_hour = _jsfrom(Union{Nothing, VolumeType{I, T}}, boil_rate_per_hour)
+        drain_rate_per_minute = _jsfrom(Union{Nothing, VolumeType{I, T}}, drain_rate_per_minute)
+        weight = _jsfrom(Union{Nothing, MassType{I, T}}, weight)
+        specific_heat = _jsfrom(Union{Nothing, SpecificHeatType{I, T}}, specific_heat)
         notes = _jsfrom(Union{Nothing, String}, notes)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(EquipmentItemType{IntType, FloatType}, (name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes), _extra)
+        _jscheck(EquipmentItemType{I, T}, (name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes), _extra)
         return new(name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra)
     end
 end
 EquipmentItemType(; kwargs...) = EquipmentItemType{Int64, Float64}(; kwargs...)
-EquipmentItemType{IntType, FloatType}(name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra) where {IntType <: Integer, FloatType <: Real} = EquipmentItemType{IntType, FloatType}(; name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra)
+EquipmentItemType{I, T}(name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra) where {I <: Integer, T <: Real} = EquipmentItemType{I, T}(; name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra)
 EquipmentItemType(name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra) = EquipmentItemType{_jsnumbertypes(name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra)...}(; name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra)
 _SPECS[EquipmentItemType] = (
     fields = (
@@ -94,30 +94,30 @@ _SPECS[EquipmentItemType] = (
 
 """
     EquipmentType(; kwargs...)
-    EquipmentType{IntType, FloatType}(; kwargs...)
+    EquipmentType{I, T}(; kwargs...)
 
 Provides necessary information for brewing equipment set.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `name::String` (required)
-- `equipment_items::Vector{EquipmentItemType{IntType, FloatType}}` (required)
+- `equipment_items::Vector{EquipmentItemType{I, T}}` (required)
 """
-struct EquipmentType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct EquipmentType{I <: Integer, T <: Real} <: AbstractSchemaObject
     name::String
-    equipment_items::Vector{EquipmentItemType{IntType, FloatType}}
-    function EquipmentType{IntType, FloatType}(; name, equipment_items) where {IntType <: Integer, FloatType <: Real}
+    equipment_items::Vector{EquipmentItemType{I, T}}
+    function EquipmentType{I, T}(; name, equipment_items) where {I <: Integer, T <: Real}
         name = _jsfrom(String, name)
-        equipment_items = _jsfrom(Vector{EquipmentItemType{IntType, FloatType}}, equipment_items)
-        _jscheck(EquipmentType{IntType, FloatType}, (name, equipment_items), nothing)
+        equipment_items = _jsfrom(Vector{EquipmentItemType{I, T}}, equipment_items)
+        _jscheck(EquipmentType{I, T}, (name, equipment_items), nothing)
         return new(name, equipment_items)
     end
 end
 EquipmentType(; kwargs...) = EquipmentType{Int64, Float64}(; kwargs...)
-EquipmentType{IntType, FloatType}(name, equipment_items) where {IntType <: Integer, FloatType <: Real} = EquipmentType{IntType, FloatType}(; name, equipment_items)
+EquipmentType{I, T}(name, equipment_items) where {I <: Integer, T <: Real} = EquipmentType{I, T}(; name, equipment_items)
 EquipmentType(name, equipment_items) = EquipmentType{_jsnumbertypes(name, equipment_items)...}(; name, equipment_items)
 _SPECS[EquipmentType] = (
     fields = (

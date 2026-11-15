@@ -121,8 +121,8 @@ _jsfrom(::Type{Bool}, x) = _jsfail("expected a boolean, got $(repr(x))")
 
 _jsfrom(::Type{Bool}, x::Real) = x isa Bool ? x : _jsfail("expected a boolean, got $(repr(x))")
 
-# Numbers: `T` is the `FloatType` (any `Real`, e.g. `Float64`, `BigFloat`, `Rational{BigInt}`)
-# or the `IntType` (any `Integer`, e.g. `Int64`, `Int128`, `BigInt`) of the generated structs.
+# Numbers: `T` is one of the numeric types `I <: Integer` (e.g. `Int64`, `Int128`, `BigInt`)
+# or `T <: Real` (e.g. `Float64`, `BigFloat`, `Rational{BigInt}`) of the generated structs.
 function _jsfrom(::Type{T}, x::Real) where {T <: Real}
     x isa Bool && _jsfail("expected a number, got $(repr(x))")
     x isa T && return x
@@ -1049,9 +1049,9 @@ _SPECS[CompanyUserTypeEnum] = (values = Any["company"],)
 
 """
     Person(; kwargs...)
-    Person{IntType, FloatType}(; kwargs...)
+    Person{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -1061,22 +1061,22 @@ and `Float64`.
 - `last_name::String` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct Person{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct Person{I <: Integer, T <: Real} <: AbstractSchemaObject
     user_type::PersonUserTypeEnum
     first_name::String
     last_name::String
     _extra::Dict{String, Any}
-    function Person{IntType, FloatType}(; user_type, first_name, last_name, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function Person{I, T}(; user_type, first_name, last_name, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         user_type = _jsfrom(PersonUserTypeEnum, user_type)
         first_name = _jsfrom(String, first_name)
         last_name = _jsfrom(String, last_name)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(Person{IntType, FloatType}, (user_type, first_name, last_name), _extra)
+        _jscheck(Person{I, T}, (user_type, first_name, last_name), _extra)
         return new(user_type, first_name, last_name, _extra)
     end
 end
 Person(; kwargs...) = Person{Int64, Float64}(; kwargs...)
-Person{IntType, FloatType}(user_type, first_name, last_name, _extra) where {IntType <: Integer, FloatType <: Real} = Person{IntType, FloatType}(; user_type, first_name, last_name, _extra)
+Person{I, T}(user_type, first_name, last_name, _extra) where {I <: Integer, T <: Real} = Person{I, T}(; user_type, first_name, last_name, _extra)
 Person(user_type, first_name, last_name, _extra) = Person{_jsnumbertypes(user_type, first_name, last_name, _extra)...}(; user_type, first_name, last_name, _extra)
 _SPECS[Person] = (
     fields = (
@@ -1093,9 +1093,9 @@ _SPECS[Person] = (
 
 """
     Company(; kwargs...)
-    Company{IntType, FloatType}(; kwargs...)
+    Company{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -1104,20 +1104,20 @@ and `Float64`.
 - `company_name::String` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct Company{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct Company{I <: Integer, T <: Real} <: AbstractSchemaObject
     user_type::CompanyUserTypeEnum
     company_name::String
     _extra::Dict{String, Any}
-    function Company{IntType, FloatType}(; user_type, company_name, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function Company{I, T}(; user_type, company_name, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         user_type = _jsfrom(CompanyUserTypeEnum, user_type)
         company_name = _jsfrom(String, company_name)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(Company{IntType, FloatType}, (user_type, company_name), _extra)
+        _jscheck(Company{I, T}, (user_type, company_name), _extra)
         return new(user_type, company_name, _extra)
     end
 end
 Company(; kwargs...) = Company{Int64, Float64}(; kwargs...)
-Company{IntType, FloatType}(user_type, company_name, _extra) where {IntType <: Integer, FloatType <: Real} = Company{IntType, FloatType}(; user_type, company_name, _extra)
+Company{I, T}(user_type, company_name, _extra) where {I <: Integer, T <: Real} = Company{I, T}(; user_type, company_name, _extra)
 Company(user_type, company_name, _extra) = Company{_jsnumbertypes(user_type, company_name, _extra)...}(; user_type, company_name, _extra)
 _SPECS[Company] = (
     fields = (
@@ -1133,9 +1133,9 @@ _SPECS[Company] = (
 
 """
     CombinedSchemaExampleAnyOfIdentifierOption1(; kwargs...)
-    CombinedSchemaExampleAnyOfIdentifierOption1{IntType, FloatType}(; kwargs...)
+    CombinedSchemaExampleAnyOfIdentifierOption1{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -1143,18 +1143,18 @@ and `Float64`.
 - `sku::String` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct CombinedSchemaExampleAnyOfIdentifierOption1{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct CombinedSchemaExampleAnyOfIdentifierOption1{I <: Integer, T <: Real} <: AbstractSchemaObject
     sku::String
     _extra::Dict{String, Any}
-    function CombinedSchemaExampleAnyOfIdentifierOption1{IntType, FloatType}(; sku, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function CombinedSchemaExampleAnyOfIdentifierOption1{I, T}(; sku, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         sku = _jsfrom(String, sku)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(CombinedSchemaExampleAnyOfIdentifierOption1{IntType, FloatType}, (sku,), _extra)
+        _jscheck(CombinedSchemaExampleAnyOfIdentifierOption1{I, T}, (sku,), _extra)
         return new(sku, _extra)
     end
 end
 CombinedSchemaExampleAnyOfIdentifierOption1(; kwargs...) = CombinedSchemaExampleAnyOfIdentifierOption1{Int64, Float64}(; kwargs...)
-CombinedSchemaExampleAnyOfIdentifierOption1{IntType, FloatType}(sku, _extra) where {IntType <: Integer, FloatType <: Real} = CombinedSchemaExampleAnyOfIdentifierOption1{IntType, FloatType}(; sku, _extra)
+CombinedSchemaExampleAnyOfIdentifierOption1{I, T}(sku, _extra) where {I <: Integer, T <: Real} = CombinedSchemaExampleAnyOfIdentifierOption1{I, T}(; sku, _extra)
 CombinedSchemaExampleAnyOfIdentifierOption1(sku, _extra) = CombinedSchemaExampleAnyOfIdentifierOption1{_jsnumbertypes(sku, _extra)...}(; sku, _extra)
 _SPECS[CombinedSchemaExampleAnyOfIdentifierOption1] = (
     fields = (
@@ -1169,9 +1169,9 @@ _SPECS[CombinedSchemaExampleAnyOfIdentifierOption1] = (
 
 """
     CombinedSchemaExampleAnyOfIdentifierOption2(; kwargs...)
-    CombinedSchemaExampleAnyOfIdentifierOption2{IntType, FloatType}(; kwargs...)
+    CombinedSchemaExampleAnyOfIdentifierOption2{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -1179,18 +1179,18 @@ and `Float64`.
 - `product_code::String` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct CombinedSchemaExampleAnyOfIdentifierOption2{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct CombinedSchemaExampleAnyOfIdentifierOption2{I <: Integer, T <: Real} <: AbstractSchemaObject
     product_code::String
     _extra::Dict{String, Any}
-    function CombinedSchemaExampleAnyOfIdentifierOption2{IntType, FloatType}(; product_code, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function CombinedSchemaExampleAnyOfIdentifierOption2{I, T}(; product_code, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         product_code = _jsfrom(String, product_code)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(CombinedSchemaExampleAnyOfIdentifierOption2{IntType, FloatType}, (product_code,), _extra)
+        _jscheck(CombinedSchemaExampleAnyOfIdentifierOption2{I, T}, (product_code,), _extra)
         return new(product_code, _extra)
     end
 end
 CombinedSchemaExampleAnyOfIdentifierOption2(; kwargs...) = CombinedSchemaExampleAnyOfIdentifierOption2{Int64, Float64}(; kwargs...)
-CombinedSchemaExampleAnyOfIdentifierOption2{IntType, FloatType}(product_code, _extra) where {IntType <: Integer, FloatType <: Real} = CombinedSchemaExampleAnyOfIdentifierOption2{IntType, FloatType}(; product_code, _extra)
+CombinedSchemaExampleAnyOfIdentifierOption2{I, T}(product_code, _extra) where {I <: Integer, T <: Real} = CombinedSchemaExampleAnyOfIdentifierOption2{I, T}(; product_code, _extra)
 CombinedSchemaExampleAnyOfIdentifierOption2(product_code, _extra) = CombinedSchemaExampleAnyOfIdentifierOption2{_jsnumbertypes(product_code, _extra)...}(; product_code, _extra)
 _SPECS[CombinedSchemaExampleAnyOfIdentifierOption2] = (
     fields = (
@@ -1205,11 +1205,11 @@ _SPECS[CombinedSchemaExampleAnyOfIdentifierOption2] = (
 
 """
     CombinedSchemaExampleAllOfRequest(; kwargs...)
-    CombinedSchemaExampleAllOfRequest{IntType, FloatType}(; kwargs...)
+    CombinedSchemaExampleAllOfRequest{I, T}(; kwargs...)
 
 Demonstrates 'allOf' to combine schemas for a request with authentication.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -1219,22 +1219,22 @@ and `Float64`.
 - `timestamp::String` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct CombinedSchemaExampleAllOfRequest{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct CombinedSchemaExampleAllOfRequest{I <: Integer, T <: Real} <: AbstractSchemaObject
     payload::Dict{String, Any}
     api_key::String
     timestamp::String
     _extra::Dict{String, Any}
-    function CombinedSchemaExampleAllOfRequest{IntType, FloatType}(; payload, api_key, timestamp, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function CombinedSchemaExampleAllOfRequest{I, T}(; payload, api_key, timestamp, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         payload = _jsfrom(Dict{String, Any}, payload)
         api_key = _jsfrom(String, api_key)
         timestamp = _jsfrom(String, timestamp)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(CombinedSchemaExampleAllOfRequest{IntType, FloatType}, (payload, api_key, timestamp), _extra)
+        _jscheck(CombinedSchemaExampleAllOfRequest{I, T}, (payload, api_key, timestamp), _extra)
         return new(payload, api_key, timestamp, _extra)
     end
 end
 CombinedSchemaExampleAllOfRequest(; kwargs...) = CombinedSchemaExampleAllOfRequest{Int64, Float64}(; kwargs...)
-CombinedSchemaExampleAllOfRequest{IntType, FloatType}(payload, api_key, timestamp, _extra) where {IntType <: Integer, FloatType <: Real} = CombinedSchemaExampleAllOfRequest{IntType, FloatType}(; payload, api_key, timestamp, _extra)
+CombinedSchemaExampleAllOfRequest{I, T}(payload, api_key, timestamp, _extra) where {I <: Integer, T <: Real} = CombinedSchemaExampleAllOfRequest{I, T}(; payload, api_key, timestamp, _extra)
 CombinedSchemaExampleAllOfRequest(payload, api_key, timestamp, _extra) = CombinedSchemaExampleAllOfRequest{_jsnumbertypes(payload, api_key, timestamp, _extra)...}(; payload, api_key, timestamp, _extra)
 _SPECS[CombinedSchemaExampleAllOfRequest] = (
     fields = (
@@ -1251,39 +1251,39 @@ _SPECS[CombinedSchemaExampleAllOfRequest] = (
 
 """
     CombinedSchemaExample(; kwargs...)
-    CombinedSchemaExample{IntType, FloatType}(; kwargs...)
+    CombinedSchemaExample{I, T}(; kwargs...)
 
 A single schema demonstrating oneOf, anyOf, allOf, and not.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `one_of_user::Union{Person{IntType, FloatType}, Company{IntType, FloatType}}` (required): Demonstrates 'oneOf' for a user that is either a Person or a Company.
-- `any_of_identifier::Union{CombinedSchemaExampleAnyOfIdentifierOption1{IntType, FloatType}, CombinedSchemaExampleAnyOfIdentifierOption2{IntType, FloatType}}` (required): Demonstrates 'anyOf' for a product identifier.
-- `all_of_request::CombinedSchemaExampleAllOfRequest{IntType, FloatType}` (required): Demonstrates 'allOf' to combine schemas for a request with authentication.
+- `one_of_user::Union{Person{I, T}, Company{I, T}}` (required): Demonstrates 'oneOf' for a user that is either a Person or a Company.
+- `any_of_identifier::Union{CombinedSchemaExampleAnyOfIdentifierOption1{I, T}, CombinedSchemaExampleAnyOfIdentifierOption2{I, T}}` (required): Demonstrates 'anyOf' for a product identifier.
+- `all_of_request::CombinedSchemaExampleAllOfRequest{I, T}` (required): Demonstrates 'allOf' to combine schemas for a request with authentication.
 - `not_a_password::String` (required): A password that cannot be the literal string 'password'.
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct CombinedSchemaExample{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    one_of_user::Union{Person{IntType, FloatType}, Company{IntType, FloatType}}
-    any_of_identifier::Union{CombinedSchemaExampleAnyOfIdentifierOption1{IntType, FloatType}, CombinedSchemaExampleAnyOfIdentifierOption2{IntType, FloatType}}
-    all_of_request::CombinedSchemaExampleAllOfRequest{IntType, FloatType}
+struct CombinedSchemaExample{I <: Integer, T <: Real} <: AbstractSchemaObject
+    one_of_user::Union{Person{I, T}, Company{I, T}}
+    any_of_identifier::Union{CombinedSchemaExampleAnyOfIdentifierOption1{I, T}, CombinedSchemaExampleAnyOfIdentifierOption2{I, T}}
+    all_of_request::CombinedSchemaExampleAllOfRequest{I, T}
     not_a_password::String
     _extra::Dict{String, Any}
-    function CombinedSchemaExample{IntType, FloatType}(; one_of_user, any_of_identifier, all_of_request, not_a_password, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
-        one_of_user = _jsfrom(Union{Person{IntType, FloatType}, Company{IntType, FloatType}}, one_of_user)
-        any_of_identifier = _jsfrom(Union{CombinedSchemaExampleAnyOfIdentifierOption1{IntType, FloatType}, CombinedSchemaExampleAnyOfIdentifierOption2{IntType, FloatType}}, any_of_identifier)
-        all_of_request = _jsfrom(CombinedSchemaExampleAllOfRequest{IntType, FloatType}, all_of_request)
+    function CombinedSchemaExample{I, T}(; one_of_user, any_of_identifier, all_of_request, not_a_password, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
+        one_of_user = _jsfrom(Union{Person{I, T}, Company{I, T}}, one_of_user)
+        any_of_identifier = _jsfrom(Union{CombinedSchemaExampleAnyOfIdentifierOption1{I, T}, CombinedSchemaExampleAnyOfIdentifierOption2{I, T}}, any_of_identifier)
+        all_of_request = _jsfrom(CombinedSchemaExampleAllOfRequest{I, T}, all_of_request)
         not_a_password = _jsfrom(String, not_a_password)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(CombinedSchemaExample{IntType, FloatType}, (one_of_user, any_of_identifier, all_of_request, not_a_password), _extra)
+        _jscheck(CombinedSchemaExample{I, T}, (one_of_user, any_of_identifier, all_of_request, not_a_password), _extra)
         return new(one_of_user, any_of_identifier, all_of_request, not_a_password, _extra)
     end
 end
 CombinedSchemaExample(; kwargs...) = CombinedSchemaExample{Int64, Float64}(; kwargs...)
-CombinedSchemaExample{IntType, FloatType}(one_of_user, any_of_identifier, all_of_request, not_a_password, _extra) where {IntType <: Integer, FloatType <: Real} = CombinedSchemaExample{IntType, FloatType}(; one_of_user, any_of_identifier, all_of_request, not_a_password, _extra)
+CombinedSchemaExample{I, T}(one_of_user, any_of_identifier, all_of_request, not_a_password, _extra) where {I <: Integer, T <: Real} = CombinedSchemaExample{I, T}(; one_of_user, any_of_identifier, all_of_request, not_a_password, _extra)
 CombinedSchemaExample(one_of_user, any_of_identifier, all_of_request, not_a_password, _extra) = CombinedSchemaExample{_jsnumbertypes(one_of_user, any_of_identifier, all_of_request, not_a_password, _extra)...}(; one_of_user, any_of_identifier, all_of_request, not_a_password, _extra)
 _SPECS[CombinedSchemaExample] = (
     fields = (

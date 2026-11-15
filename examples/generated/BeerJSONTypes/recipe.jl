@@ -16,36 +16,36 @@ _SPECS[RecipeTypeEnum] = (values = Any["cider", "kombucha", "soda", "other", "me
 
 """
     EfficiencyType(; kwargs...)
-    EfficiencyType{IntType, FloatType}(; kwargs...)
+    EfficiencyType{I, T}(; kwargs...)
 
 The efficiencyType stores each efficiency component.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `conversion::Union{Nothing, PercentType{IntType, FloatType}}`: The percentage of sugar from the grain yield that is extracted and converted during the mash.
-- `lauter::Union{Nothing, PercentType{IntType, FloatType}}`: The percentage of sugar that makes it from the mash tun to the kettle.
-- `mash::Union{Nothing, PercentType{IntType, FloatType}}`: The percentage of sugar that makes it from the grain to the kettle.
-- `brewhouse::PercentType{IntType, FloatType}` (required): The percentage of sugar that makes it from the grain to the fermenter.
+- `conversion::Union{Nothing, PercentType{I, T}}`: The percentage of sugar from the grain yield that is extracted and converted during the mash.
+- `lauter::Union{Nothing, PercentType{I, T}}`: The percentage of sugar that makes it from the mash tun to the kettle.
+- `mash::Union{Nothing, PercentType{I, T}}`: The percentage of sugar that makes it from the grain to the kettle.
+- `brewhouse::PercentType{I, T}` (required): The percentage of sugar that makes it from the grain to the fermenter.
 """
-struct EfficiencyType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    conversion::Union{Nothing, PercentType{IntType, FloatType}}
-    lauter::Union{Nothing, PercentType{IntType, FloatType}}
-    mash::Union{Nothing, PercentType{IntType, FloatType}}
-    brewhouse::PercentType{IntType, FloatType}
-    function EfficiencyType{IntType, FloatType}(; conversion = nothing, lauter = nothing, mash = nothing, brewhouse) where {IntType <: Integer, FloatType <: Real}
-        conversion = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, conversion)
-        lauter = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, lauter)
-        mash = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, mash)
-        brewhouse = _jsfrom(PercentType{IntType, FloatType}, brewhouse)
-        _jscheck(EfficiencyType{IntType, FloatType}, (conversion, lauter, mash, brewhouse), nothing)
+struct EfficiencyType{I <: Integer, T <: Real} <: AbstractSchemaObject
+    conversion::Union{Nothing, PercentType{I, T}}
+    lauter::Union{Nothing, PercentType{I, T}}
+    mash::Union{Nothing, PercentType{I, T}}
+    brewhouse::PercentType{I, T}
+    function EfficiencyType{I, T}(; conversion = nothing, lauter = nothing, mash = nothing, brewhouse) where {I <: Integer, T <: Real}
+        conversion = _jsfrom(Union{Nothing, PercentType{I, T}}, conversion)
+        lauter = _jsfrom(Union{Nothing, PercentType{I, T}}, lauter)
+        mash = _jsfrom(Union{Nothing, PercentType{I, T}}, mash)
+        brewhouse = _jsfrom(PercentType{I, T}, brewhouse)
+        _jscheck(EfficiencyType{I, T}, (conversion, lauter, mash, brewhouse), nothing)
         return new(conversion, lauter, mash, brewhouse)
     end
 end
 EfficiencyType(; kwargs...) = EfficiencyType{Int64, Float64}(; kwargs...)
-EfficiencyType{IntType, FloatType}(conversion, lauter, mash, brewhouse) where {IntType <: Integer, FloatType <: Real} = EfficiencyType{IntType, FloatType}(; conversion, lauter, mash, brewhouse)
+EfficiencyType{I, T}(conversion, lauter, mash, brewhouse) where {I <: Integer, T <: Real} = EfficiencyType{I, T}(; conversion, lauter, mash, brewhouse)
 EfficiencyType(conversion, lauter, mash, brewhouse) = EfficiencyType{_jsnumbertypes(conversion, lauter, mash, brewhouse)...}(; conversion, lauter, mash, brewhouse)
 _SPECS[EfficiencyType] = (
     fields = (
@@ -63,37 +63,37 @@ _SPECS[EfficiencyType] = (
 
 """
     IngredientsType(; kwargs...)
-    IngredientsType{IntType, FloatType}(; kwargs...)
+    IngredientsType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `fermentable_additions::Vector{FermentableAdditionType{IntType, FloatType}}` (required): fermentable_additions collects all the fermentable ingredients for use in a recipe
-- `hop_additions::Union{Nothing, Vector{HopAdditionType{IntType, FloatType}}}`: hop_additions collects all the hops for use in a recipe
-- `miscellaneous_additions::Union{Nothing, Vector{MiscellaneousAdditionType{IntType, FloatType}}}`: miscellaneous_additions collects all the miscellaneous items for use in a recipe
-- `culture_additions::Union{Nothing, Vector{CultureAdditionType{IntType, FloatType}}}`: culture_additions collects all the culture items for use in a recipe
-- `water_additions::Union{Nothing, Vector{WaterAdditionType{IntType, FloatType}}}`: water_additions collects all the water items for use in a recipe
+- `fermentable_additions::Vector{FermentableAdditionType{I, T}}` (required): fermentable_additions collects all the fermentable ingredients for use in a recipe
+- `hop_additions::Union{Nothing, Vector{HopAdditionType{I, T}}}`: hop_additions collects all the hops for use in a recipe
+- `miscellaneous_additions::Union{Nothing, Vector{MiscellaneousAdditionType{I, T}}}`: miscellaneous_additions collects all the miscellaneous items for use in a recipe
+- `culture_additions::Union{Nothing, Vector{CultureAdditionType{I, T}}}`: culture_additions collects all the culture items for use in a recipe
+- `water_additions::Union{Nothing, Vector{WaterAdditionType{I, T}}}`: water_additions collects all the water items for use in a recipe
 """
-struct IngredientsType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    fermentable_additions::Vector{FermentableAdditionType{IntType, FloatType}}
-    hop_additions::Union{Nothing, Vector{HopAdditionType{IntType, FloatType}}}
-    miscellaneous_additions::Union{Nothing, Vector{MiscellaneousAdditionType{IntType, FloatType}}}
-    culture_additions::Union{Nothing, Vector{CultureAdditionType{IntType, FloatType}}}
-    water_additions::Union{Nothing, Vector{WaterAdditionType{IntType, FloatType}}}
-    function IngredientsType{IntType, FloatType}(; fermentable_additions, hop_additions = nothing, miscellaneous_additions = nothing, culture_additions = nothing, water_additions = nothing) where {IntType <: Integer, FloatType <: Real}
-        fermentable_additions = _jsfrom(Vector{FermentableAdditionType{IntType, FloatType}}, fermentable_additions)
-        hop_additions = _jsfrom(Union{Nothing, Vector{HopAdditionType{IntType, FloatType}}}, hop_additions)
-        miscellaneous_additions = _jsfrom(Union{Nothing, Vector{MiscellaneousAdditionType{IntType, FloatType}}}, miscellaneous_additions)
-        culture_additions = _jsfrom(Union{Nothing, Vector{CultureAdditionType{IntType, FloatType}}}, culture_additions)
-        water_additions = _jsfrom(Union{Nothing, Vector{WaterAdditionType{IntType, FloatType}}}, water_additions)
-        _jscheck(IngredientsType{IntType, FloatType}, (fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions), nothing)
+struct IngredientsType{I <: Integer, T <: Real} <: AbstractSchemaObject
+    fermentable_additions::Vector{FermentableAdditionType{I, T}}
+    hop_additions::Union{Nothing, Vector{HopAdditionType{I, T}}}
+    miscellaneous_additions::Union{Nothing, Vector{MiscellaneousAdditionType{I, T}}}
+    culture_additions::Union{Nothing, Vector{CultureAdditionType{I, T}}}
+    water_additions::Union{Nothing, Vector{WaterAdditionType{I, T}}}
+    function IngredientsType{I, T}(; fermentable_additions, hop_additions = nothing, miscellaneous_additions = nothing, culture_additions = nothing, water_additions = nothing) where {I <: Integer, T <: Real}
+        fermentable_additions = _jsfrom(Vector{FermentableAdditionType{I, T}}, fermentable_additions)
+        hop_additions = _jsfrom(Union{Nothing, Vector{HopAdditionType{I, T}}}, hop_additions)
+        miscellaneous_additions = _jsfrom(Union{Nothing, Vector{MiscellaneousAdditionType{I, T}}}, miscellaneous_additions)
+        culture_additions = _jsfrom(Union{Nothing, Vector{CultureAdditionType{I, T}}}, culture_additions)
+        water_additions = _jsfrom(Union{Nothing, Vector{WaterAdditionType{I, T}}}, water_additions)
+        _jscheck(IngredientsType{I, T}, (fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions), nothing)
         return new(fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions)
     end
 end
 IngredientsType(; kwargs...) = IngredientsType{Int64, Float64}(; kwargs...)
-IngredientsType{IntType, FloatType}(fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions) where {IntType <: Integer, FloatType <: Real} = IngredientsType{IntType, FloatType}(; fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions)
+IngredientsType{I, T}(fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions) where {I <: Integer, T <: Real} = IngredientsType{I, T}(; fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions)
 IngredientsType(fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions) = IngredientsType{_jsnumbertypes(fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions)...}(; fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions)
 _SPECS[IngredientsType] = (
     fields = (
@@ -112,28 +112,28 @@ _SPECS[IngredientsType] = (
 
 """
     TasteType(; kwargs...)
-    TasteType{IntType, FloatType}(; kwargs...)
+    TasteType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `notes::String` (required)
-- `rating::FloatType` (required)
+- `rating::T` (required)
 """
-struct TasteType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct TasteType{I <: Integer, T <: Real} <: AbstractSchemaObject
     notes::String
-    rating::FloatType
-    function TasteType{IntType, FloatType}(; notes, rating) where {IntType <: Integer, FloatType <: Real}
+    rating::T
+    function TasteType{I, T}(; notes, rating) where {I <: Integer, T <: Real}
         notes = _jsfrom(String, notes)
-        rating = _jsfrom(FloatType, rating)
-        _jscheck(TasteType{IntType, FloatType}, (notes, rating), nothing)
+        rating = _jsfrom(T, rating)
+        _jscheck(TasteType{I, T}, (notes, rating), nothing)
         return new(notes, rating)
     end
 end
 TasteType(; kwargs...) = TasteType{Int64, Float64}(; kwargs...)
-TasteType{IntType, FloatType}(notes, rating) where {IntType <: Integer, FloatType <: Real} = TasteType{IntType, FloatType}(; notes, rating)
+TasteType{I, T}(notes, rating) where {I <: Integer, T <: Real} = TasteType{I, T}(; notes, rating)
 TasteType(notes, rating) = TasteType{_jsnumbertypes(notes, rating)...}(; notes, rating)
 _SPECS[TasteType] = (
     fields = (
@@ -149,11 +149,11 @@ _SPECS[TasteType] = (
 
 """
     RecipeType(; kwargs...)
-    RecipeType{IntType, FloatType}(; kwargs...)
+    RecipeType{I, T}(; kwargs...)
 
 RecipeType composes the information stored in a beerjson recipe.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -163,82 +163,82 @@ and `Float64`.
 - `author::String` (required)
 - `coauthor::Union{Nothing, String}`
 - `created::Union{Nothing, String}`
-- `batch_size::VolumeType{IntType, FloatType}` (required): The volume into the fermenter.
-- `efficiency::EfficiencyType{IntType, FloatType}` (required): Used to store each efficiency component, including conversion, and brewhouse.
-- `style::Union{Nothing, RecipeStyleType{IntType, FloatType}}`: RecipeStyleType defines style information stored in a recipe record
-- `ingredients::IngredientsType{IntType, FloatType}` (required): A collection of all ingredients used for the recipe.
-- `mash::Union{Nothing, MashProcedureType{IntType, FloatType}}`: This defines the procedure for performing unique mashing processes.
+- `batch_size::VolumeType{I, T}` (required): The volume into the fermenter.
+- `efficiency::EfficiencyType{I, T}` (required): Used to store each efficiency component, including conversion, and brewhouse.
+- `style::Union{Nothing, RecipeStyleType{I, T}}`: RecipeStyleType defines style information stored in a recipe record
+- `ingredients::IngredientsType{I, T}` (required): A collection of all ingredients used for the recipe.
+- `mash::Union{Nothing, MashProcedureType{I, T}}`: This defines the procedure for performing unique mashing processes.
 - `notes::Union{Nothing, String}`
-- `original_gravity::Union{Nothing, GravityType{IntType, FloatType}}`: The gravity of wort when transffered to the fermenter.
-- `final_gravity::Union{Nothing, GravityType{IntType, FloatType}}`: The gravity of beer at the end of fermentation.
-- `alcohol_by_volume::Union{Nothing, PercentType{IntType, FloatType}}`
-- `ibu_estimate::Union{Nothing, IBUEstimateType{IntType, FloatType}}`: Used to differentiate which IBU formula is being used in a recipe. If formula is modified in any way, eg to support whirlpool/flameout additions etc etc, please use `Other` for transparency.
-- `color_estimate::Union{Nothing, ColorType{IntType, FloatType}}`: The color of the finished beer, using SRM or EBC.
-- `beer_pH::Union{Nothing, AcidityType{IntType, FloatType}}`: The final beer pH at the end of fermentation.
-- `carbonation::Union{Nothing, FloatType}`: The final carbonation of the beer when packaged or served.
-- `apparent_attenuation::Union{Nothing, PercentType{IntType, FloatType}}`: The total apparent attenuation of the finished beer after fermentation.
-- `fermentation::Union{Nothing, FermentationProcedureType{IntType, FloatType}}`: FermentationProcedureType defines the procedure for performing fermentation.
-- `packaging::Union{Nothing, PackagingProcedureType{IntType, FloatType}}`: Describes the procedure for packaging your beverage.
-- `boil::Union{Nothing, BoilProcedureType{IntType, FloatType}}`: Defines the procedure for performing a boil. A boil procedure with no steps is the same as a standard single step boil.
-- `taste::Union{Nothing, TasteType{IntType, FloatType}}`: Used to store subjective tasting notes, and rating.
-- `calories_per_pint::Union{Nothing, FloatType}`
+- `original_gravity::Union{Nothing, GravityType{I, T}}`: The gravity of wort when transffered to the fermenter.
+- `final_gravity::Union{Nothing, GravityType{I, T}}`: The gravity of beer at the end of fermentation.
+- `alcohol_by_volume::Union{Nothing, PercentType{I, T}}`
+- `ibu_estimate::Union{Nothing, IBUEstimateType{I, T}}`: Used to differentiate which IBU formula is being used in a recipe. If formula is modified in any way, eg to support whirlpool/flameout additions etc etc, please use `Other` for transparency.
+- `color_estimate::Union{Nothing, ColorType{I, T}}`: The color of the finished beer, using SRM or EBC.
+- `beer_pH::Union{Nothing, AcidityType{I, T}}`: The final beer pH at the end of fermentation.
+- `carbonation::Union{Nothing, T}`: The final carbonation of the beer when packaged or served.
+- `apparent_attenuation::Union{Nothing, PercentType{I, T}}`: The total apparent attenuation of the finished beer after fermentation.
+- `fermentation::Union{Nothing, FermentationProcedureType{I, T}}`: FermentationProcedureType defines the procedure for performing fermentation.
+- `packaging::Union{Nothing, PackagingProcedureType{I, T}}`: Describes the procedure for packaging your beverage.
+- `boil::Union{Nothing, BoilProcedureType{I, T}}`: Defines the procedure for performing a boil. A boil procedure with no steps is the same as a standard single step boil.
+- `taste::Union{Nothing, TasteType{I, T}}`: Used to store subjective tasting notes, and rating.
+- `calories_per_pint::Union{Nothing, T}`
 """
-struct RecipeType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct RecipeType{I <: Integer, T <: Real} <: AbstractSchemaObject
     name::String
     type::RecipeTypeEnum
     author::String
     coauthor::Union{Nothing, String}
     created::Union{Nothing, String}
-    batch_size::VolumeType{IntType, FloatType}
-    efficiency::EfficiencyType{IntType, FloatType}
-    style::Union{Nothing, RecipeStyleType{IntType, FloatType}}
-    ingredients::IngredientsType{IntType, FloatType}
-    mash::Union{Nothing, MashProcedureType{IntType, FloatType}}
+    batch_size::VolumeType{I, T}
+    efficiency::EfficiencyType{I, T}
+    style::Union{Nothing, RecipeStyleType{I, T}}
+    ingredients::IngredientsType{I, T}
+    mash::Union{Nothing, MashProcedureType{I, T}}
     notes::Union{Nothing, String}
-    original_gravity::Union{Nothing, GravityType{IntType, FloatType}}
-    final_gravity::Union{Nothing, GravityType{IntType, FloatType}}
-    alcohol_by_volume::Union{Nothing, PercentType{IntType, FloatType}}
-    ibu_estimate::Union{Nothing, IBUEstimateType{IntType, FloatType}}
-    color_estimate::Union{Nothing, ColorType{IntType, FloatType}}
-    beer_pH::Union{Nothing, AcidityType{IntType, FloatType}}
-    carbonation::Union{Nothing, FloatType}
-    apparent_attenuation::Union{Nothing, PercentType{IntType, FloatType}}
-    fermentation::Union{Nothing, FermentationProcedureType{IntType, FloatType}}
-    packaging::Union{Nothing, PackagingProcedureType{IntType, FloatType}}
-    boil::Union{Nothing, BoilProcedureType{IntType, FloatType}}
-    taste::Union{Nothing, TasteType{IntType, FloatType}}
-    calories_per_pint::Union{Nothing, FloatType}
-    function RecipeType{IntType, FloatType}(; name, type, author, coauthor = nothing, created = nothing, batch_size, efficiency, style = nothing, ingredients, mash = nothing, notes = nothing, original_gravity = nothing, final_gravity = nothing, alcohol_by_volume = nothing, ibu_estimate = nothing, color_estimate = nothing, beer_pH = nothing, carbonation = nothing, apparent_attenuation = nothing, fermentation = nothing, packaging = nothing, boil = nothing, taste = nothing, calories_per_pint = nothing) where {IntType <: Integer, FloatType <: Real}
+    original_gravity::Union{Nothing, GravityType{I, T}}
+    final_gravity::Union{Nothing, GravityType{I, T}}
+    alcohol_by_volume::Union{Nothing, PercentType{I, T}}
+    ibu_estimate::Union{Nothing, IBUEstimateType{I, T}}
+    color_estimate::Union{Nothing, ColorType{I, T}}
+    beer_pH::Union{Nothing, AcidityType{I, T}}
+    carbonation::Union{Nothing, T}
+    apparent_attenuation::Union{Nothing, PercentType{I, T}}
+    fermentation::Union{Nothing, FermentationProcedureType{I, T}}
+    packaging::Union{Nothing, PackagingProcedureType{I, T}}
+    boil::Union{Nothing, BoilProcedureType{I, T}}
+    taste::Union{Nothing, TasteType{I, T}}
+    calories_per_pint::Union{Nothing, T}
+    function RecipeType{I, T}(; name, type, author, coauthor = nothing, created = nothing, batch_size, efficiency, style = nothing, ingredients, mash = nothing, notes = nothing, original_gravity = nothing, final_gravity = nothing, alcohol_by_volume = nothing, ibu_estimate = nothing, color_estimate = nothing, beer_pH = nothing, carbonation = nothing, apparent_attenuation = nothing, fermentation = nothing, packaging = nothing, boil = nothing, taste = nothing, calories_per_pint = nothing) where {I <: Integer, T <: Real}
         name = _jsfrom(String, name)
         type = _jsfrom(RecipeTypeEnum, type)
         author = _jsfrom(String, author)
         coauthor = _jsfrom(Union{Nothing, String}, coauthor)
         created = _jsfrom(Union{Nothing, String}, created)
-        batch_size = _jsfrom(VolumeType{IntType, FloatType}, batch_size)
-        efficiency = _jsfrom(EfficiencyType{IntType, FloatType}, efficiency)
-        style = _jsfrom(Union{Nothing, RecipeStyleType{IntType, FloatType}}, style)
-        ingredients = _jsfrom(IngredientsType{IntType, FloatType}, ingredients)
-        mash = _jsfrom(Union{Nothing, MashProcedureType{IntType, FloatType}}, mash)
+        batch_size = _jsfrom(VolumeType{I, T}, batch_size)
+        efficiency = _jsfrom(EfficiencyType{I, T}, efficiency)
+        style = _jsfrom(Union{Nothing, RecipeStyleType{I, T}}, style)
+        ingredients = _jsfrom(IngredientsType{I, T}, ingredients)
+        mash = _jsfrom(Union{Nothing, MashProcedureType{I, T}}, mash)
         notes = _jsfrom(Union{Nothing, String}, notes)
-        original_gravity = _jsfrom(Union{Nothing, GravityType{IntType, FloatType}}, original_gravity)
-        final_gravity = _jsfrom(Union{Nothing, GravityType{IntType, FloatType}}, final_gravity)
-        alcohol_by_volume = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, alcohol_by_volume)
-        ibu_estimate = _jsfrom(Union{Nothing, IBUEstimateType{IntType, FloatType}}, ibu_estimate)
-        color_estimate = _jsfrom(Union{Nothing, ColorType{IntType, FloatType}}, color_estimate)
-        beer_pH = _jsfrom(Union{Nothing, AcidityType{IntType, FloatType}}, beer_pH)
-        carbonation = _jsfrom(Union{Nothing, FloatType}, carbonation)
-        apparent_attenuation = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, apparent_attenuation)
-        fermentation = _jsfrom(Union{Nothing, FermentationProcedureType{IntType, FloatType}}, fermentation)
-        packaging = _jsfrom(Union{Nothing, PackagingProcedureType{IntType, FloatType}}, packaging)
-        boil = _jsfrom(Union{Nothing, BoilProcedureType{IntType, FloatType}}, boil)
-        taste = _jsfrom(Union{Nothing, TasteType{IntType, FloatType}}, taste)
-        calories_per_pint = _jsfrom(Union{Nothing, FloatType}, calories_per_pint)
-        _jscheck(RecipeType{IntType, FloatType}, (name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint), nothing)
+        original_gravity = _jsfrom(Union{Nothing, GravityType{I, T}}, original_gravity)
+        final_gravity = _jsfrom(Union{Nothing, GravityType{I, T}}, final_gravity)
+        alcohol_by_volume = _jsfrom(Union{Nothing, PercentType{I, T}}, alcohol_by_volume)
+        ibu_estimate = _jsfrom(Union{Nothing, IBUEstimateType{I, T}}, ibu_estimate)
+        color_estimate = _jsfrom(Union{Nothing, ColorType{I, T}}, color_estimate)
+        beer_pH = _jsfrom(Union{Nothing, AcidityType{I, T}}, beer_pH)
+        carbonation = _jsfrom(Union{Nothing, T}, carbonation)
+        apparent_attenuation = _jsfrom(Union{Nothing, PercentType{I, T}}, apparent_attenuation)
+        fermentation = _jsfrom(Union{Nothing, FermentationProcedureType{I, T}}, fermentation)
+        packaging = _jsfrom(Union{Nothing, PackagingProcedureType{I, T}}, packaging)
+        boil = _jsfrom(Union{Nothing, BoilProcedureType{I, T}}, boil)
+        taste = _jsfrom(Union{Nothing, TasteType{I, T}}, taste)
+        calories_per_pint = _jsfrom(Union{Nothing, T}, calories_per_pint)
+        _jscheck(RecipeType{I, T}, (name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint), nothing)
         return new(name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint)
     end
 end
 RecipeType(; kwargs...) = RecipeType{Int64, Float64}(; kwargs...)
-RecipeType{IntType, FloatType}(name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint) where {IntType <: Integer, FloatType <: Real} = RecipeType{IntType, FloatType}(; name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint)
+RecipeType{I, T}(name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint) where {I <: Integer, T <: Real} = RecipeType{I, T}(; name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint)
 RecipeType(name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint) = RecipeType{_jsnumbertypes(name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint)...}(; name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint)
 _SPECS[RecipeType] = (
     fields = (
