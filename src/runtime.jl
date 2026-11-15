@@ -154,9 +154,13 @@ end
 
 _jslength(x::AbstractString) = length(x)
 
+# values of typed formats (dates, UUIDs) are validated through their string form
+_jsscalar(x) = x
+
 function _jsvalidate(x, c, where_::String)
     c === nothing && return nothing
     x === nothing && return nothing
+    x = _jsscalar(x)
     if haskey(c, :schema)
         err = _jsvalid(c.schema, _jsto(x))
         err === nothing || _jsfail("$where_ is invalid: $err")

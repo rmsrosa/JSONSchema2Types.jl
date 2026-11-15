@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Event",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "day": { "type": "string", "format": "date" },
+    "starts": { "type": "string", "format": "date-time" },
+    "at": { "type": "string", "format": "time" },
+    "days": { "type": "array", "items": { "type": "string", "format": "date" } },
+    "in2026": { "type": "string", "format": "date", "pattern": "^2026-" }
+  },
+  "required": ["day"]
+}

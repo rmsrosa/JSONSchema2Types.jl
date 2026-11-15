@@ -1,5 +1,6 @@
 using JSONSchema2Types
 using JSON
+using Dates
 using Test
 
 const EXAMPLES = joinpath(@__DIR__, "..", "examples")
@@ -244,6 +245,43 @@ end
     @test_throws E M.fromjson(T, """{"tagged": ["c", {"x": 1}]}""")
     @test_throws E M.fromjson(T, """{"optional": ["s", "t"]}""")   # prefixItems checked at runtime
     @test_throws E M.fromjson(T, """{"draft7": ["s", true, 1]}""")
+end
+
+@testset "Typed formats" begin
+    schema = joinpath(@__DIR__, "schemas", "formats.json")
+    # by default, formatted strings stay strings
+    S = load_generated(schema)
+    @test fieldtype(S.Event, :day) == String
+    M = load_generated(schema; typed_formats = true)
+    T = M.Event
+    @test fieldtype(T, :id) == Union{Nothing, M.UUIDs.UUID}
+    @test fieldtype(T, :day) == M.Dates.Date
+    @test fieldtype(T, :starts) == Union{Nothing, M.Dates.DateTime}
+    @test fieldtype(T, :at) == Union{Nothing, String}                  # time stays a string
+    @test fieldtype(T, :days) == Union{Nothing, Vector{M.Dates.Date}}
+    x = M.fromjson(T, """{"id": "123E4567-E89B-12D3-A456-426614174000", "day": "2026-11-15",
+                          "starts": "2026-11-15T10:30:00.250+02:00", "days": ["2026-01-01"], "in2026": "2026-02-03"}""")
+    @test x.day == M.Dates.Date(2026, 11, 15)
+    @test x.starts == M.Dates.DateTime(2026, 11, 15, 8, 30, 0, 250)    # converted to UTC
+    @test x.days == [M.Dates.Date(2026, 1, 1)]
+    # written back in normalized form: UTC date-times, lowercase UUIDs
+    back = JSON.parse(M.tojson(x))
+    @test back["starts"] == "2026-11-15T08:30:00.250Z" && back["day"] == "2026-11-15"
+    @test back["id"] == "123e4567-e89b-12d3-a456-426614174000"
+    @test M.fromjson(T, M.tojson(x)) == x
+    @test T(day = M.Dates.Date(2026, 1, 2)).day == M.Dates.Date(2026, 1, 2)
+    @test JSON.parse(M.tojson(T(day = "2026-01-02", starts = "2026-01-02T03:04:05Z")))["starts"] == "2026-01-02T03:04:05Z"
+    E = M.SchemaValidationError
+    @test_throws E M.fromjson(T, """{"day": "2026-13-01"}""")
+    @test_throws E M.fromjson(T, """{"day": "2026-11-15", "starts": "2026-11-15 10:30"}""")
+    @test_throws E M.fromjson(T, """{"day": "2026-11-15", "id": "123"}""")
+    @test_throws E M.fromjson(T, """{"day": "2026-11-15", "in2026": "2025-02-03"}""")  # pattern on the string form
+    # split output includes the formats runtime
+    dir = joinpath(mktempdir(), "EventTypes")
+    main = generate_module(schema, dir; typed_formats = true, split = true)
+    @test "runtime_formats.jl" in readdir(dir)
+    N = Base.include(Module(), main)
+    @test Base.invokelatest(N.Event; day = "2026-01-01").day isa Dates.Date
 end
 
 @testset "Additional properties are preserved" begin
