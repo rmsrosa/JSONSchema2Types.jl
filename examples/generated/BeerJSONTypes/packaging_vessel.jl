@@ -16,8 +16,12 @@ _SPECS[PackagingVesselTypeEnum] = (values = Any["keg", "bottle", "cask", "tank",
 
 """
     PackagingVesselType(; kwargs...)
+    PackagingVesselType{IntType, FloatType}(; kwargs...)
 
 PackagingVesselType - a per vessel representation of a packaging process.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
@@ -25,52 +29,54 @@ PackagingVesselType - a per vessel representation of a packaging process.
 - `type::Union{Nothing, PackagingVesselTypeEnum}`
 - `description::Union{Nothing, String}`
 - `package_date::Union{Nothing, String}`
-- `start_temperature::Union{Nothing, TemperatureType}`
-- `end_temperature::Union{Nothing, TemperatureType}`
-- `step_time::Union{Nothing, TimeType}`
-- `start_gravity::Union{Nothing, GravityType}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
-- `end_gravity::Union{Nothing, GravityType}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
-- `start_ph::Union{Nothing, AcidityType}`
-- `end_ph::Union{Nothing, AcidityType}`
-- `carbonation::Union{Nothing, Float64}`
-- `vessel_volume::Union{Nothing, VolumeType}`
-- `vessel_quantity::Union{Nothing, Float64}`
+- `start_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}`
+- `end_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}`
+- `step_time::Union{Nothing, TimeType{IntType, FloatType}}`
+- `start_gravity::Union{Nothing, GravityType{IntType, FloatType}}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
+- `end_gravity::Union{Nothing, GravityType{IntType, FloatType}}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
+- `start_ph::Union{Nothing, AcidityType{IntType, FloatType}}`
+- `end_ph::Union{Nothing, AcidityType{IntType, FloatType}}`
+- `carbonation::Union{Nothing, FloatType}`
+- `vessel_volume::Union{Nothing, VolumeType{IntType, FloatType}}`
+- `vessel_quantity::Union{Nothing, FloatType}`
 """
-struct PackagingVesselType <: AbstractSchemaObject
+struct PackagingVesselType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
     type::Union{Nothing, PackagingVesselTypeEnum}
     description::Union{Nothing, String}
     package_date::Union{Nothing, String}
-    start_temperature::Union{Nothing, TemperatureType}
-    end_temperature::Union{Nothing, TemperatureType}
-    step_time::Union{Nothing, TimeType}
-    start_gravity::Union{Nothing, GravityType}
-    end_gravity::Union{Nothing, GravityType}
-    start_ph::Union{Nothing, AcidityType}
-    end_ph::Union{Nothing, AcidityType}
-    carbonation::Union{Nothing, Float64}
-    vessel_volume::Union{Nothing, VolumeType}
-    vessel_quantity::Union{Nothing, Float64}
-    function PackagingVesselType(; name, type = nothing, description = nothing, package_date = nothing, start_temperature = nothing, end_temperature = nothing, step_time = nothing, start_gravity = nothing, end_gravity = nothing, start_ph = nothing, end_ph = nothing, carbonation = nothing, vessel_volume = nothing, vessel_quantity = nothing)
+    start_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}
+    end_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}
+    step_time::Union{Nothing, TimeType{IntType, FloatType}}
+    start_gravity::Union{Nothing, GravityType{IntType, FloatType}}
+    end_gravity::Union{Nothing, GravityType{IntType, FloatType}}
+    start_ph::Union{Nothing, AcidityType{IntType, FloatType}}
+    end_ph::Union{Nothing, AcidityType{IntType, FloatType}}
+    carbonation::Union{Nothing, FloatType}
+    vessel_volume::Union{Nothing, VolumeType{IntType, FloatType}}
+    vessel_quantity::Union{Nothing, FloatType}
+    function PackagingVesselType{IntType, FloatType}(; name, type = nothing, description = nothing, package_date = nothing, start_temperature = nothing, end_temperature = nothing, step_time = nothing, start_gravity = nothing, end_gravity = nothing, start_ph = nothing, end_ph = nothing, carbonation = nothing, vessel_volume = nothing, vessel_quantity = nothing) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
         type = _jsfrom(Union{Nothing, PackagingVesselTypeEnum}, type)
         description = _jsfrom(Union{Nothing, String}, description)
         package_date = _jsfrom(Union{Nothing, String}, package_date)
-        start_temperature = _jsfrom(Union{Nothing, TemperatureType}, start_temperature)
-        end_temperature = _jsfrom(Union{Nothing, TemperatureType}, end_temperature)
-        step_time = _jsfrom(Union{Nothing, TimeType}, step_time)
-        start_gravity = _jsfrom(Union{Nothing, GravityType}, start_gravity)
-        end_gravity = _jsfrom(Union{Nothing, GravityType}, end_gravity)
-        start_ph = _jsfrom(Union{Nothing, AcidityType}, start_ph)
-        end_ph = _jsfrom(Union{Nothing, AcidityType}, end_ph)
-        carbonation = _jsfrom(Union{Nothing, Float64}, carbonation)
-        vessel_volume = _jsfrom(Union{Nothing, VolumeType}, vessel_volume)
-        vessel_quantity = _jsfrom(Union{Nothing, Float64}, vessel_quantity)
-        _jscheck(PackagingVesselType, (name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity), nothing)
+        start_temperature = _jsfrom(Union{Nothing, TemperatureType{IntType, FloatType}}, start_temperature)
+        end_temperature = _jsfrom(Union{Nothing, TemperatureType{IntType, FloatType}}, end_temperature)
+        step_time = _jsfrom(Union{Nothing, TimeType{IntType, FloatType}}, step_time)
+        start_gravity = _jsfrom(Union{Nothing, GravityType{IntType, FloatType}}, start_gravity)
+        end_gravity = _jsfrom(Union{Nothing, GravityType{IntType, FloatType}}, end_gravity)
+        start_ph = _jsfrom(Union{Nothing, AcidityType{IntType, FloatType}}, start_ph)
+        end_ph = _jsfrom(Union{Nothing, AcidityType{IntType, FloatType}}, end_ph)
+        carbonation = _jsfrom(Union{Nothing, FloatType}, carbonation)
+        vessel_volume = _jsfrom(Union{Nothing, VolumeType{IntType, FloatType}}, vessel_volume)
+        vessel_quantity = _jsfrom(Union{Nothing, FloatType}, vessel_quantity)
+        _jscheck(PackagingVesselType{IntType, FloatType}, (name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity), nothing)
         return new(name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity)
     end
 end
-PackagingVesselType(name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity) = PackagingVesselType(; name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity)
+PackagingVesselType(; kwargs...) = PackagingVesselType{Int64, Float64}(; kwargs...)
+PackagingVesselType{IntType, FloatType}(name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity) where {IntType <: Integer, FloatType <: Real} = PackagingVesselType{IntType, FloatType}(; name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity)
+PackagingVesselType(name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity) = PackagingVesselType{_jsnumbertypes(name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity)...}(; name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity)
 _SPECS[PackagingVesselType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

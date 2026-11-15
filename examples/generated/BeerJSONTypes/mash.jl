@@ -5,31 +5,37 @@
 
 """
     MashProcedureType(; kwargs...)
+    MashProcedureType{IntType, FloatType}(; kwargs...)
 
 This defines the procedure for performing unique mashing processes.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
 - `name::String` (required)
-- `grain_temperature::TemperatureType` (required): Initial grain temperature prior to the start of the mash.
+- `grain_temperature::TemperatureType{IntType, FloatType}` (required): Initial grain temperature prior to the start of the mash.
 - `notes::Union{Nothing, String}`
-- `mash_steps::Vector{MashStepType}` (required)
+- `mash_steps::Vector{MashStepType{IntType, FloatType}}` (required)
 """
-struct MashProcedureType <: AbstractSchemaObject
+struct MashProcedureType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
-    grain_temperature::TemperatureType
+    grain_temperature::TemperatureType{IntType, FloatType}
     notes::Union{Nothing, String}
-    mash_steps::Vector{MashStepType}
-    function MashProcedureType(; name, grain_temperature, notes = nothing, mash_steps)
+    mash_steps::Vector{MashStepType{IntType, FloatType}}
+    function MashProcedureType{IntType, FloatType}(; name, grain_temperature, notes = nothing, mash_steps) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
-        grain_temperature = _jsfrom(TemperatureType, grain_temperature)
+        grain_temperature = _jsfrom(TemperatureType{IntType, FloatType}, grain_temperature)
         notes = _jsfrom(Union{Nothing, String}, notes)
-        mash_steps = _jsfrom(Vector{MashStepType}, mash_steps)
-        _jscheck(MashProcedureType, (name, grain_temperature, notes, mash_steps), nothing)
+        mash_steps = _jsfrom(Vector{MashStepType{IntType, FloatType}}, mash_steps)
+        _jscheck(MashProcedureType{IntType, FloatType}, (name, grain_temperature, notes, mash_steps), nothing)
         return new(name, grain_temperature, notes, mash_steps)
     end
 end
-MashProcedureType(name, grain_temperature, notes, mash_steps) = MashProcedureType(; name, grain_temperature, notes, mash_steps)
+MashProcedureType(; kwargs...) = MashProcedureType{Int64, Float64}(; kwargs...)
+MashProcedureType{IntType, FloatType}(name, grain_temperature, notes, mash_steps) where {IntType <: Integer, FloatType <: Real} = MashProcedureType{IntType, FloatType}(; name, grain_temperature, notes, mash_steps)
+MashProcedureType(name, grain_temperature, notes, mash_steps) = MashProcedureType{_jsnumbertypes(name, grain_temperature, notes, mash_steps)...}(; name, grain_temperature, notes, mash_steps)
 _SPECS[MashProcedureType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

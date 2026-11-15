@@ -5,34 +5,40 @@
 
 """
     PackagingProcedureType(; kwargs...)
+    PackagingProcedureType{IntType, FloatType}(; kwargs...)
 
 Describes the procedure for packaging your beverage.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
 - `name::String` (required)
-- `packaged_volume::Union{Nothing, VolumeType}`
+- `packaged_volume::Union{Nothing, VolumeType{IntType, FloatType}}`
 - `description::Union{Nothing, String}`
 - `notes::Union{Nothing, String}`
-- `packaging_vessels::Union{Nothing, Vector{PackagingVesselType}}`
+- `packaging_vessels::Union{Nothing, Vector{PackagingVesselType{IntType, FloatType}}}`
 """
-struct PackagingProcedureType <: AbstractSchemaObject
+struct PackagingProcedureType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
-    packaged_volume::Union{Nothing, VolumeType}
+    packaged_volume::Union{Nothing, VolumeType{IntType, FloatType}}
     description::Union{Nothing, String}
     notes::Union{Nothing, String}
-    packaging_vessels::Union{Nothing, Vector{PackagingVesselType}}
-    function PackagingProcedureType(; name, packaged_volume = nothing, description = nothing, notes = nothing, packaging_vessels = nothing)
+    packaging_vessels::Union{Nothing, Vector{PackagingVesselType{IntType, FloatType}}}
+    function PackagingProcedureType{IntType, FloatType}(; name, packaged_volume = nothing, description = nothing, notes = nothing, packaging_vessels = nothing) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
-        packaged_volume = _jsfrom(Union{Nothing, VolumeType}, packaged_volume)
+        packaged_volume = _jsfrom(Union{Nothing, VolumeType{IntType, FloatType}}, packaged_volume)
         description = _jsfrom(Union{Nothing, String}, description)
         notes = _jsfrom(Union{Nothing, String}, notes)
-        packaging_vessels = _jsfrom(Union{Nothing, Vector{PackagingVesselType}}, packaging_vessels)
-        _jscheck(PackagingProcedureType, (name, packaged_volume, description, notes, packaging_vessels), nothing)
+        packaging_vessels = _jsfrom(Union{Nothing, Vector{PackagingVesselType{IntType, FloatType}}}, packaging_vessels)
+        _jscheck(PackagingProcedureType{IntType, FloatType}, (name, packaged_volume, description, notes, packaging_vessels), nothing)
         return new(name, packaged_volume, description, notes, packaging_vessels)
     end
 end
-PackagingProcedureType(name, packaged_volume, description, notes, packaging_vessels) = PackagingProcedureType(; name, packaged_volume, description, notes, packaging_vessels)
+PackagingProcedureType(; kwargs...) = PackagingProcedureType{Int64, Float64}(; kwargs...)
+PackagingProcedureType{IntType, FloatType}(name, packaged_volume, description, notes, packaging_vessels) where {IntType <: Integer, FloatType <: Real} = PackagingProcedureType{IntType, FloatType}(; name, packaged_volume, description, notes, packaging_vessels)
+PackagingProcedureType(name, packaged_volume, description, notes, packaging_vessels) = PackagingProcedureType{_jsnumbertypes(name, packaged_volume, description, notes, packaging_vessels)...}(; name, packaged_volume, description, notes, packaging_vessels)
 _SPECS[PackagingProcedureType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

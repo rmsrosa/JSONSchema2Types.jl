@@ -16,20 +16,26 @@ _SPECS[MiscellaneousTypeEnum] = (values = Any["spice", "fining", "water agent", 
 
 """
     MiscellaneousInventoryType(; kwargs...)
+    MiscellaneousInventoryType{IntType, FloatType}(; kwargs...)
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
-- `amount::Union{VolumeType, MassType, UnitType}` (required)
+- `amount::Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}, UnitType{IntType, FloatType}}` (required)
 """
-struct MiscellaneousInventoryType <: AbstractSchemaObject
-    amount::Union{VolumeType, MassType, UnitType}
-    function MiscellaneousInventoryType(; amount)
-        amount = _jsfrom(Union{VolumeType, MassType, UnitType}, amount)
-        _jscheck(MiscellaneousInventoryType, (amount,), nothing)
+struct MiscellaneousInventoryType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+    amount::Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}, UnitType{IntType, FloatType}}
+    function MiscellaneousInventoryType{IntType, FloatType}(; amount) where {IntType <: Integer, FloatType <: Real}
+        amount = _jsfrom(Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}, UnitType{IntType, FloatType}}, amount)
+        _jscheck(MiscellaneousInventoryType{IntType, FloatType}, (amount,), nothing)
         return new(amount)
     end
 end
-MiscellaneousInventoryType(amount) = MiscellaneousInventoryType(; amount)
+MiscellaneousInventoryType(; kwargs...) = MiscellaneousInventoryType{Int64, Float64}(; kwargs...)
+MiscellaneousInventoryType{IntType, FloatType}(amount) where {IntType <: Integer, FloatType <: Real} = MiscellaneousInventoryType{IntType, FloatType}(; amount)
+MiscellaneousInventoryType(amount) = MiscellaneousInventoryType{_jsnumbertypes(amount)...}(; amount)
 _SPECS[MiscellaneousInventoryType] = (
     fields = (
         (name = :amount, key = "amount", required = true, nullable = false, constraints = (schema = JSON.parse("""
@@ -57,8 +63,12 @@ _SPECS[MiscellaneousInventoryType] = (
 
 """
     MiscellaneousType(; kwargs...)
+    MiscellaneousType{IntType, FloatType}(; kwargs...)
 
 MiscellaneousType collects the attributes of an ingredient to store as record information.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
@@ -68,32 +78,34 @@ MiscellaneousType collects the attributes of an ingredient to store as record in
 - `type::MiscellaneousTypeEnum` (required)
 - `use_for::Union{Nothing, String}`: Used to describe the purpose of the miscellaneous ingredient, e.g. whirlfloc is used for clarity.
 - `notes::Union{Nothing, String}`
-- `inventory::Union{Nothing, MiscellaneousInventoryType}`
+- `inventory::Union{Nothing, MiscellaneousInventoryType{IntType, FloatType}}`
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct MiscellaneousType <: AbstractSchemaObject
+struct MiscellaneousType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
     type::MiscellaneousTypeEnum
     use_for::Union{Nothing, String}
     notes::Union{Nothing, String}
-    inventory::Union{Nothing, MiscellaneousInventoryType}
+    inventory::Union{Nothing, MiscellaneousInventoryType{IntType, FloatType}}
     _extra::Dict{String, Any}
-    function MiscellaneousType(; name, producer = nothing, product_id = nothing, type, use_for = nothing, notes = nothing, inventory = nothing, _extra = Dict{String, Any}())
+    function MiscellaneousType{IntType, FloatType}(; name, producer = nothing, product_id = nothing, type, use_for = nothing, notes = nothing, inventory = nothing, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
         type = _jsfrom(MiscellaneousTypeEnum, type)
         use_for = _jsfrom(Union{Nothing, String}, use_for)
         notes = _jsfrom(Union{Nothing, String}, notes)
-        inventory = _jsfrom(Union{Nothing, MiscellaneousInventoryType}, inventory)
+        inventory = _jsfrom(Union{Nothing, MiscellaneousInventoryType{IntType, FloatType}}, inventory)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(MiscellaneousType, (name, producer, product_id, type, use_for, notes, inventory), _extra)
+        _jscheck(MiscellaneousType{IntType, FloatType}, (name, producer, product_id, type, use_for, notes, inventory), _extra)
         return new(name, producer, product_id, type, use_for, notes, inventory, _extra)
     end
 end
-MiscellaneousType(name, producer, product_id, type, use_for, notes, inventory, _extra) = MiscellaneousType(; name, producer, product_id, type, use_for, notes, inventory, _extra)
+MiscellaneousType(; kwargs...) = MiscellaneousType{Int64, Float64}(; kwargs...)
+MiscellaneousType{IntType, FloatType}(name, producer, product_id, type, use_for, notes, inventory, _extra) where {IntType <: Integer, FloatType <: Real} = MiscellaneousType{IntType, FloatType}(; name, producer, product_id, type, use_for, notes, inventory, _extra)
+MiscellaneousType(name, producer, product_id, type, use_for, notes, inventory, _extra) = MiscellaneousType{_jsnumbertypes(name, producer, product_id, type, use_for, notes, inventory, _extra)...}(; name, producer, product_id, type, use_for, notes, inventory, _extra)
 _SPECS[MiscellaneousType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
@@ -113,8 +125,12 @@ _SPECS[MiscellaneousType] = (
 
 """
     MiscellaneousAdditionType(; kwargs...)
+    MiscellaneousAdditionType{IntType, FloatType}(; kwargs...)
 
 MiscellaneousAdditionType collects the attributes of each miscellaneous ingredient for use in a recipe.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
@@ -122,31 +138,33 @@ MiscellaneousAdditionType collects the attributes of each miscellaneous ingredie
 - `producer::Union{Nothing, String}`
 - `product_id::Union{Nothing, String}`
 - `type::MiscellaneousTypeEnum` (required)
-- `timing::Union{Nothing, TimingType}`: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
-- `amount::Union{VolumeType, MassType, UnitType}` (required)
+- `timing::Union{Nothing, TimingType{IntType, FloatType}}`: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
+- `amount::Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}, UnitType{IntType, FloatType}}` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct MiscellaneousAdditionType <: AbstractSchemaObject
+struct MiscellaneousAdditionType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
     type::MiscellaneousTypeEnum
-    timing::Union{Nothing, TimingType}
-    amount::Union{VolumeType, MassType, UnitType}
+    timing::Union{Nothing, TimingType{IntType, FloatType}}
+    amount::Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}, UnitType{IntType, FloatType}}
     _extra::Dict{String, Any}
-    function MiscellaneousAdditionType(; name, producer = nothing, product_id = nothing, type, timing = nothing, amount, _extra = Dict{String, Any}())
+    function MiscellaneousAdditionType{IntType, FloatType}(; name, producer = nothing, product_id = nothing, type, timing = nothing, amount, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
         type = _jsfrom(MiscellaneousTypeEnum, type)
-        timing = _jsfrom(Union{Nothing, TimingType}, timing)
-        amount = _jsfrom(Union{VolumeType, MassType, UnitType}, amount)
+        timing = _jsfrom(Union{Nothing, TimingType{IntType, FloatType}}, timing)
+        amount = _jsfrom(Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}, UnitType{IntType, FloatType}}, amount)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(MiscellaneousAdditionType, (name, producer, product_id, type, timing, amount), _extra)
+        _jscheck(MiscellaneousAdditionType{IntType, FloatType}, (name, producer, product_id, type, timing, amount), _extra)
         return new(name, producer, product_id, type, timing, amount, _extra)
     end
 end
-MiscellaneousAdditionType(name, producer, product_id, type, timing, amount, _extra) = MiscellaneousAdditionType(; name, producer, product_id, type, timing, amount, _extra)
+MiscellaneousAdditionType(; kwargs...) = MiscellaneousAdditionType{Int64, Float64}(; kwargs...)
+MiscellaneousAdditionType{IntType, FloatType}(name, producer, product_id, type, timing, amount, _extra) where {IntType <: Integer, FloatType <: Real} = MiscellaneousAdditionType{IntType, FloatType}(; name, producer, product_id, type, timing, amount, _extra)
+MiscellaneousAdditionType(name, producer, product_id, type, timing, amount, _extra) = MiscellaneousAdditionType{_jsnumbertypes(name, producer, product_id, type, timing, amount, _extra)...}(; name, producer, product_id, type, timing, amount, _extra)
 _SPECS[MiscellaneousAdditionType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

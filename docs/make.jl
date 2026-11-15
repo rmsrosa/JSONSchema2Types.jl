@@ -28,6 +28,7 @@ makedocs(
         "BeerJSON" => "beerjson.md",
         "Generated code" => "generated.md",
         "Conformance" => "conformance.md",
+        "Related packages" => "related.md",
         "API" => "api.md",
     ],
     checkdocs = :exports,

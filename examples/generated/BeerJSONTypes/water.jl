@@ -5,64 +5,70 @@
 
 """
     WaterBase(; kwargs...)
+    WaterBase{IntType, FloatType}(; kwargs...)
 
 WaterBase provides unique properties to identify individual records of  brewing water.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
 - `name::String` (required)
 - `producer::Union{Nothing, String}`
-- `calcium::ConcentrationType` (required): Examples for concentration include ppm, ppb, and mg/l. 
-- `bicarbonate::ConcentrationType` (required): Examples for concentration include ppm, ppb, and mg/l. 
-- `carbonate::Union{Nothing, ConcentrationType}`: Examples for concentration include ppm, ppb, and mg/l. 
-- `potassium::Union{Nothing, ConcentrationType}`: Examples for concentration include ppm, ppb, and mg/l. 
-- `iron::Union{Nothing, ConcentrationType}`: Examples for concentration include ppm, ppb, and mg/l. 
-- `nitrate::Union{Nothing, ConcentrationType}`: Examples for concentration include ppm, ppb, and mg/l. 
-- `nitrite::Union{Nothing, ConcentrationType}`: Examples for concentration include ppm, ppb, and mg/l. 
-- `flouride::Union{Nothing, ConcentrationType}`: Examples for concentration include ppm, ppb, and mg/l. 
-- `sulfate::ConcentrationType` (required): Examples for concentration include ppm, ppb, and mg/l. 
-- `chloride::ConcentrationType` (required): Examples for concentration include ppm, ppb, and mg/l. 
-- `sodium::ConcentrationType` (required): Examples for concentration include ppm, ppb, and mg/l. 
-- `magnesium::ConcentrationType` (required): Examples for concentration include ppm, ppb, and mg/l. 
+- `calcium::ConcentrationType{IntType, FloatType}` (required): Examples for concentration include ppm, ppb, and mg/l. 
+- `bicarbonate::ConcentrationType{IntType, FloatType}` (required): Examples for concentration include ppm, ppb, and mg/l. 
+- `carbonate::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Examples for concentration include ppm, ppb, and mg/l. 
+- `potassium::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Examples for concentration include ppm, ppb, and mg/l. 
+- `iron::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Examples for concentration include ppm, ppb, and mg/l. 
+- `nitrate::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Examples for concentration include ppm, ppb, and mg/l. 
+- `nitrite::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Examples for concentration include ppm, ppb, and mg/l. 
+- `flouride::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Examples for concentration include ppm, ppb, and mg/l. 
+- `sulfate::ConcentrationType{IntType, FloatType}` (required): Examples for concentration include ppm, ppb, and mg/l. 
+- `chloride::ConcentrationType{IntType, FloatType}` (required): Examples for concentration include ppm, ppb, and mg/l. 
+- `sodium::ConcentrationType{IntType, FloatType}` (required): Examples for concentration include ppm, ppb, and mg/l. 
+- `magnesium::ConcentrationType{IntType, FloatType}` (required): Examples for concentration include ppm, ppb, and mg/l. 
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct WaterBase <: AbstractSchemaObject
+struct WaterBase{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
     producer::Union{Nothing, String}
-    calcium::ConcentrationType
-    bicarbonate::ConcentrationType
-    carbonate::Union{Nothing, ConcentrationType}
-    potassium::Union{Nothing, ConcentrationType}
-    iron::Union{Nothing, ConcentrationType}
-    nitrate::Union{Nothing, ConcentrationType}
-    nitrite::Union{Nothing, ConcentrationType}
-    flouride::Union{Nothing, ConcentrationType}
-    sulfate::ConcentrationType
-    chloride::ConcentrationType
-    sodium::ConcentrationType
-    magnesium::ConcentrationType
+    calcium::ConcentrationType{IntType, FloatType}
+    bicarbonate::ConcentrationType{IntType, FloatType}
+    carbonate::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    potassium::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    iron::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    nitrate::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    nitrite::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    flouride::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    sulfate::ConcentrationType{IntType, FloatType}
+    chloride::ConcentrationType{IntType, FloatType}
+    sodium::ConcentrationType{IntType, FloatType}
+    magnesium::ConcentrationType{IntType, FloatType}
     _extra::Dict{String, Any}
-    function WaterBase(; name, producer = nothing, calcium, bicarbonate, carbonate = nothing, potassium = nothing, iron = nothing, nitrate = nothing, nitrite = nothing, flouride = nothing, sulfate, chloride, sodium, magnesium, _extra = Dict{String, Any}())
+    function WaterBase{IntType, FloatType}(; name, producer = nothing, calcium, bicarbonate, carbonate = nothing, potassium = nothing, iron = nothing, nitrate = nothing, nitrite = nothing, flouride = nothing, sulfate, chloride, sodium, magnesium, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
         producer = _jsfrom(Union{Nothing, String}, producer)
-        calcium = _jsfrom(ConcentrationType, calcium)
-        bicarbonate = _jsfrom(ConcentrationType, bicarbonate)
-        carbonate = _jsfrom(Union{Nothing, ConcentrationType}, carbonate)
-        potassium = _jsfrom(Union{Nothing, ConcentrationType}, potassium)
-        iron = _jsfrom(Union{Nothing, ConcentrationType}, iron)
-        nitrate = _jsfrom(Union{Nothing, ConcentrationType}, nitrate)
-        nitrite = _jsfrom(Union{Nothing, ConcentrationType}, nitrite)
-        flouride = _jsfrom(Union{Nothing, ConcentrationType}, flouride)
-        sulfate = _jsfrom(ConcentrationType, sulfate)
-        chloride = _jsfrom(ConcentrationType, chloride)
-        sodium = _jsfrom(ConcentrationType, sodium)
-        magnesium = _jsfrom(ConcentrationType, magnesium)
+        calcium = _jsfrom(ConcentrationType{IntType, FloatType}, calcium)
+        bicarbonate = _jsfrom(ConcentrationType{IntType, FloatType}, bicarbonate)
+        carbonate = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, carbonate)
+        potassium = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, potassium)
+        iron = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, iron)
+        nitrate = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, nitrate)
+        nitrite = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, nitrite)
+        flouride = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, flouride)
+        sulfate = _jsfrom(ConcentrationType{IntType, FloatType}, sulfate)
+        chloride = _jsfrom(ConcentrationType{IntType, FloatType}, chloride)
+        sodium = _jsfrom(ConcentrationType{IntType, FloatType}, sodium)
+        magnesium = _jsfrom(ConcentrationType{IntType, FloatType}, magnesium)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(WaterBase, (name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium), _extra)
+        _jscheck(WaterBase{IntType, FloatType}, (name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium), _extra)
         return new(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra)
     end
 end
-WaterBase(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra) = WaterBase(; name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra)
+WaterBase(; kwargs...) = WaterBase{Int64, Float64}(; kwargs...)
+WaterBase{IntType, FloatType}(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra) where {IntType <: Integer, FloatType <: Real} = WaterBase{IntType, FloatType}(; name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra)
+WaterBase(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra) = WaterBase{_jsnumbertypes(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra)...}(; name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra)
 _SPECS[WaterBase] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
@@ -89,67 +95,73 @@ _SPECS[WaterBase] = (
 
 """
     WaterAdditionType(; kwargs...)
+    WaterAdditionType{IntType, FloatType}(; kwargs...)
 
 WaterAdditionType collects the attributes of each water addition for use in a recipe
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
 - `name::String` (required)
 - `producer::Union{Nothing, String}`
-- `calcium::ConcentrationType` (required): Examples for concentration include ppm, ppb, and mg/l. 
-- `bicarbonate::ConcentrationType` (required): Examples for concentration include ppm, ppb, and mg/l. 
-- `carbonate::Union{Nothing, ConcentrationType}`: Examples for concentration include ppm, ppb, and mg/l. 
-- `potassium::Union{Nothing, ConcentrationType}`: Examples for concentration include ppm, ppb, and mg/l. 
-- `iron::Union{Nothing, ConcentrationType}`: Examples for concentration include ppm, ppb, and mg/l. 
-- `nitrate::Union{Nothing, ConcentrationType}`: Examples for concentration include ppm, ppb, and mg/l. 
-- `nitrite::Union{Nothing, ConcentrationType}`: Examples for concentration include ppm, ppb, and mg/l. 
-- `flouride::Union{Nothing, ConcentrationType}`: Examples for concentration include ppm, ppb, and mg/l. 
-- `sulfate::ConcentrationType` (required): Examples for concentration include ppm, ppb, and mg/l. 
-- `chloride::ConcentrationType` (required): Examples for concentration include ppm, ppb, and mg/l. 
-- `sodium::ConcentrationType` (required): Examples for concentration include ppm, ppb, and mg/l. 
-- `magnesium::ConcentrationType` (required): Examples for concentration include ppm, ppb, and mg/l. 
-- `amount::Union{Nothing, VolumeType}`
+- `calcium::ConcentrationType{IntType, FloatType}` (required): Examples for concentration include ppm, ppb, and mg/l. 
+- `bicarbonate::ConcentrationType{IntType, FloatType}` (required): Examples for concentration include ppm, ppb, and mg/l. 
+- `carbonate::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Examples for concentration include ppm, ppb, and mg/l. 
+- `potassium::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Examples for concentration include ppm, ppb, and mg/l. 
+- `iron::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Examples for concentration include ppm, ppb, and mg/l. 
+- `nitrate::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Examples for concentration include ppm, ppb, and mg/l. 
+- `nitrite::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Examples for concentration include ppm, ppb, and mg/l. 
+- `flouride::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Examples for concentration include ppm, ppb, and mg/l. 
+- `sulfate::ConcentrationType{IntType, FloatType}` (required): Examples for concentration include ppm, ppb, and mg/l. 
+- `chloride::ConcentrationType{IntType, FloatType}` (required): Examples for concentration include ppm, ppb, and mg/l. 
+- `sodium::ConcentrationType{IntType, FloatType}` (required): Examples for concentration include ppm, ppb, and mg/l. 
+- `magnesium::ConcentrationType{IntType, FloatType}` (required): Examples for concentration include ppm, ppb, and mg/l. 
+- `amount::Union{Nothing, VolumeType{IntType, FloatType}}`
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct WaterAdditionType <: AbstractSchemaObject
+struct WaterAdditionType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
     producer::Union{Nothing, String}
-    calcium::ConcentrationType
-    bicarbonate::ConcentrationType
-    carbonate::Union{Nothing, ConcentrationType}
-    potassium::Union{Nothing, ConcentrationType}
-    iron::Union{Nothing, ConcentrationType}
-    nitrate::Union{Nothing, ConcentrationType}
-    nitrite::Union{Nothing, ConcentrationType}
-    flouride::Union{Nothing, ConcentrationType}
-    sulfate::ConcentrationType
-    chloride::ConcentrationType
-    sodium::ConcentrationType
-    magnesium::ConcentrationType
-    amount::Union{Nothing, VolumeType}
+    calcium::ConcentrationType{IntType, FloatType}
+    bicarbonate::ConcentrationType{IntType, FloatType}
+    carbonate::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    potassium::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    iron::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    nitrate::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    nitrite::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    flouride::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    sulfate::ConcentrationType{IntType, FloatType}
+    chloride::ConcentrationType{IntType, FloatType}
+    sodium::ConcentrationType{IntType, FloatType}
+    magnesium::ConcentrationType{IntType, FloatType}
+    amount::Union{Nothing, VolumeType{IntType, FloatType}}
     _extra::Dict{String, Any}
-    function WaterAdditionType(; name, producer = nothing, calcium, bicarbonate, carbonate = nothing, potassium = nothing, iron = nothing, nitrate = nothing, nitrite = nothing, flouride = nothing, sulfate, chloride, sodium, magnesium, amount = nothing, _extra = Dict{String, Any}())
+    function WaterAdditionType{IntType, FloatType}(; name, producer = nothing, calcium, bicarbonate, carbonate = nothing, potassium = nothing, iron = nothing, nitrate = nothing, nitrite = nothing, flouride = nothing, sulfate, chloride, sodium, magnesium, amount = nothing, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
         producer = _jsfrom(Union{Nothing, String}, producer)
-        calcium = _jsfrom(ConcentrationType, calcium)
-        bicarbonate = _jsfrom(ConcentrationType, bicarbonate)
-        carbonate = _jsfrom(Union{Nothing, ConcentrationType}, carbonate)
-        potassium = _jsfrom(Union{Nothing, ConcentrationType}, potassium)
-        iron = _jsfrom(Union{Nothing, ConcentrationType}, iron)
-        nitrate = _jsfrom(Union{Nothing, ConcentrationType}, nitrate)
-        nitrite = _jsfrom(Union{Nothing, ConcentrationType}, nitrite)
-        flouride = _jsfrom(Union{Nothing, ConcentrationType}, flouride)
-        sulfate = _jsfrom(ConcentrationType, sulfate)
-        chloride = _jsfrom(ConcentrationType, chloride)
-        sodium = _jsfrom(ConcentrationType, sodium)
-        magnesium = _jsfrom(ConcentrationType, magnesium)
-        amount = _jsfrom(Union{Nothing, VolumeType}, amount)
+        calcium = _jsfrom(ConcentrationType{IntType, FloatType}, calcium)
+        bicarbonate = _jsfrom(ConcentrationType{IntType, FloatType}, bicarbonate)
+        carbonate = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, carbonate)
+        potassium = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, potassium)
+        iron = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, iron)
+        nitrate = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, nitrate)
+        nitrite = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, nitrite)
+        flouride = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, flouride)
+        sulfate = _jsfrom(ConcentrationType{IntType, FloatType}, sulfate)
+        chloride = _jsfrom(ConcentrationType{IntType, FloatType}, chloride)
+        sodium = _jsfrom(ConcentrationType{IntType, FloatType}, sodium)
+        magnesium = _jsfrom(ConcentrationType{IntType, FloatType}, magnesium)
+        amount = _jsfrom(Union{Nothing, VolumeType{IntType, FloatType}}, amount)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(WaterAdditionType, (name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount), _extra)
+        _jscheck(WaterAdditionType{IntType, FloatType}, (name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount), _extra)
         return new(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra)
     end
 end
-WaterAdditionType(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra) = WaterAdditionType(; name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra)
+WaterAdditionType(; kwargs...) = WaterAdditionType{Int64, Float64}(; kwargs...)
+WaterAdditionType{IntType, FloatType}(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra) where {IntType <: Integer, FloatType <: Real} = WaterAdditionType{IntType, FloatType}(; name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra)
+WaterAdditionType(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra) = WaterAdditionType{_jsnumbertypes(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra)...}(; name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra)
 _SPECS[WaterAdditionType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

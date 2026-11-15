@@ -38,64 +38,70 @@ _SPECS[IBUMethodType] = (values = Any["Rager", "Tinseth", "Garetz", "Other"],)
 
 """
     OilContentType(; kwargs...)
+    OilContentType{IntType, FloatType}(; kwargs...)
 
 oil_content collects all information of a hop variety pertaining to oil content, polyphenols, and thiols. Each individual compound is expressed as a percent of the total oil measurement.
 
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
+
 # Fields
 
-- `total_oil_ml_per_100g::Union{Nothing, Float64}`: The total amount of oil, including hydrocarbons, esters, and terpene alcohols in units of ml of oil per 100g of hop mass.
-- `humulene::Union{Nothing, PercentType}`
-- `caryophyllene::Union{Nothing, PercentType}`
-- `cohumulone::Union{Nothing, PercentType}`
-- `myrcene::Union{Nothing, PercentType}`
-- `farnesene::Union{Nothing, PercentType}`
-- `geraniol::Union{Nothing, PercentType}`
-- `b_pinene::Union{Nothing, PercentType}`
-- `linalool::Union{Nothing, PercentType}`
-- `limonene::Union{Nothing, PercentType}`
-- `nerol::Union{Nothing, PercentType}`
-- `pinene::Union{Nothing, PercentType}`
-- `polyphenols::Union{Nothing, PercentType}`
-- `xanthohumol::Union{Nothing, PercentType}`
+- `total_oil_ml_per_100g::Union{Nothing, FloatType}`: The total amount of oil, including hydrocarbons, esters, and terpene alcohols in units of ml of oil per 100g of hop mass.
+- `humulene::Union{Nothing, PercentType{IntType, FloatType}}`
+- `caryophyllene::Union{Nothing, PercentType{IntType, FloatType}}`
+- `cohumulone::Union{Nothing, PercentType{IntType, FloatType}}`
+- `myrcene::Union{Nothing, PercentType{IntType, FloatType}}`
+- `farnesene::Union{Nothing, PercentType{IntType, FloatType}}`
+- `geraniol::Union{Nothing, PercentType{IntType, FloatType}}`
+- `b_pinene::Union{Nothing, PercentType{IntType, FloatType}}`
+- `linalool::Union{Nothing, PercentType{IntType, FloatType}}`
+- `limonene::Union{Nothing, PercentType{IntType, FloatType}}`
+- `nerol::Union{Nothing, PercentType{IntType, FloatType}}`
+- `pinene::Union{Nothing, PercentType{IntType, FloatType}}`
+- `polyphenols::Union{Nothing, PercentType{IntType, FloatType}}`
+- `xanthohumol::Union{Nothing, PercentType{IntType, FloatType}}`
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct OilContentType <: AbstractSchemaObject
-    total_oil_ml_per_100g::Union{Nothing, Float64}
-    humulene::Union{Nothing, PercentType}
-    caryophyllene::Union{Nothing, PercentType}
-    cohumulone::Union{Nothing, PercentType}
-    myrcene::Union{Nothing, PercentType}
-    farnesene::Union{Nothing, PercentType}
-    geraniol::Union{Nothing, PercentType}
-    b_pinene::Union{Nothing, PercentType}
-    linalool::Union{Nothing, PercentType}
-    limonene::Union{Nothing, PercentType}
-    nerol::Union{Nothing, PercentType}
-    pinene::Union{Nothing, PercentType}
-    polyphenols::Union{Nothing, PercentType}
-    xanthohumol::Union{Nothing, PercentType}
+struct OilContentType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+    total_oil_ml_per_100g::Union{Nothing, FloatType}
+    humulene::Union{Nothing, PercentType{IntType, FloatType}}
+    caryophyllene::Union{Nothing, PercentType{IntType, FloatType}}
+    cohumulone::Union{Nothing, PercentType{IntType, FloatType}}
+    myrcene::Union{Nothing, PercentType{IntType, FloatType}}
+    farnesene::Union{Nothing, PercentType{IntType, FloatType}}
+    geraniol::Union{Nothing, PercentType{IntType, FloatType}}
+    b_pinene::Union{Nothing, PercentType{IntType, FloatType}}
+    linalool::Union{Nothing, PercentType{IntType, FloatType}}
+    limonene::Union{Nothing, PercentType{IntType, FloatType}}
+    nerol::Union{Nothing, PercentType{IntType, FloatType}}
+    pinene::Union{Nothing, PercentType{IntType, FloatType}}
+    polyphenols::Union{Nothing, PercentType{IntType, FloatType}}
+    xanthohumol::Union{Nothing, PercentType{IntType, FloatType}}
     _extra::Dict{String, Any}
-    function OilContentType(; total_oil_ml_per_100g = nothing, humulene = nothing, caryophyllene = nothing, cohumulone = nothing, myrcene = nothing, farnesene = nothing, geraniol = nothing, b_pinene = nothing, linalool = nothing, limonene = nothing, nerol = nothing, pinene = nothing, polyphenols = nothing, xanthohumol = nothing, _extra = Dict{String, Any}())
-        total_oil_ml_per_100g = _jsfrom(Union{Nothing, Float64}, total_oil_ml_per_100g)
-        humulene = _jsfrom(Union{Nothing, PercentType}, humulene)
-        caryophyllene = _jsfrom(Union{Nothing, PercentType}, caryophyllene)
-        cohumulone = _jsfrom(Union{Nothing, PercentType}, cohumulone)
-        myrcene = _jsfrom(Union{Nothing, PercentType}, myrcene)
-        farnesene = _jsfrom(Union{Nothing, PercentType}, farnesene)
-        geraniol = _jsfrom(Union{Nothing, PercentType}, geraniol)
-        b_pinene = _jsfrom(Union{Nothing, PercentType}, b_pinene)
-        linalool = _jsfrom(Union{Nothing, PercentType}, linalool)
-        limonene = _jsfrom(Union{Nothing, PercentType}, limonene)
-        nerol = _jsfrom(Union{Nothing, PercentType}, nerol)
-        pinene = _jsfrom(Union{Nothing, PercentType}, pinene)
-        polyphenols = _jsfrom(Union{Nothing, PercentType}, polyphenols)
-        xanthohumol = _jsfrom(Union{Nothing, PercentType}, xanthohumol)
+    function OilContentType{IntType, FloatType}(; total_oil_ml_per_100g = nothing, humulene = nothing, caryophyllene = nothing, cohumulone = nothing, myrcene = nothing, farnesene = nothing, geraniol = nothing, b_pinene = nothing, linalool = nothing, limonene = nothing, nerol = nothing, pinene = nothing, polyphenols = nothing, xanthohumol = nothing, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+        total_oil_ml_per_100g = _jsfrom(Union{Nothing, FloatType}, total_oil_ml_per_100g)
+        humulene = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, humulene)
+        caryophyllene = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, caryophyllene)
+        cohumulone = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, cohumulone)
+        myrcene = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, myrcene)
+        farnesene = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, farnesene)
+        geraniol = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, geraniol)
+        b_pinene = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, b_pinene)
+        linalool = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, linalool)
+        limonene = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, limonene)
+        nerol = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, nerol)
+        pinene = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, pinene)
+        polyphenols = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, polyphenols)
+        xanthohumol = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, xanthohumol)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(OilContentType, (total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol), _extra)
+        _jscheck(OilContentType{IntType, FloatType}, (total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol), _extra)
         return new(total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra)
     end
 end
-OilContentType(total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra) = OilContentType(; total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra)
+OilContentType(; kwargs...) = OilContentType{Int64, Float64}(; kwargs...)
+OilContentType{IntType, FloatType}(total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra) where {IntType <: Integer, FloatType <: Real} = OilContentType{IntType, FloatType}(; total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra)
+OilContentType(total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra) = OilContentType{_jsnumbertypes(total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra)...}(; total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra)
 _SPECS[OilContentType] = (
     fields = (
         (name = :total_oil_ml_per_100g, key = "total_oil_ml_per_100g", required = false, nullable = false, constraints = nothing),
@@ -122,20 +128,26 @@ _SPECS[OilContentType] = (
 
 """
     HopInventoryType(; kwargs...)
+    HopInventoryType{IntType, FloatType}(; kwargs...)
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
-- `amount::Union{Nothing, VolumeType, MassType}`
+- `amount::Union{Nothing, VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}`
 """
-struct HopInventoryType <: AbstractSchemaObject
-    amount::Union{Nothing, VolumeType, MassType}
-    function HopInventoryType(; amount = nothing)
-        amount = _jsfrom(Union{Nothing, VolumeType, MassType}, amount)
-        _jscheck(HopInventoryType, (amount,), nothing)
+struct HopInventoryType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+    amount::Union{Nothing, VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}
+    function HopInventoryType{IntType, FloatType}(; amount = nothing) where {IntType <: Integer, FloatType <: Real}
+        amount = _jsfrom(Union{Nothing, VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}, amount)
+        _jscheck(HopInventoryType{IntType, FloatType}, (amount,), nothing)
         return new(amount)
     end
 end
-HopInventoryType(amount) = HopInventoryType(; amount)
+HopInventoryType(; kwargs...) = HopInventoryType{Int64, Float64}(; kwargs...)
+HopInventoryType{IntType, FloatType}(amount) where {IntType <: Integer, FloatType <: Real} = HopInventoryType{IntType, FloatType}(; amount)
+HopInventoryType(amount) = HopInventoryType{_jsnumbertypes(amount)...}(; amount)
 _SPECS[HopInventoryType] = (
     fields = (
         (name = :amount, key = "amount", required = false, nullable = false, constraints = (schema = JSON.parse("""
@@ -160,8 +172,12 @@ _SPECS[HopInventoryType] = (
 
 """
     VarietyInformation(; kwargs...)
+    VarietyInformation{IntType, FloatType}(; kwargs...)
 
 VarietyInformation collects the attributes of a hop variety to store as record information.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
@@ -171,53 +187,55 @@ VarietyInformation collects the attributes of a hop variety to store as record i
 - `origin::Union{Nothing, String}`
 - `year::Union{Nothing, String}`
 - `form::Union{Nothing, HopVarietyFormEnum}`
-- `alpha_acid::PercentType` (required)
-- `beta_acid::Union{Nothing, PercentType}`
+- `alpha_acid::PercentType{IntType, FloatType}` (required)
+- `beta_acid::Union{Nothing, PercentType{IntType, FloatType}}`
 - `type::Union{Nothing, VarietyInformationTypeEnum}`
 - `notes::Union{Nothing, String}`
-- `percent_lost::Union{Nothing, PercentType}`:  Defined as the percentage of hop alpha lost in 6 months of storage.
+- `percent_lost::Union{Nothing, PercentType{IntType, FloatType}}`:  Defined as the percentage of hop alpha lost in 6 months of storage.
 - `substitutes::Union{Nothing, String}`
-- `oil_content::Union{Nothing, OilContentType}`: Oil Content information object.
-- `inventory::Union{Nothing, HopInventoryType}`
+- `oil_content::Union{Nothing, OilContentType{IntType, FloatType}}`: Oil Content information object.
+- `inventory::Union{Nothing, HopInventoryType{IntType, FloatType}}`
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct VarietyInformation <: AbstractSchemaObject
+struct VarietyInformation{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
     origin::Union{Nothing, String}
     year::Union{Nothing, String}
     form::Union{Nothing, HopVarietyFormEnum}
-    alpha_acid::PercentType
-    beta_acid::Union{Nothing, PercentType}
+    alpha_acid::PercentType{IntType, FloatType}
+    beta_acid::Union{Nothing, PercentType{IntType, FloatType}}
     type::Union{Nothing, VarietyInformationTypeEnum}
     notes::Union{Nothing, String}
-    percent_lost::Union{Nothing, PercentType}
+    percent_lost::Union{Nothing, PercentType{IntType, FloatType}}
     substitutes::Union{Nothing, String}
-    oil_content::Union{Nothing, OilContentType}
-    inventory::Union{Nothing, HopInventoryType}
+    oil_content::Union{Nothing, OilContentType{IntType, FloatType}}
+    inventory::Union{Nothing, HopInventoryType{IntType, FloatType}}
     _extra::Dict{String, Any}
-    function VarietyInformation(; name, producer = nothing, product_id = nothing, origin = nothing, year = nothing, form = nothing, alpha_acid, beta_acid = nothing, type = nothing, notes = nothing, percent_lost = nothing, substitutes = nothing, oil_content = nothing, inventory = nothing, _extra = Dict{String, Any}())
+    function VarietyInformation{IntType, FloatType}(; name, producer = nothing, product_id = nothing, origin = nothing, year = nothing, form = nothing, alpha_acid, beta_acid = nothing, type = nothing, notes = nothing, percent_lost = nothing, substitutes = nothing, oil_content = nothing, inventory = nothing, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
         origin = _jsfrom(Union{Nothing, String}, origin)
         year = _jsfrom(Union{Nothing, String}, year)
         form = _jsfrom(Union{Nothing, HopVarietyFormEnum}, form)
-        alpha_acid = _jsfrom(PercentType, alpha_acid)
-        beta_acid = _jsfrom(Union{Nothing, PercentType}, beta_acid)
+        alpha_acid = _jsfrom(PercentType{IntType, FloatType}, alpha_acid)
+        beta_acid = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, beta_acid)
         type = _jsfrom(Union{Nothing, VarietyInformationTypeEnum}, type)
         notes = _jsfrom(Union{Nothing, String}, notes)
-        percent_lost = _jsfrom(Union{Nothing, PercentType}, percent_lost)
+        percent_lost = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, percent_lost)
         substitutes = _jsfrom(Union{Nothing, String}, substitutes)
-        oil_content = _jsfrom(Union{Nothing, OilContentType}, oil_content)
-        inventory = _jsfrom(Union{Nothing, HopInventoryType}, inventory)
+        oil_content = _jsfrom(Union{Nothing, OilContentType{IntType, FloatType}}, oil_content)
+        inventory = _jsfrom(Union{Nothing, HopInventoryType{IntType, FloatType}}, inventory)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(VarietyInformation, (name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory), _extra)
+        _jscheck(VarietyInformation{IntType, FloatType}, (name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory), _extra)
         return new(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra)
     end
 end
-VarietyInformation(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra) = VarietyInformation(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra)
+VarietyInformation(; kwargs...) = VarietyInformation{Int64, Float64}(; kwargs...)
+VarietyInformation{IntType, FloatType}(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra) where {IntType <: Integer, FloatType <: Real} = VarietyInformation{IntType, FloatType}(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra)
+VarietyInformation(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra) = VarietyInformation{_jsnumbertypes(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra)...}(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra)
 _SPECS[VarietyInformation] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
@@ -244,8 +262,12 @@ _SPECS[VarietyInformation] = (
 
 """
     HopAdditionType(; kwargs...)
+    HopAdditionType{IntType, FloatType}(; kwargs...)
 
 HopAdditionType collects the attributes of each hop ingredient for use in a recipe hop bil.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
@@ -255,41 +277,43 @@ HopAdditionType collects the attributes of each hop ingredient for use in a reci
 - `origin::Union{Nothing, String}`
 - `year::Union{Nothing, String}`
 - `form::Union{Nothing, HopVarietyFormEnum}`
-- `alpha_acid::PercentType` (required)
-- `beta_acid::Union{Nothing, PercentType}`
-- `timing::TimingType` (required): The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
-- `amount::Union{VolumeType, MassType}` (required)
+- `alpha_acid::PercentType{IntType, FloatType}` (required)
+- `beta_acid::Union{Nothing, PercentType{IntType, FloatType}}`
+- `timing::TimingType{IntType, FloatType}` (required): The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
+- `amount::Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct HopAdditionType <: AbstractSchemaObject
+struct HopAdditionType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
     origin::Union{Nothing, String}
     year::Union{Nothing, String}
     form::Union{Nothing, HopVarietyFormEnum}
-    alpha_acid::PercentType
-    beta_acid::Union{Nothing, PercentType}
-    timing::TimingType
-    amount::Union{VolumeType, MassType}
+    alpha_acid::PercentType{IntType, FloatType}
+    beta_acid::Union{Nothing, PercentType{IntType, FloatType}}
+    timing::TimingType{IntType, FloatType}
+    amount::Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}
     _extra::Dict{String, Any}
-    function HopAdditionType(; name, producer = nothing, product_id = nothing, origin = nothing, year = nothing, form = nothing, alpha_acid, beta_acid = nothing, timing, amount, _extra = Dict{String, Any}())
+    function HopAdditionType{IntType, FloatType}(; name, producer = nothing, product_id = nothing, origin = nothing, year = nothing, form = nothing, alpha_acid, beta_acid = nothing, timing, amount, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
         origin = _jsfrom(Union{Nothing, String}, origin)
         year = _jsfrom(Union{Nothing, String}, year)
         form = _jsfrom(Union{Nothing, HopVarietyFormEnum}, form)
-        alpha_acid = _jsfrom(PercentType, alpha_acid)
-        beta_acid = _jsfrom(Union{Nothing, PercentType}, beta_acid)
-        timing = _jsfrom(TimingType, timing)
-        amount = _jsfrom(Union{VolumeType, MassType}, amount)
+        alpha_acid = _jsfrom(PercentType{IntType, FloatType}, alpha_acid)
+        beta_acid = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, beta_acid)
+        timing = _jsfrom(TimingType{IntType, FloatType}, timing)
+        amount = _jsfrom(Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}, amount)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(HopAdditionType, (name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount), _extra)
+        _jscheck(HopAdditionType{IntType, FloatType}, (name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount), _extra)
         return new(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
     end
 end
-HopAdditionType(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra) = HopAdditionType(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
+HopAdditionType(; kwargs...) = HopAdditionType{Int64, Float64}(; kwargs...)
+HopAdditionType{IntType, FloatType}(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra) where {IntType <: Integer, FloatType <: Real} = HopAdditionType{IntType, FloatType}(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
+HopAdditionType(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra) = HopAdditionType{_jsnumbertypes(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)...}(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
 _SPECS[HopAdditionType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
@@ -323,25 +347,31 @@ _SPECS[HopAdditionType] = (
 
 """
     IBUEstimateType(; kwargs...)
+    IBUEstimateType{IntType, FloatType}(; kwargs...)
 
 Used to differentiate which IBU formula is being used in a recipe. If formula is modified in any way, eg to support whirlpool/flameout additions etc etc, please use `Other` for transparency.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
 - `method::Union{Nothing, IBUMethodType}`
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct IBUEstimateType <: AbstractSchemaObject
+struct IBUEstimateType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     method::Union{Nothing, IBUMethodType}
     _extra::Dict{String, Any}
-    function IBUEstimateType(; method = nothing, _extra = Dict{String, Any}())
+    function IBUEstimateType{IntType, FloatType}(; method = nothing, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
         method = _jsfrom(Union{Nothing, IBUMethodType}, method)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(IBUEstimateType, (method,), _extra)
+        _jscheck(IBUEstimateType{IntType, FloatType}, (method,), _extra)
         return new(method, _extra)
     end
 end
-IBUEstimateType(method, _extra) = IBUEstimateType(; method, _extra)
+IBUEstimateType(; kwargs...) = IBUEstimateType{Int64, Float64}(; kwargs...)
+IBUEstimateType{IntType, FloatType}(method, _extra) where {IntType <: Integer, FloatType <: Real} = IBUEstimateType{IntType, FloatType}(; method, _extra)
+IBUEstimateType(method, _extra) = IBUEstimateType{_jsnumbertypes(method, _extra)...}(; method, _extra)
 _SPECS[IBUEstimateType] = (
     fields = (
         (name = :method, key = "method", required = false, nullable = false, constraints = nothing),

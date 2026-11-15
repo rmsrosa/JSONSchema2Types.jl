@@ -29,12 +29,11 @@ julia> using Pkg
 julia> Pkg.add(url = "https://github.com/rmsrosa/JSONSchema2Types.jl")
 ```
 
-## Related packages
+## Other packages
 
-* [JSONSchema.jl](https://github.com/JuliaIO/JSONSchema.jl) validates JSON documents
-  against a schema, without generating types.
-* [JSONSchemaGenerator.jl](https://github.com/matthijscox/JSONSchemaGenerator.jl) and
-  [Struct2JSONSchema.jl](https://github.com/abap34/Struct2JSONSchema.jl) go the other way, from Julia types to JSON Schemas.
+Other packages validate JSON documents against schemas (JSONSchema.jl,
+CorvusJsonSchema.jl) or generate schemas from Julia types (JSONSchemaGenerator.jl,
+Struct2JSONSchema.jl). See [Related packages](@ref) for how they compare.
 
 ## Quick start
 
@@ -64,4 +63,5 @@ julia> writejson("product-copy.json", p);            # and write it back
 * [Generated code](@ref): what the generated code looks like and how it works, including
   the internal functions it calls (`_jsfrom`, `_jscheck`, `_jsto`).
 * [Conformance](@ref): the results of the official JSON Schema Test Suite.
+* [Related packages](@ref): other packages for JSON Schema in Julia, and how they compare.
 * [API](@ref): the reference of the package and of the generated modules.
