@@ -18,8 +18,8 @@ const FORMAT_TYPES = Dict(
 
 const PRIMITIVE_TYPES = Dict(
     "string" => "String",
-    "number" => "Float64",
-    "integer" => "Int64",
+    "number" => "FloatType",
+    "integer" => "IntType",
     "boolean" => "Bool",
     "null" => "Nothing",
 )
@@ -31,7 +31,7 @@ const RESERVED_NAMES = Set([
     "import", "in", "isa", "let", "local", "macro", "module", "mutable", "new", "outer",
     "primitive", "public", "quote", "return", "struct", "true", "try", "type", "using",
     "where", "while", "nothing", "missing", "Any", "Nothing", "String", "Bool", "Int64",
-    "Float64", "Vector", "Dict", "Union",
+    "Float64", "Vector", "Dict", "Union", "IntType", "FloatType",
 ])
 # `type` is not a reserved word in Julia, so we allow it as a field name.
 delete!(RESERVED_NAMES, "type")
@@ -639,7 +639,7 @@ function resolve_type(gen::Generator, file::String, pointer::String, node, depth
         target = get_node(gen, f, p)
         if needs_named_type(gen, f, p, target)
             name = generate_named_type!(gen, f, p, target)
-            return TypeRef(name, [name]), nothing
+            return named_typeref(gen, name), nothing
         end
         t, c = resolve_type(gen, f, p, target, depth + 1)
         # constraints next to the `$ref` (ignored before draft 2019-09, but harmless)
@@ -650,7 +650,7 @@ function resolve_type(gen::Generator, file::String, pointer::String, node, depth
 
     if needs_named_type(gen, file, pointer, node)
         name = generate_named_type!(gen, file, pointer, node)
-        return TypeRef(name, [name]), nothing
+        return named_typeref(gen, name), nothing
     end
 
     if haskey(node, "allOf")
@@ -726,6 +726,21 @@ function resolve_type(gen::Generator, file::String, pointer::String, node, depth
         return TypeRef(PRIMITIVE_TYPES[jtype]), constraints
     end
     return TypeRef("Any"), constraints
+end
+
+# The type of a generated type in field types: structs are parametrized by the integer and
+# floating-point types, `IntType` and `FloatType`, of the struct that contains them.
+function named_typeref(gen::Generator, name::String)
+    def = gen.types[gen.taken[name]]
+    return TypeRef(def isa ObjectDef ? "$name{IntType, FloatType}" : name, [name])
+end
+
+# The types `IntType` and `FloatType` replaced by the default ones, `Int64` and `Float64`,
+# and parametric structs by their `UnionAll` types (whose constructors use these defaults).
+function default_numbers(expr::String)
+    m = match(r"^([A-Za-z_][A-Za-z0-9_]*)\{IntType, FloatType\}$", expr)
+    m === nothing || return String(m[1])
+    return replace(expr, r"\bIntType\b" => "Int64", r"\bFloatType\b" => "Float64")
 end
 
 function union_typeref(options::Vector{TypeRef})
@@ -1269,8 +1284,12 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
     # docstring
     println(io, "\"\"\"")
     println(io, "    ", d.name, "(; kwargs...)")
+    println(io, "    ", d.name, "{IntType, FloatType}(; kwargs...)")
     println(io)
     isempty(d.description) || (println(io, escape_docstring(d.description)); println(io))
+    println(io, "Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`")
+    println(io, "and `Float64`.")
+    println(io)
     if !isempty(d.fields)
         println(io, "# Fields")
         println(io)
@@ -1291,7 +1310,8 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
     println(io, "\"\"\"")
 
     # struct definition
-    println(io, "struct ", d.name, " <: AbstractSchemaObject")
+    params = "{IntType <: Integer, FloatType <: Real}"
+    println(io, "struct ", d.name, params, " <: AbstractSchemaObject")
     for f in d.fields
         # Types not yet defined (due to cyclic dependencies) are declared as `Any`;
         # the constructor still converts and checks them.
@@ -1307,22 +1327,28 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
         println(io, "    ", extra, "::Dict{String, ", extra_type, "}")
         push!(kwargs, extra * " = Dict{String, Any}()")
     end
-    println(io, "    function ", d.name, "(; ", join(kwargs, ", "), ")")
+    println(io, "    function ", d.name, "{IntType, FloatType}(; ", join(kwargs, ", "), ") where ", params)
     for f in d.fields
         println(io, "        ", f.name, " = _jsfrom(", f.type.expr, ", ", f.name, ")")
     end
     extra === nothing || println(io, "        ", extra, " = _jsfrom(Dict{String, ", d.extra_type.expr, "}, ", extra, ")")
     vals = join([f.name for f in d.fields], ", ")
-    println(io, "        _jscheck(", d.name, ", (", vals, isempty(d.fields) || length(d.fields) > 1 ? "" : ",", "), ",
+    println(io, "        _jscheck(", d.name, "{IntType, FloatType}, (", vals, isempty(d.fields) || length(d.fields) > 1 ? "" : ",", "), ",
             something(extra, "nothing"), ")")
     println(io, "        return new(", join(vcat([f.name for f in d.fields], extra === nothing ? String[] : [extra]), ", "), ")")
     println(io, "    end")
     println(io, "end")
     # positional constructor, with the fields in order (as printed, and as used by
     # ConstructionBase.jl/Accessors.jl to rebuild a value)
+    # (without parameters: the default `Int64` and `Float64` for keyword arguments, and the
+    # numeric types of the arguments, if any, for positional ones)
+    println(io, d.name, "(; kwargs...) = ", d.name, "{Int64, Float64}(; kwargs...)")
     allfields = vcat([f.name for f in d.fields], extra === nothing ? String[] : [extra])
     if !isempty(allfields)
-        println(io, d.name, "(", join(allfields, ", "), ") = ", d.name, "(; ", join(allfields, ", "), ")")
+        args = join(allfields, ", ")
+        println(io, d.name, "{IntType, FloatType}(", args, ") where ", params, " = ",
+                d.name, "{IntType, FloatType}(; ", args, ")")
+        println(io, d.name, "(", args, ") = ", d.name, "{_jsnumbertypes(", args, ")...}(; ", args, ")")
     end
 
     # metadata
@@ -1521,13 +1547,14 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
     println(io, "\"\"\"")
     println(io, "    RootType")
     println(io)
-    if root_type.expr in names
-        println(io, "Alias of `", root_type.expr, "`, the type of the root of the schema.")
+    root_expr = default_numbers(root_type.expr)
+    if root_expr in names
+        println(io, "Alias of `", root_expr, "`, the type of the root of the schema.")
     else
         println(io, "Type of the root of the schema.")
     end
     println(io, "\"\"\"")
-    println(io, "const RootType = ", root_type.expr)
+    println(io, "const RootType = ", root_expr)
     if root_constraints !== nothing
         println(io)
         println(io, "# constraints on the root of the schema, checked when reading a document")

@@ -23,6 +23,11 @@ canon(x::AbstractVector) = Any[canon(v) for v in x]
 canon(x::Real) = x isa Bool ? x : Float64(x)
 canon(x) = x
 
+approx(a, b) = a == b
+approx(a::Real, b::Real) = isapprox(a, b; rtol = 1e-12)
+approx(a::AbstractDict, b::AbstractDict) = keys(a) == keys(b) && all(approx(a[k], b[k]) for k in keys(a))
+approx(a::AbstractVector, b::AbstractVector) = length(a) == length(b) && all(approx(x, y) for (x, y) in zip(a, b))
+
 @testset "JSONSchema2Types.jl" begin
 
 @testset "Identifiers" begin
@@ -101,7 +106,7 @@ end
     @test_throws E M.fromdict(M.StrictLabeledCircle, Dict("radius" => 1, "lable" => "c"))
     # `unevaluatedProperties` with a schema types the additional properties
     t = M.fromdict(M.TypedExtra, Dict("name" => "n", "weight" => 2))
-    @test t._extra == Dict("weight" => 2.0) && fieldtype(M.TypedExtra, :_extra) == Dict{String, Float64}
+    @test t._extra == Dict("weight" => 2.0) && fieldtype(M.TypedExtra{Int64, Float64}, :_extra) == Dict{String, Float64}
     @test_throws E M.fromdict(M.TypedExtra, Dict("name" => "n", "weight" => "heavy"))
     @test bad("strict", Dict("radius" => 1)).strict isa M.StrictLabeledCircle
     # `additionalProperties: false` in a subschema of `allOf` applies to the instance as a
@@ -258,10 +263,10 @@ end
 
 @testset "Tuples" begin
     M = load_generated(joinpath(@__DIR__, "schemas", "tuples.json"))
-    T = M.Tuples
+    T = M.Tuples{Int64, Float64}
     @test fieldtype(T, :point) == Union{Nothing, Tuple{Float64, Float64}}
     @test fieldtype(T, :row) == Union{Nothing, Tuple{String, Vararg{Int64}}}
-    @test fieldtype(T, :tagged) == Union{Nothing, Tuple{M.TuplesTaggedItem1Enum, M.TuplesTaggedItem2, Vararg{Any}}}
+    @test fieldtype(T, :tagged) == Union{Nothing, Tuple{M.TuplesTaggedItem1Enum, M.TuplesTaggedItem2{Int64, Float64}, Vararg{Any}}}
     @test fieldtype(T, :optional) == Union{Nothing, Vector{Any}}
     @test fieldtype(T, :draft7) == Union{Nothing, Tuple{String, Bool}}
     json = """{"point": [1, 2.5], "row": ["r", 1, 2, 3], "tagged": ["a", {"x": 1}, null, 7],
@@ -337,7 +342,7 @@ end
     push!(x.tags, "c")
     @test M.Settings(name = "n").tags == ["a", "b"]
     code = read(generate_module(schema, joinpath(mktempdir(), "d.jl"); use_defaults = true), String)
-    @test occursin("- `level::Union{Nothing, Int64}`: defaults to `3`.", code)
+    @test occursin("- `level::Union{Nothing, IntType}`: defaults to `3`.", code)
 end
 
 @testset "setfields and positional constructors" begin
@@ -356,6 +361,43 @@ end
                                             "timing": {}, "amount": {"unit": "g", "value": 2}}""")
     @test M.HopAdditionType(getfield.(Ref(hop), fieldnames(M.HopAdditionType))...) == hop
     @test M.setfields(hop; amount = (unit = "kg", value = 1)).amount isa M.MassType
+end
+
+@testset "Numeric types" begin
+    M = load_generated(joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json"); root_name = "BeerJSON")
+    # by default, integers are `Int64` and other numbers `Float64`
+    v = M.VolumeType(unit = "l", value = 20)
+    @test v isa M.VolumeType{Int64, Float64} && v.value === 20.0
+    @test repr(v) == "VolumeType(VolumeUnitType(\"l\"), 20.0)"
+    # any `Integer` and `Real` types can be chosen
+    w = M.VolumeType{Int, BigFloat}(unit = "l", value = 20)
+    @test w.value isa BigFloat && repr(w) == "VolumeType{Int64, BigFloat}(VolumeUnitType(\"l\"), 20.0)"
+    @test M.VolumeType{Int, Rational{Int}}(unit = "l", value = 0.5).value === 1 // 2
+    @test M.VolumeType{Int32, Float32}(unit = "l", value = 2.5).value === 2.5f0
+    # and they propagate to the nested structs
+    file = joinpath(SAMPLES, "real", "SourMash.json")
+    big = M.readjson(M.BeerJSON{BigInt, BigFloat}, file)
+    recipe = only(big.beerjson.recipes)
+    @test recipe isa M.RecipeType{BigInt, BigFloat}
+    @test recipe.batch_size isa M.VolumeType{BigInt, BigFloat}
+    @test recipe.ingredients.fermentable_additions[1].amount isa Union{M.MassType{BigInt, BigFloat}, M.VolumeType{BigInt, BigFloat}}
+    # numbers are parsed with full precision for other floating-point types
+    x = setprecision(BigFloat, 256) do
+        M.fromjson(M.VolumeType{Int, BigFloat}, """{"unit": "l", "value": 1.000000000000000000001}""")
+    end
+    @test x.value > 1 && x.value - 1 < 1e-20
+    @test M.fromjson(M.VolumeType, """{"unit": "l", "value": 1.000000000000000000001}""").value === 1.0
+    # all the samples read with big numbers, with the same values
+    for f in [joinpath(d, f) for d in readdir(SAMPLES; join = true) if isdir(d) for f in readdir(d) if endswith(f, ".json")]
+        @test approx(canon(JSON.parse(M.tojson(M.readjson(M.BeerJSON{BigInt, BigFloat}, f)))), canon(JSON.parse(read(f, String))))
+    end
+    # integers out of range of the chosen type are rejected
+    @test_throws M.SchemaValidationError M.fromjson(M.TimingType{Int8, Float64}, """{"step": 300}""")
+    @test M.fromjson(M.TimingType{BigInt, Float64}, """{"step": 123456789012345678901234567890}""").step ==
+          big"123456789012345678901234567890"
+    # positional constructors infer the numeric types from their arguments
+    @test M.VolumeType(M.VolumeUnitType("l"), big"2.5") isa M.VolumeType{Int64, BigFloat}
+    @test M.setfields(w; value = 3).value isa BigFloat
 end
 
 @testset "Additional properties are preserved" begin

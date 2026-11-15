@@ -18,52 +18,58 @@ _SPECS[BoilStepChillingTypeEnum] = (values = Any["batch", "inline"],)
 
 """
     BoilStepType(; kwargs...)
+    BoilStepType{IntType, FloatType}(; kwargs...)
 
 BoilStepType - a per step representation of a boil process, can be used to support preboil steps, non-boiling pasteurization steps, boiling, whirlpool steps, and chilling.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
 - `name::String` (required)
 - `description::Union{Nothing, String}`
-- `start_temperature::Union{Nothing, TemperatureType}`
-- `end_temperature::Union{Nothing, TemperatureType}`
-- `ramp_time::Union{Nothing, TimeType}`: The amount of time that passes before this step begins. eg moving from a boiling step (step 1) to a whirlpool step (step 2) may take 5 minutes. Step 2 would have a ramp time of 5 minutes, hop isomerization and bitterness calculations will need to account for this accordingly.
-- `step_time::Union{Nothing, TimeType}`
-- `start_gravity::Union{Nothing, GravityType}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
-- `end_gravity::Union{Nothing, GravityType}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
-- `start_ph::Union{Nothing, AcidityType}`
-- `end_ph::Union{Nothing, AcidityType}`
+- `start_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}`
+- `end_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}`
+- `ramp_time::Union{Nothing, TimeType{IntType, FloatType}}`: The amount of time that passes before this step begins. eg moving from a boiling step (step 1) to a whirlpool step (step 2) may take 5 minutes. Step 2 would have a ramp time of 5 minutes, hop isomerization and bitterness calculations will need to account for this accordingly.
+- `step_time::Union{Nothing, TimeType{IntType, FloatType}}`
+- `start_gravity::Union{Nothing, GravityType{IntType, FloatType}}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
+- `end_gravity::Union{Nothing, GravityType{IntType, FloatType}}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
+- `start_ph::Union{Nothing, AcidityType{IntType, FloatType}}`
+- `end_ph::Union{Nothing, AcidityType{IntType, FloatType}}`
 - `chilling_type::Union{Nothing, BoilStepChillingTypeEnum}`: Chilling type seperates batch chilling, eg immersion chillers, where the entire volume of wort is brought down in temperture as a whole, vs inline chilling where the wort is chilled while it is being drained, which can leave a significant amount of hop isomerization occuring in the boil kettle.
 """
-struct BoilStepType <: AbstractSchemaObject
+struct BoilStepType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
     description::Union{Nothing, String}
-    start_temperature::Union{Nothing, TemperatureType}
-    end_temperature::Union{Nothing, TemperatureType}
-    ramp_time::Union{Nothing, TimeType}
-    step_time::Union{Nothing, TimeType}
-    start_gravity::Union{Nothing, GravityType}
-    end_gravity::Union{Nothing, GravityType}
-    start_ph::Union{Nothing, AcidityType}
-    end_ph::Union{Nothing, AcidityType}
+    start_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}
+    end_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}
+    ramp_time::Union{Nothing, TimeType{IntType, FloatType}}
+    step_time::Union{Nothing, TimeType{IntType, FloatType}}
+    start_gravity::Union{Nothing, GravityType{IntType, FloatType}}
+    end_gravity::Union{Nothing, GravityType{IntType, FloatType}}
+    start_ph::Union{Nothing, AcidityType{IntType, FloatType}}
+    end_ph::Union{Nothing, AcidityType{IntType, FloatType}}
     chilling_type::Union{Nothing, BoilStepChillingTypeEnum}
-    function BoilStepType(; name, description = nothing, start_temperature = nothing, end_temperature = nothing, ramp_time = nothing, step_time = nothing, start_gravity = nothing, end_gravity = nothing, start_ph = nothing, end_ph = nothing, chilling_type = nothing)
+    function BoilStepType{IntType, FloatType}(; name, description = nothing, start_temperature = nothing, end_temperature = nothing, ramp_time = nothing, step_time = nothing, start_gravity = nothing, end_gravity = nothing, start_ph = nothing, end_ph = nothing, chilling_type = nothing) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
         description = _jsfrom(Union{Nothing, String}, description)
-        start_temperature = _jsfrom(Union{Nothing, TemperatureType}, start_temperature)
-        end_temperature = _jsfrom(Union{Nothing, TemperatureType}, end_temperature)
-        ramp_time = _jsfrom(Union{Nothing, TimeType}, ramp_time)
-        step_time = _jsfrom(Union{Nothing, TimeType}, step_time)
-        start_gravity = _jsfrom(Union{Nothing, GravityType}, start_gravity)
-        end_gravity = _jsfrom(Union{Nothing, GravityType}, end_gravity)
-        start_ph = _jsfrom(Union{Nothing, AcidityType}, start_ph)
-        end_ph = _jsfrom(Union{Nothing, AcidityType}, end_ph)
+        start_temperature = _jsfrom(Union{Nothing, TemperatureType{IntType, FloatType}}, start_temperature)
+        end_temperature = _jsfrom(Union{Nothing, TemperatureType{IntType, FloatType}}, end_temperature)
+        ramp_time = _jsfrom(Union{Nothing, TimeType{IntType, FloatType}}, ramp_time)
+        step_time = _jsfrom(Union{Nothing, TimeType{IntType, FloatType}}, step_time)
+        start_gravity = _jsfrom(Union{Nothing, GravityType{IntType, FloatType}}, start_gravity)
+        end_gravity = _jsfrom(Union{Nothing, GravityType{IntType, FloatType}}, end_gravity)
+        start_ph = _jsfrom(Union{Nothing, AcidityType{IntType, FloatType}}, start_ph)
+        end_ph = _jsfrom(Union{Nothing, AcidityType{IntType, FloatType}}, end_ph)
         chilling_type = _jsfrom(Union{Nothing, BoilStepChillingTypeEnum}, chilling_type)
-        _jscheck(BoilStepType, (name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type), nothing)
+        _jscheck(BoilStepType{IntType, FloatType}, (name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type), nothing)
         return new(name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type)
     end
 end
-BoilStepType(name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type) = BoilStepType(; name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type)
+BoilStepType(; kwargs...) = BoilStepType{Int64, Float64}(; kwargs...)
+BoilStepType{IntType, FloatType}(name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type) where {IntType <: Integer, FloatType <: Real} = BoilStepType{IntType, FloatType}(; name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type)
+BoilStepType(name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type) = BoilStepType{_jsnumbertypes(name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type)...}(; name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type)
 _SPECS[BoilStepType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

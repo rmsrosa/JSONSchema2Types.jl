@@ -5,37 +5,43 @@
 
 """
     BoilProcedureType(; kwargs...)
+    BoilProcedureType{IntType, FloatType}(; kwargs...)
 
 BoilProcedureType defines the procedure for performing a boil. A boil procedure with no steps is the same as a standard single step boil.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
 - `name::Union{Nothing, String}`
 - `description::Union{Nothing, String}`
 - `notes::Union{Nothing, String}`
-- `pre_boil_size::Union{Nothing, VolumeType}`
-- `boil_time::TimeType` (required)
-- `boil_steps::Union{Nothing, Vector{BoilStepType}}`
+- `pre_boil_size::Union{Nothing, VolumeType{IntType, FloatType}}`
+- `boil_time::TimeType{IntType, FloatType}` (required)
+- `boil_steps::Union{Nothing, Vector{BoilStepType{IntType, FloatType}}}`
 """
-struct BoilProcedureType <: AbstractSchemaObject
+struct BoilProcedureType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::Union{Nothing, String}
     description::Union{Nothing, String}
     notes::Union{Nothing, String}
-    pre_boil_size::Union{Nothing, VolumeType}
-    boil_time::TimeType
-    boil_steps::Union{Nothing, Vector{BoilStepType}}
-    function BoilProcedureType(; name = nothing, description = nothing, notes = nothing, pre_boil_size = nothing, boil_time, boil_steps = nothing)
+    pre_boil_size::Union{Nothing, VolumeType{IntType, FloatType}}
+    boil_time::TimeType{IntType, FloatType}
+    boil_steps::Union{Nothing, Vector{BoilStepType{IntType, FloatType}}}
+    function BoilProcedureType{IntType, FloatType}(; name = nothing, description = nothing, notes = nothing, pre_boil_size = nothing, boil_time, boil_steps = nothing) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(Union{Nothing, String}, name)
         description = _jsfrom(Union{Nothing, String}, description)
         notes = _jsfrom(Union{Nothing, String}, notes)
-        pre_boil_size = _jsfrom(Union{Nothing, VolumeType}, pre_boil_size)
-        boil_time = _jsfrom(TimeType, boil_time)
-        boil_steps = _jsfrom(Union{Nothing, Vector{BoilStepType}}, boil_steps)
-        _jscheck(BoilProcedureType, (name, description, notes, pre_boil_size, boil_time, boil_steps), nothing)
+        pre_boil_size = _jsfrom(Union{Nothing, VolumeType{IntType, FloatType}}, pre_boil_size)
+        boil_time = _jsfrom(TimeType{IntType, FloatType}, boil_time)
+        boil_steps = _jsfrom(Union{Nothing, Vector{BoilStepType{IntType, FloatType}}}, boil_steps)
+        _jscheck(BoilProcedureType{IntType, FloatType}, (name, description, notes, pre_boil_size, boil_time, boil_steps), nothing)
         return new(name, description, notes, pre_boil_size, boil_time, boil_steps)
     end
 end
-BoilProcedureType(name, description, notes, pre_boil_size, boil_time, boil_steps) = BoilProcedureType(; name, description, notes, pre_boil_size, boil_time, boil_steps)
+BoilProcedureType(; kwargs...) = BoilProcedureType{Int64, Float64}(; kwargs...)
+BoilProcedureType{IntType, FloatType}(name, description, notes, pre_boil_size, boil_time, boil_steps) where {IntType <: Integer, FloatType <: Real} = BoilProcedureType{IntType, FloatType}(; name, description, notes, pre_boil_size, boil_time, boil_steps)
+BoilProcedureType(name, description, notes, pre_boil_size, boil_time, boil_steps) = BoilProcedureType{_jsnumbertypes(name, description, notes, pre_boil_size, boil_time, boil_steps)...}(; name, description, notes, pre_boil_size, boil_time, boil_steps)
 _SPECS[BoilProcedureType] = (
     fields = (
         (name = :name, key = "name", required = false, nullable = false, constraints = nothing),

@@ -41,7 +41,8 @@ The generated module only needs JSON.jl. It exports the generated types and:
 | `array` | `Vector{T}` |
 | `prefixItems` (or `items` as a list), all required | `Tuple{A, B}`, or `Tuple{A, B, Vararg{T}}` when more items are allowed |
 | `object` without `properties` | `Dict{String, T}` (`T` from `additionalProperties`, or `Any`) |
-| `string`, `number`, `integer`, `boolean`, `null` | `String`, `Float64`, `Int64`, `Bool`, `Nothing` |
+| `string`, `boolean`, `null` | `String`, `Bool`, `Nothing` |
+| `integer`, `number` | the type parameters `IntType` and `FloatType` of the structs; `Int64` and `Float64` by default (see [Numeric types](@ref)) |
 | optional property, or `null` allowed | `Union{Nothing, T}`; optional fields default to `nothing` and are omitted when writing |
 | `additionalProperties` not `false` | unknown properties are kept in the `_extra` field, so nothing is lost when a document is read and written back |
 | `additionalProperties: false`, `unevaluatedProperties: false` | unknown properties are an error |
@@ -140,6 +141,36 @@ tuple cannot have optional elements:
 | `"prefixItems": [{"type": "string"}, {"type": "integer"}]` (no `minItems`) | `Vector{Any}`, with the items checked at runtime |
 
 Tuples are written as JSON arrays.
+
+## Numeric types
+
+JSON Schema has two numeric types, `integer` and `number`, with no limit on their size or
+precision. The generated structs leave the choice of the Julia types to their users: each
+struct has two type parameters, `IntType <: Integer` for the integers and
+`FloatType <: Real` for the other numbers, and passes them on to the structs it contains.
+Without them, the defaults are `Int64` and `Float64`:
+
+```julia
+VolumeType(unit = "l", value = 20)                    # VolumeType{Int64, Float64}
+VolumeType{Int, BigFloat}(unit = "l", value = 20)     # values as BigFloat
+readjson(BeerJSON{BigInt, BigFloat}, "recipe.json")   # all the numbers in the document
+VolumeType{Int, Rational{Int}}(unit = "l", value = 0.5).value   # 1//2
+```
+
+Any `Integer` and `Real` types can be used: `Int32`, `Int128`, `BigInt`; `Float32`,
+`BigFloat`, rationals, or types from other packages that convert from numbers. Values that
+cannot be represented in the chosen type (e.g. an integer too large for `Int64`) are
+rejected with a `SchemaValidationError`.
+
+When reading a document with a floating-point type other than `Float64`, its numbers are
+parsed with full precision (as `BigFloat` at the current precision, see
+`setprecision`), not through `Float64`. Writing a document writes the numbers as they are
+stored: note that a decimal number such as `1.1` has no exact binary representation, so a
+`BigFloat` writes all the digits of its precision.
+
+`RootType` is the root type with the default numeric types. Printed values show the
+numeric types only when they are not the default ones, e.g.
+`VolumeType{Int64, BigFloat}(VolumeUnitType("l"), 20.0)`.
 
 ## Changing values
 

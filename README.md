@@ -125,7 +125,8 @@ before it. Schema files whose types depend on each other in a cycle share a sing
 | `array` | `Vector{T}` |
 | `prefixItems` (or `items` as a list), all required | `Tuple{A, B}`, or `Tuple{A, B, Vararg{T}}` when more items are allowed |
 | `object` without `properties` | `Dict{String, T}` (`T` from `additionalProperties`, or `Any`) |
-| `string`, `number`, `integer`, `boolean`, `null` | `String`, `Float64`, `Int64`, `Bool`, `Nothing` |
+| `string`, `boolean`, `null` | `String`, `Bool`, `Nothing` |
+| `integer`, `number` | the type parameters `IntType`, `FloatType` of the structs (`Int64`, `Float64` by default) |
 | optional property, or `null` allowed | `Union{Nothing, T}`; optional fields default to `nothing` and are omitted when writing |
 | `additionalProperties` not `false` | unknown properties are kept in the `_extra::Dict{String, Any}` field, so nothing is lost when a document is read and written back |
 | `additionalProperties: false` | unknown properties are an error |
@@ -197,6 +198,14 @@ pointers (with `definitions` or `$defs`), `$id`s (including nested ones), `$anch
 paths relative to the schema file. Schemas referenced only by their `$id` URL can be given
 in `schemas`, or downloaded with `download = true`.
 
+### Numeric types
+
+The generated structs are parametric in the types of their numbers: `VolumeType{IntType, FloatType}`,
+with `IntType <: Integer` for the integers and `FloatType <: Real` for the other numbers,
+passed on to the structs they contain. They default to `Int64` and `Float64`, and can be
+chosen when constructing or reading values, e.g. `readjson(BeerJSON{BigInt, BigFloat}, file)`
+(numbers are then parsed with full precision).
+
 ### Conformance
 
 The validation is checked against the official
@@ -231,6 +240,16 @@ schemas in `examples/`:
 * `beerjson-1.0.1/`: the [BeerJSON](https://github.com/beerjson/beerjson) 1.0.1 schema
   (MIT License). The generated module, split into one file per schema file, is in
   `examples/generated/BeerJSONTypes/`.
+
+## Related packages
+
+[JSONSchema.jl](https://github.com/JuliaIO/JSONSchema.jl) and
+[CorvusJsonSchema.jl](https://github.com/corvus-dotnet/Corvus.JsonSchema/tree/main/src-jl/CorvusJsonSchema)
+validate documents against schemas, without generating types;
+[JSONSchemaGenerator.jl](https://github.com/matthijscox/JSONSchemaGenerator.jl) and
+[Struct2JSONSchema.jl](https://github.com/abap34/Struct2JSONSchema.jl) go the other way,
+from Julia types to schemas. See the
+[documentation](https://rmsrosa.github.io/JSONSchema2Types.jl/dev/related/) for a comparison.
 
 ## Documentation
 

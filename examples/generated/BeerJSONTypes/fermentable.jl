@@ -27,31 +27,37 @@ _SPECS[FermentableGrainGroupEnum] = (values = Any["base", "caramel", "flaked", "
 
 """
     YieldType(; kwargs...)
+    YieldType{IntType, FloatType}(; kwargs...)
 
 The potential yield of the fermentable ingredient, supporting SG, or percentage. eg 1.037 or 80% are valid yield types.
 
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
+
 # Fields
 
-- `fine_grind::Union{Nothing, PercentType}`: Percentage yield compared to succrose of a fine grind. eg 80%
-- `coarse_grind::Union{Nothing, PercentType}`: Percentage yield compared to succrose of a coarse grind. eg 78%
-- `fine_coarse_difference::Union{Nothing, PercentType}`: The difference between fine and coarse grind, a difference more than 2 percent can indicate a protein or step mash may be desirable. eg 2%.
-- `potential::Union{Nothing, GravityType}`: The potential yield of the fermentable ingredient for 1 lb of grain mashed in 1 gallon of water. eg 1.037
+- `fine_grind::Union{Nothing, PercentType{IntType, FloatType}}`: Percentage yield compared to succrose of a fine grind. eg 80%
+- `coarse_grind::Union{Nothing, PercentType{IntType, FloatType}}`: Percentage yield compared to succrose of a coarse grind. eg 78%
+- `fine_coarse_difference::Union{Nothing, PercentType{IntType, FloatType}}`: The difference between fine and coarse grind, a difference more than 2 percent can indicate a protein or step mash may be desirable. eg 2%.
+- `potential::Union{Nothing, GravityType{IntType, FloatType}}`: The potential yield of the fermentable ingredient for 1 lb of grain mashed in 1 gallon of water. eg 1.037
 """
-struct YieldType <: AbstractSchemaObject
-    fine_grind::Union{Nothing, PercentType}
-    coarse_grind::Union{Nothing, PercentType}
-    fine_coarse_difference::Union{Nothing, PercentType}
-    potential::Union{Nothing, GravityType}
-    function YieldType(; fine_grind = nothing, coarse_grind = nothing, fine_coarse_difference = nothing, potential = nothing)
-        fine_grind = _jsfrom(Union{Nothing, PercentType}, fine_grind)
-        coarse_grind = _jsfrom(Union{Nothing, PercentType}, coarse_grind)
-        fine_coarse_difference = _jsfrom(Union{Nothing, PercentType}, fine_coarse_difference)
-        potential = _jsfrom(Union{Nothing, GravityType}, potential)
-        _jscheck(YieldType, (fine_grind, coarse_grind, fine_coarse_difference, potential), nothing)
+struct YieldType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+    fine_grind::Union{Nothing, PercentType{IntType, FloatType}}
+    coarse_grind::Union{Nothing, PercentType{IntType, FloatType}}
+    fine_coarse_difference::Union{Nothing, PercentType{IntType, FloatType}}
+    potential::Union{Nothing, GravityType{IntType, FloatType}}
+    function YieldType{IntType, FloatType}(; fine_grind = nothing, coarse_grind = nothing, fine_coarse_difference = nothing, potential = nothing) where {IntType <: Integer, FloatType <: Real}
+        fine_grind = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, fine_grind)
+        coarse_grind = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, coarse_grind)
+        fine_coarse_difference = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, fine_coarse_difference)
+        potential = _jsfrom(Union{Nothing, GravityType{IntType, FloatType}}, potential)
+        _jscheck(YieldType{IntType, FloatType}, (fine_grind, coarse_grind, fine_coarse_difference, potential), nothing)
         return new(fine_grind, coarse_grind, fine_coarse_difference, potential)
     end
 end
-YieldType(fine_grind, coarse_grind, fine_coarse_difference, potential) = YieldType(; fine_grind, coarse_grind, fine_coarse_difference, potential)
+YieldType(; kwargs...) = YieldType{Int64, Float64}(; kwargs...)
+YieldType{IntType, FloatType}(fine_grind, coarse_grind, fine_coarse_difference, potential) where {IntType <: Integer, FloatType <: Real} = YieldType{IntType, FloatType}(; fine_grind, coarse_grind, fine_coarse_difference, potential)
+YieldType(fine_grind, coarse_grind, fine_coarse_difference, potential) = YieldType{_jsnumbertypes(fine_grind, coarse_grind, fine_coarse_difference, potential)...}(; fine_grind, coarse_grind, fine_coarse_difference, potential)
 _SPECS[YieldType] = (
     fields = (
         (name = :fine_grind, key = "fine_grind", required = false, nullable = false, constraints = nothing),
@@ -68,20 +74,26 @@ _SPECS[YieldType] = (
 
 """
     FermentableInventoryType(; kwargs...)
+    FermentableInventoryType{IntType, FloatType}(; kwargs...)
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
-- `amount::Union{Nothing, VolumeType, MassType}`
+- `amount::Union{Nothing, VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}`
 """
-struct FermentableInventoryType <: AbstractSchemaObject
-    amount::Union{Nothing, VolumeType, MassType}
-    function FermentableInventoryType(; amount = nothing)
-        amount = _jsfrom(Union{Nothing, VolumeType, MassType}, amount)
-        _jscheck(FermentableInventoryType, (amount,), nothing)
+struct FermentableInventoryType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+    amount::Union{Nothing, VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}
+    function FermentableInventoryType{IntType, FloatType}(; amount = nothing) where {IntType <: Integer, FloatType <: Real}
+        amount = _jsfrom(Union{Nothing, VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}, amount)
+        _jscheck(FermentableInventoryType{IntType, FloatType}, (amount,), nothing)
         return new(amount)
     end
 end
-FermentableInventoryType(amount) = FermentableInventoryType(; amount)
+FermentableInventoryType(; kwargs...) = FermentableInventoryType{Int64, Float64}(; kwargs...)
+FermentableInventoryType{IntType, FloatType}(amount) where {IntType <: Integer, FloatType <: Real} = FermentableInventoryType{IntType, FloatType}(; amount)
+FermentableInventoryType(amount) = FermentableInventoryType{_jsnumbertypes(amount)...}(; amount)
 _SPECS[FermentableInventoryType] = (
     fields = (
         (name = :amount, key = "amount", required = false, nullable = false, constraints = (schema = JSON.parse("""
@@ -106,8 +118,12 @@ _SPECS[FermentableInventoryType] = (
 
 """
     FermentableType(; kwargs...)
+    FermentableType{IntType, FloatType}(; kwargs...)
 
 FermentableType collects the attributes of a fermentable ingredient to store as record information.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
@@ -117,98 +133,100 @@ FermentableType collects the attributes of a fermentable ingredient to store as 
 - `producer::Union{Nothing, String}`
 - `product_id::Union{Nothing, String}`
 - `grain_group::Union{Nothing, FermentableGrainGroupEnum}`
-- `yield::YieldType` (required): The potential yield of the fermentable ingredient, supporting SG, or percentage. eg 1.037 or 80% are valid yield types.
-- `color::ColorType` (required): ColorType supports both grain color properties, such as Lovibond, and wort color properties such as SRM and EBC.
+- `yield::YieldType{IntType, FloatType}` (required): The potential yield of the fermentable ingredient, supporting SG, or percentage. eg 1.037 or 80% are valid yield types.
+- `color::ColorType{IntType, FloatType}` (required): ColorType supports both grain color properties, such as Lovibond, and wort color properties such as SRM and EBC.
 - `notes::Union{Nothing, String}`
-- `moisture::Union{Nothing, PercentType}`
-- `alpha_amylase::Union{Nothing, Float64}`: Where diastatic power gives the total amount of all enzymes, alpha amylase, also known as dextrinizing units, refers to only the total amount of alpa amylase in the malted grain. A value of 25-50 is desirable for base malt.
-- `diastatic_power::Union{Nothing, DiastaticPowerType}`: Diastatic power is a measurement of malted grains enzymatic content. A value of 35 Lintner is needed to self convert, while a value of 100 or more is desirable.
-- `protein::Union{Nothing, PercentType}`: The percentage of protein. Higher values may indicate a possibility of haze, or lautering issues.
-- `kolbach_index::Union{Nothing, Float64}`: The Kolbach Index, also known as soluble to total ratio of nitrogen or protein, is used to indcate the degree of malt modification. A value above 35% is desired for simple single infusion mashing, undermodified malt may require multiple step mashes or decoction.
-- `max_in_batch::Union{Nothing, PercentType}`: The recommended maximum percentage to use in a grain bill. 
+- `moisture::Union{Nothing, PercentType{IntType, FloatType}}`
+- `alpha_amylase::Union{Nothing, FloatType}`: Where diastatic power gives the total amount of all enzymes, alpha amylase, also known as dextrinizing units, refers to only the total amount of alpa amylase in the malted grain. A value of 25-50 is desirable for base malt.
+- `diastatic_power::Union{Nothing, DiastaticPowerType{IntType, FloatType}}`: Diastatic power is a measurement of malted grains enzymatic content. A value of 35 Lintner is needed to self convert, while a value of 100 or more is desirable.
+- `protein::Union{Nothing, PercentType{IntType, FloatType}}`: The percentage of protein. Higher values may indicate a possibility of haze, or lautering issues.
+- `kolbach_index::Union{Nothing, FloatType}`: The Kolbach Index, also known as soluble to total ratio of nitrogen or protein, is used to indcate the degree of malt modification. A value above 35% is desired for simple single infusion mashing, undermodified malt may require multiple step mashes or decoction.
+- `max_in_batch::Union{Nothing, PercentType{IntType, FloatType}}`: The recommended maximum percentage to use in a grain bill. 
 - `recommend_mash::Union{Nothing, Bool}`: True if the fermentable must be mashed, false if it can be steeped. 
-- `inventory::Union{Nothing, FermentableInventoryType}`
-- `glassy::Union{Nothing, PercentType}`: Used to indicate the 'crystallized' percentage of starches for crystal malts.
-- `plump::Union{Nothing, PercentType}`: The percentage of grain that masses through sieves with gaps of 7/64 and 6/64, desired values of 80% or higher which indicate plump kernels.
-- `half::Union{Nothing, PercentType}`
-- `mealy::Union{Nothing, PercentType}`: The opposite of glassy, a mealy kernel is one that is not glassy. Base malt should be at least 90%, single step mashes generally require 95% or higher.
-- `thru::Union{Nothing, PercentType}`: The Percentage of grain that makes it through a thin mesh screen, typically 5/64 inch. Values less than 3% are desired.
-- `friability::Union{Nothing, PercentType}`: Friability is the measure of a malts ability to crumble during the crush, and is used as an indicator for easy gelatinization of the grain and starches, as well as modification of the malt. Value of 85% of higher indicates a well modified malt and is suitable for single step mashes. Lower values may require a step mash.
-- `di_ph::Union{Nothing, AcidityType}`: The pH of the resultant wort for 1 lb of grain mashed in 1 gallon of distilled water. Used in many water chemistry / mash pH prediction software.
-- `viscosity::Union{Nothing, ViscosityType}`: The measure of wort viscosity, typically associated with the breakdown of beta-glucans. The higher the viscosity, the greater the need for a glucan rest and the less suitable for a fly sparge.
-- `dms_p::Union{Nothing, ConcentrationType}`: The amount of DMS precursors, namely S-methyl methionine (SMM) and dimethyl sulfoxide (DMSO) in the malt which convert to dimethyl sulfide (DMS).
-- `fan::Union{Nothing, ConcentrationType}`: Free Amino Nitrogen (FAN) is a critical yeast nutrient. Typical values for base malt is 170.
-- `fermentability::Union{Nothing, PercentType}`: Fermentability - Used in Extracts to indicate a baseline typical apparent attenuation for a typical medium attenuation yeast.
-- `beta_glucan::Union{Nothing, ConcentrationType}`: Values of 180 or more may suggest a glucan rest and avoiding fly sparging.
+- `inventory::Union{Nothing, FermentableInventoryType{IntType, FloatType}}`
+- `glassy::Union{Nothing, PercentType{IntType, FloatType}}`: Used to indicate the 'crystallized' percentage of starches for crystal malts.
+- `plump::Union{Nothing, PercentType{IntType, FloatType}}`: The percentage of grain that masses through sieves with gaps of 7/64 and 6/64, desired values of 80% or higher which indicate plump kernels.
+- `half::Union{Nothing, PercentType{IntType, FloatType}}`
+- `mealy::Union{Nothing, PercentType{IntType, FloatType}}`: The opposite of glassy, a mealy kernel is one that is not glassy. Base malt should be at least 90%, single step mashes generally require 95% or higher.
+- `thru::Union{Nothing, PercentType{IntType, FloatType}}`: The Percentage of grain that makes it through a thin mesh screen, typically 5/64 inch. Values less than 3% are desired.
+- `friability::Union{Nothing, PercentType{IntType, FloatType}}`: Friability is the measure of a malts ability to crumble during the crush, and is used as an indicator for easy gelatinization of the grain and starches, as well as modification of the malt. Value of 85% of higher indicates a well modified malt and is suitable for single step mashes. Lower values may require a step mash.
+- `di_ph::Union{Nothing, AcidityType{IntType, FloatType}}`: The pH of the resultant wort for 1 lb of grain mashed in 1 gallon of distilled water. Used in many water chemistry / mash pH prediction software.
+- `viscosity::Union{Nothing, ViscosityType{IntType, FloatType}}`: The measure of wort viscosity, typically associated with the breakdown of beta-glucans. The higher the viscosity, the greater the need for a glucan rest and the less suitable for a fly sparge.
+- `dms_p::Union{Nothing, ConcentrationType{IntType, FloatType}}`: The amount of DMS precursors, namely S-methyl methionine (SMM) and dimethyl sulfoxide (DMSO) in the malt which convert to dimethyl sulfide (DMS).
+- `fan::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Free Amino Nitrogen (FAN) is a critical yeast nutrient. Typical values for base malt is 170.
+- `fermentability::Union{Nothing, PercentType{IntType, FloatType}}`: Fermentability - Used in Extracts to indicate a baseline typical apparent attenuation for a typical medium attenuation yeast.
+- `beta_glucan::Union{Nothing, ConcentrationType{IntType, FloatType}}`: Values of 180 or more may suggest a glucan rest and avoiding fly sparging.
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct FermentableType <: AbstractSchemaObject
+struct FermentableType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
     type::FermentableTypeEnum
     origin::Union{Nothing, String}
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
     grain_group::Union{Nothing, FermentableGrainGroupEnum}
-    yield::YieldType
-    color::ColorType
+    yield::YieldType{IntType, FloatType}
+    color::ColorType{IntType, FloatType}
     notes::Union{Nothing, String}
-    moisture::Union{Nothing, PercentType}
-    alpha_amylase::Union{Nothing, Float64}
-    diastatic_power::Union{Nothing, DiastaticPowerType}
-    protein::Union{Nothing, PercentType}
-    kolbach_index::Union{Nothing, Float64}
-    max_in_batch::Union{Nothing, PercentType}
+    moisture::Union{Nothing, PercentType{IntType, FloatType}}
+    alpha_amylase::Union{Nothing, FloatType}
+    diastatic_power::Union{Nothing, DiastaticPowerType{IntType, FloatType}}
+    protein::Union{Nothing, PercentType{IntType, FloatType}}
+    kolbach_index::Union{Nothing, FloatType}
+    max_in_batch::Union{Nothing, PercentType{IntType, FloatType}}
     recommend_mash::Union{Nothing, Bool}
-    inventory::Union{Nothing, FermentableInventoryType}
-    glassy::Union{Nothing, PercentType}
-    plump::Union{Nothing, PercentType}
-    half::Union{Nothing, PercentType}
-    mealy::Union{Nothing, PercentType}
-    thru::Union{Nothing, PercentType}
-    friability::Union{Nothing, PercentType}
-    di_ph::Union{Nothing, AcidityType}
-    viscosity::Union{Nothing, ViscosityType}
-    dms_p::Union{Nothing, ConcentrationType}
-    fan::Union{Nothing, ConcentrationType}
-    fermentability::Union{Nothing, PercentType}
-    beta_glucan::Union{Nothing, ConcentrationType}
+    inventory::Union{Nothing, FermentableInventoryType{IntType, FloatType}}
+    glassy::Union{Nothing, PercentType{IntType, FloatType}}
+    plump::Union{Nothing, PercentType{IntType, FloatType}}
+    half::Union{Nothing, PercentType{IntType, FloatType}}
+    mealy::Union{Nothing, PercentType{IntType, FloatType}}
+    thru::Union{Nothing, PercentType{IntType, FloatType}}
+    friability::Union{Nothing, PercentType{IntType, FloatType}}
+    di_ph::Union{Nothing, AcidityType{IntType, FloatType}}
+    viscosity::Union{Nothing, ViscosityType{IntType, FloatType}}
+    dms_p::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    fan::Union{Nothing, ConcentrationType{IntType, FloatType}}
+    fermentability::Union{Nothing, PercentType{IntType, FloatType}}
+    beta_glucan::Union{Nothing, ConcentrationType{IntType, FloatType}}
     _extra::Dict{String, Any}
-    function FermentableType(; name, type, origin = nothing, producer = nothing, product_id = nothing, grain_group = nothing, yield, color, notes = nothing, moisture = nothing, alpha_amylase = nothing, diastatic_power = nothing, protein = nothing, kolbach_index = nothing, max_in_batch = nothing, recommend_mash = nothing, inventory = nothing, glassy = nothing, plump = nothing, half = nothing, mealy = nothing, thru = nothing, friability = nothing, di_ph = nothing, viscosity = nothing, dms_p = nothing, fan = nothing, fermentability = nothing, beta_glucan = nothing, _extra = Dict{String, Any}())
+    function FermentableType{IntType, FloatType}(; name, type, origin = nothing, producer = nothing, product_id = nothing, grain_group = nothing, yield, color, notes = nothing, moisture = nothing, alpha_amylase = nothing, diastatic_power = nothing, protein = nothing, kolbach_index = nothing, max_in_batch = nothing, recommend_mash = nothing, inventory = nothing, glassy = nothing, plump = nothing, half = nothing, mealy = nothing, thru = nothing, friability = nothing, di_ph = nothing, viscosity = nothing, dms_p = nothing, fan = nothing, fermentability = nothing, beta_glucan = nothing, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
         type = _jsfrom(FermentableTypeEnum, type)
         origin = _jsfrom(Union{Nothing, String}, origin)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
         grain_group = _jsfrom(Union{Nothing, FermentableGrainGroupEnum}, grain_group)
-        yield = _jsfrom(YieldType, yield)
-        color = _jsfrom(ColorType, color)
+        yield = _jsfrom(YieldType{IntType, FloatType}, yield)
+        color = _jsfrom(ColorType{IntType, FloatType}, color)
         notes = _jsfrom(Union{Nothing, String}, notes)
-        moisture = _jsfrom(Union{Nothing, PercentType}, moisture)
-        alpha_amylase = _jsfrom(Union{Nothing, Float64}, alpha_amylase)
-        diastatic_power = _jsfrom(Union{Nothing, DiastaticPowerType}, diastatic_power)
-        protein = _jsfrom(Union{Nothing, PercentType}, protein)
-        kolbach_index = _jsfrom(Union{Nothing, Float64}, kolbach_index)
-        max_in_batch = _jsfrom(Union{Nothing, PercentType}, max_in_batch)
+        moisture = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, moisture)
+        alpha_amylase = _jsfrom(Union{Nothing, FloatType}, alpha_amylase)
+        diastatic_power = _jsfrom(Union{Nothing, DiastaticPowerType{IntType, FloatType}}, diastatic_power)
+        protein = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, protein)
+        kolbach_index = _jsfrom(Union{Nothing, FloatType}, kolbach_index)
+        max_in_batch = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, max_in_batch)
         recommend_mash = _jsfrom(Union{Nothing, Bool}, recommend_mash)
-        inventory = _jsfrom(Union{Nothing, FermentableInventoryType}, inventory)
-        glassy = _jsfrom(Union{Nothing, PercentType}, glassy)
-        plump = _jsfrom(Union{Nothing, PercentType}, plump)
-        half = _jsfrom(Union{Nothing, PercentType}, half)
-        mealy = _jsfrom(Union{Nothing, PercentType}, mealy)
-        thru = _jsfrom(Union{Nothing, PercentType}, thru)
-        friability = _jsfrom(Union{Nothing, PercentType}, friability)
-        di_ph = _jsfrom(Union{Nothing, AcidityType}, di_ph)
-        viscosity = _jsfrom(Union{Nothing, ViscosityType}, viscosity)
-        dms_p = _jsfrom(Union{Nothing, ConcentrationType}, dms_p)
-        fan = _jsfrom(Union{Nothing, ConcentrationType}, fan)
-        fermentability = _jsfrom(Union{Nothing, PercentType}, fermentability)
-        beta_glucan = _jsfrom(Union{Nothing, ConcentrationType}, beta_glucan)
+        inventory = _jsfrom(Union{Nothing, FermentableInventoryType{IntType, FloatType}}, inventory)
+        glassy = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, glassy)
+        plump = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, plump)
+        half = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, half)
+        mealy = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, mealy)
+        thru = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, thru)
+        friability = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, friability)
+        di_ph = _jsfrom(Union{Nothing, AcidityType{IntType, FloatType}}, di_ph)
+        viscosity = _jsfrom(Union{Nothing, ViscosityType{IntType, FloatType}}, viscosity)
+        dms_p = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, dms_p)
+        fan = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, fan)
+        fermentability = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, fermentability)
+        beta_glucan = _jsfrom(Union{Nothing, ConcentrationType{IntType, FloatType}}, beta_glucan)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(FermentableType, (name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan), _extra)
+        _jscheck(FermentableType{IntType, FloatType}, (name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan), _extra)
         return new(name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra)
     end
 end
-FermentableType(name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra) = FermentableType(; name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra)
+FermentableType(; kwargs...) = FermentableType{Int64, Float64}(; kwargs...)
+FermentableType{IntType, FloatType}(name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra) where {IntType <: Integer, FloatType <: Real} = FermentableType{IntType, FloatType}(; name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra)
+FermentableType(name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra) = FermentableType{_jsnumbertypes(name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra)...}(; name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra)
 _SPECS[FermentableType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
@@ -250,8 +268,12 @@ _SPECS[FermentableType] = (
 
 """
     FermentableAdditionType(; kwargs...)
+    FermentableAdditionType{IntType, FloatType}(; kwargs...)
 
 FermentableAdditionType collects the attributes of each fermentable ingredient for use in a recipe fermentable bill.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
@@ -261,41 +283,43 @@ FermentableAdditionType collects the attributes of each fermentable ingredient f
 - `producer::Union{Nothing, String}`
 - `product_id::Union{Nothing, String}`
 - `grain_group::Union{Nothing, FermentableGrainGroupEnum}`
-- `yield::YieldType` (required): The potential yield of the fermentable ingredient, supporting SG, or percentage. eg 1.037 or 80% are valid yield types.
-- `color::ColorType` (required): ColorType supports both grain color properties, such as Lovibond, and wort color properties such as SRM and EBC.
-- `timing::Union{Nothing, TimingType}`: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
-- `amount::Union{VolumeType, MassType}` (required)
+- `yield::YieldType{IntType, FloatType}` (required): The potential yield of the fermentable ingredient, supporting SG, or percentage. eg 1.037 or 80% are valid yield types.
+- `color::ColorType{IntType, FloatType}` (required): ColorType supports both grain color properties, such as Lovibond, and wort color properties such as SRM and EBC.
+- `timing::Union{Nothing, TimingType{IntType, FloatType}}`: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
+- `amount::Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct FermentableAdditionType <: AbstractSchemaObject
+struct FermentableAdditionType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
     type::FermentableTypeEnum
     origin::Union{Nothing, String}
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
     grain_group::Union{Nothing, FermentableGrainGroupEnum}
-    yield::YieldType
-    color::ColorType
-    timing::Union{Nothing, TimingType}
-    amount::Union{VolumeType, MassType}
+    yield::YieldType{IntType, FloatType}
+    color::ColorType{IntType, FloatType}
+    timing::Union{Nothing, TimingType{IntType, FloatType}}
+    amount::Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}
     _extra::Dict{String, Any}
-    function FermentableAdditionType(; name, type, origin = nothing, producer = nothing, product_id = nothing, grain_group = nothing, yield, color, timing = nothing, amount, _extra = Dict{String, Any}())
+    function FermentableAdditionType{IntType, FloatType}(; name, type, origin = nothing, producer = nothing, product_id = nothing, grain_group = nothing, yield, color, timing = nothing, amount, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
         type = _jsfrom(FermentableTypeEnum, type)
         origin = _jsfrom(Union{Nothing, String}, origin)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
         grain_group = _jsfrom(Union{Nothing, FermentableGrainGroupEnum}, grain_group)
-        yield = _jsfrom(YieldType, yield)
-        color = _jsfrom(ColorType, color)
-        timing = _jsfrom(Union{Nothing, TimingType}, timing)
-        amount = _jsfrom(Union{VolumeType, MassType}, amount)
+        yield = _jsfrom(YieldType{IntType, FloatType}, yield)
+        color = _jsfrom(ColorType{IntType, FloatType}, color)
+        timing = _jsfrom(Union{Nothing, TimingType{IntType, FloatType}}, timing)
+        amount = _jsfrom(Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}, amount)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(FermentableAdditionType, (name, type, origin, producer, product_id, grain_group, yield, color, timing, amount), _extra)
+        _jscheck(FermentableAdditionType{IntType, FloatType}, (name, type, origin, producer, product_id, grain_group, yield, color, timing, amount), _extra)
         return new(name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra)
     end
 end
-FermentableAdditionType(name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra) = FermentableAdditionType(; name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra)
+FermentableAdditionType(; kwargs...) = FermentableAdditionType{Int64, Float64}(; kwargs...)
+FermentableAdditionType{IntType, FloatType}(name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra) where {IntType <: Integer, FloatType <: Real} = FermentableAdditionType{IntType, FloatType}(; name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra)
+FermentableAdditionType(name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra) = FermentableAdditionType{_jsnumbertypes(name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra)...}(; name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra)
 _SPECS[FermentableAdditionType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),

@@ -123,7 +123,7 @@ print(read(schema, String))
 file = generate_module(schema, joinpath(OUT, "CombinedTypes.jl"); module_name = "CombinedTypes")
 include(file)
 using .CombinedTypes
-fieldtypes(CombinedSchemaExample)
+fieldtypes(CombinedSchemaExample{Int64, Float64})
 ```
 
 The options of `oneOf` have titles, so they are the types `Person` and `Company`. The

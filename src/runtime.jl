@@ -35,7 +35,8 @@ _jsfail(msg) = throw(SchemaValidationError(msg))
 
 # name of a type for messages, without the module, e.g. `VolumeType` or `Union{A, B}`
 _jsname(T) = T isa Union ? "Union{" * join(map(_jsname, Base.uniontypes(T)), ", ") * "}" :
-             T isa DataType && isempty(T.parameters) ? string(nameof(T)) : string(T)
+             T isa UnionAll || (T isa DataType && (isempty(T.parameters) || T <: AbstractSchemaObject)) ?
+             string(nameof(T)) : string(T)
 
 """
     _SPECS
@@ -53,13 +54,14 @@ Metadata of the generated types, filled in right after each type definition. For
 
 For an enum type, `_SPECS[T]` holds the allowed `values`.
 """
-const _SPECS = Dict{DataType, Any}()
+const _SPECS = Dict{Any, Any}()
 
 # Constraints on the root of the schema when it is not a generated type (set by the generated
 # code); checked by `fromdict(RootType, x)` and so by `fromjson` and `readjson`.
 const _ROOT_CONSTRAINTS = Ref{Any}(nothing)
 
-_specs(::Type{T}) where {T <: AbstractSchemaObject} = _SPECS[T]
+# (the structs are parametric: their metadata is stored for the `UnionAll` type)
+_specs(::Type{T}) where {T <: AbstractSchemaObject} = _SPECS[Base.typename(T).wrapper]
 
 # Metadata of each generated enum type: the allowed values.
 _enumvalues(::Type{T}) where {T <: AbstractSchemaEnum} = _SPECS[T].values
@@ -104,15 +106,32 @@ _jsfrom(::Type{String}, x) = _jsfail("expected a string, got $(repr(x))")
 _jsfrom(::Type{Bool}, x::Bool) = x
 _jsfrom(::Type{Bool}, x) = _jsfail("expected a boolean, got $(repr(x))")
 
-_jsfrom(::Type{Float64}, x::Real) = x isa Bool ? _jsfail("expected a number, got $(repr(x))") : Float64(x)
-_jsfrom(::Type{Float64}, x) = _jsfail("expected a number, got $(repr(x))")
+_jsfrom(::Type{Bool}, x::Real) = x isa Bool ? x : _jsfail("expected a boolean, got $(repr(x))")
 
-function _jsfrom(::Type{Int64}, x::Real)
-    (x isa Bool || !isinteger(x)) && _jsfail("expected an integer, got $(repr(x))")
-    typemin(Int64) <= x <= typemax(Int64) || _jsfail("the integer $(repr(x)) is out of the range of `Int64`")
-    return Int64(x)
+# Numbers: `T` is the `FloatType` (any `Real`, e.g. `Float64`, `BigFloat`, `Rational{BigInt}`)
+# or the `IntType` (any `Integer`, e.g. `Int64`, `Int128`, `BigInt`) of the generated structs.
+function _jsfrom(::Type{T}, x::Real) where {T <: Real}
+    x isa Bool && _jsfail("expected a number, got $(repr(x))")
+    x isa T && return x
+    try
+        return convert(T, x)
+    catch err
+        err isa InexactError || rethrow()
+        _jsfail("the number $(repr(x)) cannot be represented as `$(_jsname(T))`")
+    end
 end
-_jsfrom(::Type{Int64}, x) = _jsfail("expected an integer, got $(repr(x))")
+function _jsfrom(::Type{T}, x::Real) where {T <: Integer}
+    (x isa Bool || !isinteger(x)) && _jsfail("expected an integer, got $(repr(x))")
+    x isa T && return x
+    try
+        return convert(T, x)
+    catch err
+        err isa InexactError || rethrow()
+        _jsfail("the integer $(repr(x)) is out of the range of `$(_jsname(T))`")
+    end
+end
+_jsfrom(::Type{T}, x) where {T <: Real} = _jsfail("expected a number, got $(repr(x))")
+_jsfrom(::Type{T}, x) where {T <: Integer} = _jsfail("expected an integer, got $(repr(x))")
 
 function _jsfrom(::Type{Vector{T}}, x) where {T}
     x isa AbstractVector || _jsfail("expected an array, got $(repr(x))")
@@ -807,6 +826,9 @@ function _jsto end
 _jsto(x) = x
 # whole numbers are written without a decimal point, as they usually appear in JSON files
 _jsto(x::Float64) = isinteger(x) && abs(x) < 2.0^53 ? Int64(x) : x
+_jsto(x::AbstractFloat) = isfinite(x) && isinteger(x) ? BigInt(x) : x
+# other real numbers (e.g. rationals) are written as floating-point numbers
+_jsto(x::Real) = x isa Integer ? x : _jsto(BigFloat(x))
 _jsto(x::AbstractSchemaEnum) = x.value
 _jsto(x::AbstractVector) = Any[_jsto(el) for el in x]
 _jsto(x::Tuple) = Any[_jsto(el) for el in x]
@@ -842,6 +864,36 @@ end
 Base.:(==)(a::T, b::T) where {T <: AbstractSchemaEnum} = isequal(a.value, b.value)
 Base.hash(a::AbstractSchemaEnum, h::UInt) = hash(a.value, hash(typeof(a), h))
 Base.show(io::IO, x::AbstractSchemaEnum) = print(io, nameof(typeof(x)), "(", repr(x.value), ")")
+
+# Structs are shown as calls to their positional constructors, with the numeric types only
+# when they are not the default ones, e.g. `VolumeType(VolumeUnitType("l"), 20.0)`.
+function Base.show(io::IO, x::T) where {T <: AbstractSchemaObject}
+    print(io, nameof(T))
+    T.parameters == Core.svec(Int64, Float64) || print(io, "{", join(T.parameters, ", "), "}")
+    print(io, "(")
+    for (i, n) in enumerate(fieldnames(T))
+        i > 1 && print(io, ", ")
+        show(io, getfield(x, n))
+    end
+    print(io, ")")
+end
+
+# The numeric types of a struct built from positional arguments: those of the generated
+# structs, or of the numbers, among the arguments; by default, `Int64` and `Float64`.
+function _jsnumbertypes(args...)
+    I, F = Int64, Float64
+    for a in args
+        a isa AbstractVector && !isempty(a) && (a = first(a))
+        if a isa AbstractSchemaObject
+            return Tuple(typeof(a).parameters)
+        elseif a isa Integer && !(a isa Bool)
+            I = typeof(a)
+        elseif a isa Real && !(a isa Bool)
+            F = typeof(a)
+        end
+    end
+    return (I, F)
+end
 # `print` and `string` give the plain value, e.g. `"$(VolumeUnitType("l"))" == "l"`
 Base.print(io::IO, x::AbstractSchemaEnum) = print(io, x.value)
 
@@ -894,7 +946,36 @@ end
 
 Parse the JSON string `json` into a value of type `T`.
 """
-fromjson(::Type{T}, json::AbstractString) where {T} = fromdict(T, JSON.parse(json))
+function fromjson(::Type{T}, json::AbstractString) where {T}
+    F = _jsfloattype(T)
+    # numbers are parsed as `Float64` by JSON.jl, except when another floating-point type
+    # is asked for: then they are parsed with full precision
+    return fromdict(T, F === Float64 ? JSON.parse(json) : _jsparsebig(JSON.lazy(json)))
+end
+
+_jsfloattype(::Type) = Float64
+_jsfloattype(::Type{T}) where {T <: AbstractSchemaObject} =
+    T isa DataType && length(T.parameters) == 2 ? T.parameters[2] : Float64
+_jsfloattype(::Type{Vector{T}}) where {T} = _jsfloattype(T)
+
+# Materialize a lazily parsed JSON value, parsing non-integer numbers as `BigFloat` (at the
+# current precision of `BigFloat`), so that they can be converted to any real type.
+function _jsparsebig(x)
+    t = JSON.gettype(x)
+    if t == JSON.JSONTypes.OBJECT
+        obj = JSON.Object{String, Any}()
+        JSON.applyobject((k, v) -> (obj[String(k)] = _jsparsebig(v); nothing), x)
+        return obj
+    elseif t == JSON.JSONTypes.ARRAY
+        arr = Any[]
+        JSON.applyarray((i, v) -> (push!(arr, _jsparsebig(v)); nothing), x)
+        return arr
+    elseif t == JSON.JSONTypes.NUMBER
+        v = JSON.parse(x)
+        return v isa Integer ? v : JSON.parse(x, BigFloat)
+    end
+    return JSON.parse(x)
+end
 
 """
     readjson(T, filename)

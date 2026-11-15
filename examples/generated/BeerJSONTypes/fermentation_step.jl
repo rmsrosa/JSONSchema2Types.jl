@@ -5,52 +5,58 @@
 
 """
     FermentationStepType(; kwargs...)
+    FermentationStepType{IntType, FloatType}(; kwargs...)
 
 FermentationStepType - a per step representation of a fermentation action.
+
+Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+and `Float64`.
 
 # Fields
 
 - `name::String` (required)
 - `description::Union{Nothing, String}`
-- `start_temperature::Union{Nothing, TemperatureType}`
-- `end_temperature::Union{Nothing, TemperatureType}`
-- `step_time::Union{Nothing, TimeType}`
+- `start_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}`
+- `end_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}`
+- `step_time::Union{Nothing, TimeType{IntType, FloatType}}`
 - `free_rise::Union{Nothing, Bool}`: Free rise is used to indicate a fermentation step where the exothermic fermentation is allowed to raise the temperature without restriction This is either True or false.
-- `start_gravity::Union{Nothing, GravityType}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
-- `end_gravity::Union{Nothing, GravityType}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
-- `start_ph::Union{Nothing, AcidityType}`
-- `end_ph::Union{Nothing, AcidityType}`
+- `start_gravity::Union{Nothing, GravityType{IntType, FloatType}}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
+- `end_gravity::Union{Nothing, GravityType{IntType, FloatType}}`: Gravity refers to the both the measurements of percent of sugar content, ie plato and brix, as well as relative density ie specific gravity.
+- `start_ph::Union{Nothing, AcidityType{IntType, FloatType}}`
+- `end_ph::Union{Nothing, AcidityType{IntType, FloatType}}`
 - `vessel::Union{Nothing, String}`
 """
-struct FermentationStepType <: AbstractSchemaObject
+struct FermentationStepType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
     name::String
     description::Union{Nothing, String}
-    start_temperature::Union{Nothing, TemperatureType}
-    end_temperature::Union{Nothing, TemperatureType}
-    step_time::Union{Nothing, TimeType}
+    start_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}
+    end_temperature::Union{Nothing, TemperatureType{IntType, FloatType}}
+    step_time::Union{Nothing, TimeType{IntType, FloatType}}
     free_rise::Union{Nothing, Bool}
-    start_gravity::Union{Nothing, GravityType}
-    end_gravity::Union{Nothing, GravityType}
-    start_ph::Union{Nothing, AcidityType}
-    end_ph::Union{Nothing, AcidityType}
+    start_gravity::Union{Nothing, GravityType{IntType, FloatType}}
+    end_gravity::Union{Nothing, GravityType{IntType, FloatType}}
+    start_ph::Union{Nothing, AcidityType{IntType, FloatType}}
+    end_ph::Union{Nothing, AcidityType{IntType, FloatType}}
     vessel::Union{Nothing, String}
-    function FermentationStepType(; name, description = nothing, start_temperature = nothing, end_temperature = nothing, step_time = nothing, free_rise = nothing, start_gravity = nothing, end_gravity = nothing, start_ph = nothing, end_ph = nothing, vessel = nothing)
+    function FermentationStepType{IntType, FloatType}(; name, description = nothing, start_temperature = nothing, end_temperature = nothing, step_time = nothing, free_rise = nothing, start_gravity = nothing, end_gravity = nothing, start_ph = nothing, end_ph = nothing, vessel = nothing) where {IntType <: Integer, FloatType <: Real}
         name = _jsfrom(String, name)
         description = _jsfrom(Union{Nothing, String}, description)
-        start_temperature = _jsfrom(Union{Nothing, TemperatureType}, start_temperature)
-        end_temperature = _jsfrom(Union{Nothing, TemperatureType}, end_temperature)
-        step_time = _jsfrom(Union{Nothing, TimeType}, step_time)
+        start_temperature = _jsfrom(Union{Nothing, TemperatureType{IntType, FloatType}}, start_temperature)
+        end_temperature = _jsfrom(Union{Nothing, TemperatureType{IntType, FloatType}}, end_temperature)
+        step_time = _jsfrom(Union{Nothing, TimeType{IntType, FloatType}}, step_time)
         free_rise = _jsfrom(Union{Nothing, Bool}, free_rise)
-        start_gravity = _jsfrom(Union{Nothing, GravityType}, start_gravity)
-        end_gravity = _jsfrom(Union{Nothing, GravityType}, end_gravity)
-        start_ph = _jsfrom(Union{Nothing, AcidityType}, start_ph)
-        end_ph = _jsfrom(Union{Nothing, AcidityType}, end_ph)
+        start_gravity = _jsfrom(Union{Nothing, GravityType{IntType, FloatType}}, start_gravity)
+        end_gravity = _jsfrom(Union{Nothing, GravityType{IntType, FloatType}}, end_gravity)
+        start_ph = _jsfrom(Union{Nothing, AcidityType{IntType, FloatType}}, start_ph)
+        end_ph = _jsfrom(Union{Nothing, AcidityType{IntType, FloatType}}, end_ph)
         vessel = _jsfrom(Union{Nothing, String}, vessel)
-        _jscheck(FermentationStepType, (name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel), nothing)
+        _jscheck(FermentationStepType{IntType, FloatType}, (name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel), nothing)
         return new(name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel)
     end
 end
-FermentationStepType(name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel) = FermentationStepType(; name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel)
+FermentationStepType(; kwargs...) = FermentationStepType{Int64, Float64}(; kwargs...)
+FermentationStepType{IntType, FloatType}(name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel) where {IntType <: Integer, FloatType <: Real} = FermentationStepType{IntType, FloatType}(; name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel)
+FermentationStepType(name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel) = FermentationStepType{_jsnumbertypes(name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel)...}(; name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel)
 _SPECS[FermentationStepType] = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
