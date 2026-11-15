@@ -12,10 +12,12 @@ general, though, and should be useful for other schemas as well.
 
 ## Installation
 
+The package is not registered yet. Install it from GitHub:
+
 ```julia
 julia> using Pkg
 
-julia> Pkg.add("JSONSchema2Types")
+julia> Pkg.add(url = "https://github.com/rmsrosa/JSONSchema2Types.jl")
 ```
 
 ## Usage
@@ -81,6 +83,11 @@ The generated module exports:
   relative path (see `examples/generate_examples.jl`).
 * `type_names`: names to use for chosen types, instead of the derived ones (see
   [Type names](#type-names)).
+* `download`: fetch remote schemas referenced by `$ref` (with Downloads.jl), or a
+  function `url -> content`. Defaults to `false`.
+* `typed_formats`: store strings with the formats `date`, `date-time` and `uuid` as
+  `Dates.Date`, `Dates.DateTime` (UTC) and `UUIDs.UUID`. Defaults to `false`, since these
+  values are written back in a normalized form.
 
 ### Splitting into several files
 
@@ -112,6 +119,7 @@ before it. Schema files whose types depend on each other in a cycle share a sing
 | `enum`, `const` | `struct <: AbstractSchemaEnum` wrapping the value, with a checking constructor |
 | `oneOf`, `anyOf`, `"type": [...]` | `Union{...}`; when reading, the first option that validates is used |
 | `array` | `Vector{T}` |
+| `prefixItems` (or `items` as a list), all required | `Tuple{A, B}`, or `Tuple{A, B, Vararg{T}}` when more items are allowed |
 | `object` without `properties` | `Dict{String, T}` (`T` from `additionalProperties`, or `Any`) |
 | `string`, `number`, `integer`, `boolean`, `null` | `String`, `Float64`, `Int64`, `Bool`, `Nothing` |
 | optional property, or `null` allowed | `Union{Nothing, T}`; optional fields default to `nothing` and are omitted when writing |
@@ -121,7 +129,7 @@ before it. Schema files whose types depend on each other in a cycle share a sing
 | `deprecated: true` | flagged as deprecated in the docstrings of the field or type |
 | `patternProperties` | in a struct, matching properties are kept in `_extra`; in a dict, values are kept as they are; either way they are checked against their schemas |
 | `not`, `if`/`then`/`else`, `dependentRequired`, `dependentSchemas`, `dependencies`, `propertyNames`, `contains`, `prefixItems` | checked at runtime (see below) |
-| `format` | the value stays a `String`; well-known formats are checked at runtime (see below) |
+| `format` | the value stays a `String`; well-known formats are checked at runtime (see below). With `typed_formats = true`, `date`, `date-time` and `uuid` become `Dates.Date`, `Dates.DateTime` and `UUIDs.UUID` |
 
 ### Checks at runtime
 
@@ -176,17 +184,18 @@ These keywords are checked at construction time: `minimum`, `maximum`,
 `minItems`, `maxItems`, `uniqueItems` (also for array items), `minProperties`,
 `maxProperties` and `required`.
 
+### References
+
+`$ref`s are resolved as URIs, against the base URI set by the enclosing `$id`s: JSON
+pointers (with `definitions` or `$defs`), `$id`s (including nested ones), `$anchor`s, and
+paths relative to the schema file. Schemas referenced only by their `$id` URL can be given
+in `schemas`, or downloaded with `download = true`.
+
 ### Current limitations
 
-* Values with a `format` stay `String`s; e.g. `date-time` is not converted to `DateTime`.
-* `unevaluatedProperties` and `unevaluatedItems` inside the subschemas checked at runtime
-  (e.g. in `not` or `if`) only take into account the keywords of their own subschema, not
-  those of `allOf`/`$ref` siblings. At the level of a generated type they are exact.
-* Tuple-style arrays (`prefixItems`, or `items` as a list) are `Vector{Any}`, with their
-  items checked at runtime.
-* Remote `$ref`s are not downloaded; give the files locally (relative paths or `schemas`).
-* `$id`-relative resolution of nested `$id`s and `$anchor`s is not supported; references
-  must be relative file paths or JSON pointers, or match the `$id` of a loaded file.
+* `$dynamicRef`/`$dynamicAnchor` (2020-12) and `$recursiveRef` (2019-09) are not supported.
+* Arrays with optional prefix items are `Vector{Any}`, with their items checked at runtime.
+* `time` strings are not converted to Julia values, even with `typed_formats = true`.
 
 ## Examples
 
@@ -208,8 +217,9 @@ schemas in `examples/`:
 ## Documentation
 
 The [documentation](https://rmsrosa.github.io/JSONSchema2Types.jl/dev/) has a guide, the
-examples step by step, and a page reading and displaying BeerJSON recipes, styles, water
-profiles and hop varieties with the generated types. To build it locally:
+examples step by step, a page reading and displaying BeerJSON recipes, styles, water
+profiles and hop varieties with the generated types, and an explanation of the generated
+code and of the internal functions it calls (`_jsfrom`, `_jscheck`, `_jsto`). To build it locally:
 
 ```shell
 julia --project=docs -e 'using Pkg; Pkg.develop(path = "."); Pkg.instantiate()'

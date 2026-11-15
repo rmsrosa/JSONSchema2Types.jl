@@ -5,6 +5,16 @@
 const RUNTIME_FILE = joinpath(@__DIR__, "runtime.jl")
 include_dependency(RUNTIME_FILE)
 const RUNTIME_CODE = read(RUNTIME_FILE, String)
+const FORMATS_FILE = joinpath(@__DIR__, "runtime_formats.jl")
+include_dependency(FORMATS_FILE)
+const FORMATS_CODE = read(FORMATS_FILE, String)
+
+# Julia types for string formats, with `typed_formats = true`
+const FORMAT_TYPES = Dict(
+    "date" => "Dates.Date",
+    "date-time" => "Dates.DateTime",
+    "uuid" => "UUIDs.UUID",
+)
 
 const PRIMITIVE_TYPES = Dict(
     "string" => "String",
@@ -88,7 +98,12 @@ mutable struct Generator
     root_file::String
     root_name::String
     files::Dict{String, Any}                       # absolute path => parsed schema
-    ids::Dict{String, String}                      # `$id` => absolute path
+    uris::Dict{String, Tuple{String, String}}      # absolute URI (with `#anchor`) => (file, pointer)
+    bases::Dict{String, Vector{Pair{String, String}}} # file => [pointer => base URI] where `$id`s are
+    filebase::Dict{String, String}                 # file => URI it was loaded from
+    fetch::Union{Nothing, Function}                # downloads remote schemas: url -> content
+    typed_formats::Bool                            # translate some string formats into Julia types
+    used_formats::Bool                             # whether any typed format was used
     types::Dict{String, Union{ObjectDef, EnumDef}} # location => definition
     names::Dict{String, String}                    # location => type name
     taken::Dict{String, String}                    # type name => location
@@ -98,7 +113,8 @@ mutable struct Generator
 end
 
 Generator(root_file::String, root_name::String) = Generator(
-    root_file, root_name, Dict{String, Any}(), Dict{String, String}(),
+    root_file, root_name, Dict{String, Any}(), Dict{String, Tuple{String, String}}(),
+    Dict{String, Vector{Pair{String, String}}}(), Dict{String, String}(), nothing, false, false,
     Dict{String, Union{ObjectDef, EnumDef}}(),
     Dict{String, String}(), Dict{String, String}(), String[], Dict{String, String}(),
     Set{String}(),
@@ -163,21 +179,108 @@ escape_docstring(s::AbstractString) =
 isobject(x) = x isa AbstractDict
 
 """
-    load_schema!(gen, path)
+    load_schema!(gen, path; uri = nothing)
 
-Load (and cache) the JSON schema in the file `path`.
+Load (and cache) the JSON schema in the file `path`, and index the URIs of its resources:
+every `\$id` (resolved against the enclosing base URI), every `\$anchor`, and the file
+itself. `uri` is the URI the file was obtained from (for downloaded schemas); it defaults to
+the `file://` URI of `path`.
 """
-function load_schema!(gen::Generator, path::AbstractString)
+function load_schema!(gen::Generator, path::AbstractString; uri = nothing)
     path = abspath(normpath(path))
     haskey(gen.files, path) && return gen.files[path]
     isfile(path) || error("Schema file not found: $path")
     schema = JSON.parse(read(path, String))
     gen.files[path] = schema
-    if isobject(schema)
-        id = get(schema, "\$id", get(schema, "id", nothing))
-        id isa AbstractString && (gen.ids[strip_fragment(id)] = path)
-    end
+    base = uri === nothing ? file_uri(path) : String(uri)
+    gen.filebase[path] = base
+    gen.uris[base] = (path, "")
+    gen.bases[path] = Pair{String, String}[]
+    index_uris!(gen, path, schema, "", base)
     return schema
+end
+
+file_uri(path::AbstractString) = "file://" * replace(path, '\\' => '/')
+
+# keywords whose values are data, not subschemas, and are not searched for `$id`s
+const DATA_KEYS = ("enum", "const", "examples", "default")
+
+function index_uris!(gen::Generator, path::String, node, pointer::String, base::String)
+    if node isa AbstractVector
+        for (i, sub) in enumerate(node)
+            index_uris!(gen, path, sub, pointer * "/" * string(i - 1), base)
+        end
+        return
+    end
+    isobject(node) || return
+    id = get(node, "\$id", nothing)
+    # draft-04 used `id`; only consider it where it cannot be a property named `id`
+    id === nothing && get(node, "id", nothing) isa AbstractString && haskey(node, "\$schema") && (id = node["id"])
+    if id isa AbstractString
+        if startswith(id, "#")
+            # before 2019-09, `"$id": "#name"` defined a plain-name anchor
+            gen.uris[base * id] = (path, pointer)
+        else
+            base = strip_fragment(resolve_uri(base, id))
+            gen.uris[base] = (path, pointer)
+            push!(gen.bases[path], pointer => base)
+        end
+    end
+    anchor = get(node, "\$anchor", nothing)
+    anchor isa AbstractString && (gen.uris[base * "#" * anchor] = (path, pointer))
+    for (k, v) in node
+        k in DATA_KEYS && continue
+        index_uris!(gen, path, v, pointer * "/" * escape_pointer_segment(k), base)
+    end
+end
+
+"""
+    resolve_uri(base, ref)
+
+Resolve the URI reference `ref` against the absolute URI `base` (RFC 3986, section 5.2).
+"""
+function resolve_uri(base::AbstractString, ref::AbstractString)
+    occursin(r"^[A-Za-z][A-Za-z0-9+.-]*:", ref) && return remove_dot_segments_uri(String(ref))
+    m = match(r"^([A-Za-z][A-Za-z0-9+.-]*:(?://[^/?#]*)?)([^?#]*)", base)
+    m === nothing && return String(ref)
+    prefix, basepath = m.captures
+    isempty(ref) && return String(base)
+    startswith(ref, "#") && return strip_fragment(base) * ref
+    startswith(ref, "//") && return first(split(prefix, ':')) * ":" * ref
+    path = startswith(ref, "/") ? ref : (basepath[1:something(findlast('/', basepath), 0)] * ref)
+    return remove_dot_segments_uri(prefix * path)
+end
+
+function remove_dot_segments_uri(uri::String)
+    m = match(r"^([A-Za-z][A-Za-z0-9+.-]*:(?://[^/?#]*)?)([^?#]*)(.*)$", uri)
+    m === nothing && return uri
+    prefix, path, rest = m.captures
+    out = String[]
+    segs = split(path, '/')
+    for (i, seg) in enumerate(segs)
+        if seg == ".."
+            length(out) > 1 && pop!(out)
+            i == length(segs) && push!(out, "")
+        elseif seg == "."
+            i == length(segs) && push!(out, "")
+        else
+            push!(out, seg)
+        end
+    end
+    return prefix * join(out, '/') * rest
+end
+
+# The base URI at a location: that of the innermost enclosing `$id`, or of the file.
+function base_uri(gen::Generator, file::String, pointer::String)
+    load_schema!(gen, file)
+    base = gen.filebase[file]
+    best = -1
+    for (p, b) in gen.bases[file]
+        if (p == "" || pointer == p || startswith(pointer, p * "/")) && length(p) > best
+            base, best = b, length(p)
+        end
+    end
+    return base
 end
 
 unescape_pointer_segment(s) = replace(percent_unescape(s), "~1" => "/", "~0" => "~")
@@ -223,30 +326,56 @@ function get_node(gen::Generator, file::String, pointer::String)
 end
 
 """
-    resolve_ref(gen, file, ref) -> (file, pointer)
+    resolve_ref(gen, file, ref, pointer = "") -> (file, pointer)
 
-Resolve the `\$ref` value `ref`, found in the schema file `file`.
+Resolve the `\$ref` value `ref`, found in the schema file `file` at the JSON pointer
+`pointer`. The reference is resolved against the base URI there (set by the enclosing
+`\$id`s), and may point to a loaded schema by its `\$id`, to a subschema with a `\$id` or
+`\$anchor`, to a file relative to `file`, or, when downloads are enabled, to a remote schema.
 """
-function resolve_ref(gen::Generator, file::String, ref::AbstractString)
+function resolve_ref(gen::Generator, file::String, ref::AbstractString, pointer::AbstractString = "")
+    base = base_uri(gen, file, String(pointer))
     path, fragment = occursin('#', ref) ? split(ref, '#'; limit = 2) : (ref, "")
-    if isempty(path)
-        target = file
-    elseif haskey(gen.ids, path)
-        target = gen.ids[path]
-    elseif occursin(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", path)
-        error("Cannot resolve `\$ref` to `$ref`: remote references are not fetched. Download " *
-              "the schema and pass it with the `schemas` keyword argument, so that it is " *
-              "found by its `\$id`, or use a relative path instead.")
-    else
-        target = abspath(normpath(joinpath(dirname(file), path)))
+    path, fragment = String(path), percent_unescape(String(fragment))
+    uri = isempty(path) ? strip_fragment(base) : strip_fragment(resolve_uri(base, path))
+    if !haskey(gen.uris, uri)
+        local_file = isempty(path) || occursin(r"^[A-Za-z][A-Za-z0-9+.-]*:", path) ? nothing :
+                     abspath(normpath(joinpath(dirname(file), path)))
+        if startswith(uri, "file://") && isfile(uri[8:end])
+            load_schema!(gen, uri[8:end])
+        elseif local_file !== nothing && isfile(local_file)
+            # relative references to local copies of schemas whose `$id`s are remote URLs
+            load_schema!(gen, local_file)
+            gen.uris[uri] = (abspath(normpath(local_file)), "")
+        elseif gen.fetch !== nothing && occursin(r"^[A-Za-z][A-Za-z0-9+.-]*:", uri)
+            fetch_schema!(gen, uri)
+        else
+            error("Cannot resolve `\$ref` to `$ref` (`$uri`) in $file. Give the schema as a local " *
+                  "file (by a relative path, or with the `schemas` keyword argument, so that it is " *
+                  "found by its `\$id`), or enable downloads with `download = true`.")
+        end
     end
-    load_schema!(gen, target)
-    fragment = String(fragment)
-    if !isempty(fragment) && !startswith(fragment, "/")
-        error("Only JSON pointer fragments are supported in `\$ref`: `$ref`")
+    target, root = gen.uris[uri]
+    if isempty(fragment) || startswith(fragment, "/")
+        return target, root * fragment
     end
-    return target, fragment
+    anchor = uri * "#" * fragment
+    haskey(gen.uris, anchor) || error("Cannot resolve the anchor `#$fragment` of `\$ref` `$ref` in $file")
+    return gen.uris[anchor]
 end
+
+# Download the schema at `uri`, save it under a temporary directory and load it.
+function fetch_schema!(gen::Generator, uri::String)
+    content = gen.fetch(uri)
+    dir = mktempdir()
+    name = something(match(r"([^/?#]+)$", uri), (; match = "schema.json")).match
+    path = joinpath(dir, name)
+    write(path, content)
+    load_schema!(gen, path; uri)
+    return path
+end
+
+download_schema(url::AbstractString) = String(take!(Downloads.download(url, IOBuffer())))
 
 location(file, pointer) = string(file, "#", pointer)
 
@@ -286,6 +415,9 @@ function name_hint(gen::Generator, file::String, pointer::String)
             step = 2
         elseif seg in ("oneOf", "anyOf") && nxt !== nothing
             base *= "Option" * string(parse(Int, nxt) + 1)
+            step = 2
+        elseif seg in ("items", "prefixItems") && nxt !== nothing && occursin(r"^\d+$", nxt)
+            base *= "Item" * string(parse(Int, nxt) + 1)
             step = 2
         elseif seg == "items"
             base *= "Item"
@@ -386,7 +518,7 @@ end
 
 Collect the validation keywords of the subschema `node`.
 """
-function collect_constraints(gen::Generator, file::String, node)
+function collect_constraints(gen::Generator, file::String, node; pointer::String = "")
     isobject(node) || return nothing
     c = Dict{String, Any}()
     for k in VALUE_CONSTRAINTS
@@ -405,24 +537,25 @@ function collect_constraints(gen::Generator, file::String, node)
         end
         c[k] = v
     end
-    if get(node, "type", nothing) == "array" && isobject(get(node, "items", nothing))
-        ic = item_constraints(gen, file, node["items"])
+    # (with `prefixItems`, `items` only applies to the items after the prefix: checked at runtime)
+    if get(node, "type", nothing) == "array" && isobject(get(node, "items", nothing)) && !haskey(node, "prefixItems")
+        ic = item_constraints(gen, file, node["items"]; pointer = pointer * "/items")
         ic !== nothing && (c["items"] = ic)
     end
     return isempty(c) ? nothing : c
 end
 
 # Constraints of array items: follow `$ref`s to primitive schemas.
-function item_constraints(gen::Generator, file::String, node, depth::Int = 0)
+function item_constraints(gen::Generator, file::String, node, depth::Int = 0; pointer::String = "")
     isobject(node) || return nothing
     if haskey(node, "\$ref") && depth < 32
-        f, p = resolve_ref(gen, file, node["\$ref"])
+        f, p = resolve_ref(gen, file, node["\$ref"], pointer)
         target = get_node(gen, f, p)
         needs_named_type(gen, f, p, target) && return nothing
-        return item_constraints(gen, f, target, depth + 1)
+        return item_constraints(gen, f, target, depth + 1; pointer = p)
     end
     isobject(node) && (haskey(node, "enum") || haskey(node, "const") || haskey(node, "properties")) && return nothing
-    return collect_constraints(gen, file, node)
+    return collect_constraints(gen, file, node; pointer)
 end
 
 """
@@ -440,7 +573,7 @@ function merge_allof(gen::Generator, file::String, pointer::String, node, depth:
     function add!(f, p, n, d)
         isobject(n) || return
         if haskey(n, "\$ref")
-            f2, p2 = resolve_ref(gen, f, n["\$ref"])
+            f2, p2 = resolve_ref(gen, f, n["\$ref"], p)
             add!(f2, p2, get_node(gen, f2, p2), d + 1)
         end
         if haskey(n, "allOf")
@@ -486,7 +619,7 @@ function resolve_type(gen::Generator, file::String, pointer::String, node, depth
     isobject(node) || return TypeRef("Any"), nothing
 
     if haskey(node, "\$ref")
-        f, p = resolve_ref(gen, file, node["\$ref"])
+        f, p = resolve_ref(gen, file, node["\$ref"], pointer)
         target = get_node(gen, f, p)
         if needs_named_type(gen, f, p, target)
             name = generate_named_type!(gen, f, p, target)
@@ -494,7 +627,7 @@ function resolve_type(gen::Generator, file::String, pointer::String, node, depth
         end
         t, c = resolve_type(gen, f, p, target, depth + 1)
         # constraints next to the `$ref` (ignored before draft 2019-09, but harmless)
-        c2 = collect_constraints(gen, file, node)
+        c2 = collect_constraints(gen, file, node; pointer)
         c2 !== nothing && (c = c === nothing ? c2 : merge(c, c2))
         return t, c
     end
@@ -529,12 +662,33 @@ function resolve_type(gen::Generator, file::String, pointer::String, node, depth
             tr, _ = resolve_type(gen, file, pointer, sub, depth + 1)
             push!(options, tr)
         end
-        return union_typeref(options), collect_constraints(gen, file, node)
+        return union_typeref(options), collect_constraints(gen, file, node; pointer)
     end
 
-    constraints = collect_constraints(gen, file, node)
+    constraints = collect_constraints(gen, file, node; pointer)
     if jtype == "array"
         items = get(node, "items", nothing)
+        # tuples: `prefixItems` (2020-12), or `items` as a list (earlier drafts)
+        prefix_key, rest_key = haskey(node, "prefixItems") ? ("prefixItems", "items") :
+                               items isa AbstractVector ? ("items", "additionalItems") : ("", "")
+        if !isempty(prefix_key)
+            prefix = node[prefix_key]
+            # a Julia tuple has no optional elements, so all of them must be required
+            get(node, "minItems", 0) >= length(prefix) || return TypeRef("Vector{Any}"), constraints
+            elems = TypeRef[first(resolve_type(gen, file, pointer * "/$prefix_key/" * string(i - 1), sub, depth + 1))
+                            for (i, sub) in enumerate(prefix)]
+            exprs = [e.expr for e in elems]
+            deps = unique(reduce(vcat, [e.deps for e in elems]; init = String[]))
+            rest = get(node, rest_key, true)
+            if rest === true || (isobject(rest) && isempty(rest))
+                push!(exprs, "Vararg{Any}")
+            elseif isobject(rest)
+                t, _ = resolve_type(gen, file, pointer * "/" * rest_key, rest, depth + 1)
+                push!(exprs, "Vararg{$(t.expr)}")
+                append!(deps, t.deps)
+            end
+            return TypeRef("Tuple{" * join(exprs, ", ") * "}", unique(deps)), constraints
+        end
         if isobject(items)
             t, _ = resolve_type(gen, file, pointer * "/items", items, depth + 1)
             return TypeRef("Vector{$(t.expr)}", t.deps), constraints
@@ -549,6 +703,9 @@ function resolve_type(gen::Generator, file::String, pointer::String, node, depth
             return TypeRef("Dict{String, $(t.expr)}", t.deps), constraints
         end
         return TypeRef("Dict{String, Any}"), constraints
+    elseif jtype == "string" && gen.typed_formats && haskey(FORMAT_TYPES, get(node, "format", nothing))
+        gen.used_formats = true
+        return TypeRef(FORMAT_TYPES[node["format"]]), constraints
     elseif jtype isa AbstractString && haskey(PRIMITIVE_TYPES, jtype)
         return TypeRef(PRIMITIVE_TYPES[jtype]), constraints
     end
@@ -628,7 +785,7 @@ function generate_named_type!(gen::Generator, file::String, pointer::String, nod
         desc = isobject(sub) ? string(get(sub, "description", "")) : ""
         deprecated = isobject(sub) && get(sub, "deprecated", false) === true
         if isempty(desc) && isobject(sub) && haskey(sub, "\$ref")
-            f2, p2 = resolve_ref(gen, f, sub["\$ref"])
+            f2, p2 = resolve_ref(gen, f, sub["\$ref"], p)
             target = get_node(gen, f2, p2)
             isobject(target) && (desc = string(get(target, "description", "")))
         end
@@ -716,37 +873,43 @@ dropped, a `\$ref` to a schema translated into a generated type `T` becomes
 by the subschemas they point to (a reference back to a subschema being translated is
 dropped, i.e. accepted).
 """
-function translate_schema(gen::Generator, file::String, node, visiting = Set{String}(); kind = :schema)
+function translate_schema(gen::Generator, file::String, node, visiting = Set{String}();
+                          kind = :schema, pointer::String = "")
+    sub(p, k) = p * "/" * escape_pointer_segment(string(k))
     if kind == :list
-        return Any[translate_schema(gen, file, n, visiting) for n in node]
+        return Any[translate_schema(gen, file, n, visiting; pointer = sub(pointer, i - 1))
+                   for (i, n) in enumerate(node)]
     elseif kind == :map
-        return Dict{String, Any}(String(k) => translate_schema(gen, file, v, visiting) for (k, v) in node)
+        return Dict{String, Any}(String(k) => translate_schema(gen, file, v, visiting; pointer = sub(pointer, k))
+                                 for (k, v) in node)
     end
     isobject(node) || return node
     out = Dict{String, Any}()
     for (k, v) in node
         (k in ANNOTATION_KEYS || k == "\$ref") && continue
+        p = sub(pointer, k)
         out[k] = if k in SCHEMA_KEYS
-            translate_schema(gen, file, v, visiting; kind = v isa AbstractVector ? :list : :schema)
+            translate_schema(gen, file, v, visiting; kind = v isa AbstractVector ? :list : :schema, pointer = p)
         elseif k in SCHEMA_LIST_KEYS
-            translate_schema(gen, file, v, visiting; kind = :list)
+            translate_schema(gen, file, v, visiting; kind = :list, pointer = p)
         elseif k in SCHEMA_MAP_KEYS
-            translate_schema(gen, file, v, visiting; kind = :map)
+            translate_schema(gen, file, v, visiting; kind = :map, pointer = p)
         elseif k == "dependencies"
-            Dict{String, Any}(String(d) => x isa AbstractVector ? collect(Any, x) : translate_schema(gen, file, x, visiting)
+            Dict{String, Any}(String(d) => x isa AbstractVector ? collect(Any, x) :
+                                           translate_schema(gen, file, x, visiting; pointer = sub(p, d))
                               for (d, x) in v)
         else
             v isa AbstractVector ? collect(Any, v) : isobject(v) ? Dict{String, Any}(v) : v
         end
     end
     if haskey(node, "\$ref")
-        f, p = resolve_ref(gen, file, node["\$ref"])
+        f, p = resolve_ref(gen, file, node["\$ref"], pointer)
         loc = location(f, p)
         target_node = get_node(gen, f, p)
         if needs_named_type(gen, f, p, target_node)
             target = Dict{String, Any}("\$type" => generate_named_type!(gen, f, p, target_node))
         elseif !(loc in visiting)
-            target = translate_schema(gen, f, target_node, union(visiting, [loc]))
+            target = translate_schema(gen, f, target_node, union(visiting, [loc]); pointer = p)
         else
             target = nothing
         end
@@ -787,7 +950,7 @@ function field_residual(gen::Generator, file::String, pointer::String, node, dep
     needs_named_type(gen, file, pointer, node) && return nothing
     parts = Any[]
     if haskey(node, "\$ref")
-        f, p = resolve_ref(gen, file, node["\$ref"])
+        f, p = resolve_ref(gen, file, node["\$ref"], pointer)
         push!(parts, field_residual(gen, f, p, get_node(gen, f, p), depth + 1))
     end
     r = Dict{String, Any}()
@@ -799,28 +962,37 @@ function field_residual(gen::Generator, file::String, pointer::String, node, dep
     for k in FIELD_RESIDUAL_KEYS
         haskey(node, k) || continue
         v = node[k]
-        r[k] = k in SCHEMA_KEYS ? translate_schema(gen, file, v) :
-               k == "prefixItems" ? translate_schema(gen, file, v; kind = :list) :
-               k == "dependentSchemas" ? translate_schema(gen, file, v; kind = :map) :
-               k == "dependencies" ? translate_schema(gen, file, Dict("dependencies" => v))["dependencies"] : v
+        kp = pointer * "/" * k
+        r[k] = k in SCHEMA_KEYS ? translate_schema(gen, file, v; pointer = kp) :
+               k == "prefixItems" ? translate_schema(gen, file, v; kind = :list, pointer = kp) :
+               k == "dependentSchemas" ? translate_schema(gen, file, v; kind = :map, pointer = kp) :
+               k == "dependencies" ? translate_schema(gen, file, Dict("dependencies" => v); pointer)["dependencies"] : v
     end
     items = get(node, "items", nothing)
-    if isobject(items)
+    if isobject(items) && haskey(node, "prefixItems")
+        r["items"] = translate_schema(gen, file, items; pointer = pointer * "/items")
+    elseif isobject(items)
         ir = field_residual(gen, file, pointer * "/items", items, depth + 1)
         ir === nothing || (r["items"] = ir)
     elseif items isa AbstractVector
-        r["items"] = translate_schema(gen, file, items; kind = :list)
+        r["items"] = translate_schema(gen, file, items; kind = :list, pointer = pointer * "/items")
+        ai = get(node, "additionalItems", nothing)
+        ai === nothing || (r["additionalItems"] = translate_schema(gen, file, ai; pointer = pointer * "/additionalItems"))
+    elseif items === false && haskey(node, "prefixItems")
+        r["items"] = false
     end
     if haskey(node, "patternProperties")
-        r["patternProperties"] = translate_schema(gen, file, node["patternProperties"]; kind = :map)
-        ap = get(node, "additionalProperties", get(node, "unevaluatedProperties", nothing))
-        ap === nothing || (r["additionalProperties"] = translate_schema(gen, file, ap))
+        r["patternProperties"] = translate_schema(gen, file, node["patternProperties"]; kind = :map,
+                                                  pointer = pointer * "/patternProperties")
+        apkey = haskey(node, "additionalProperties") ? "additionalProperties" : "unevaluatedProperties"
+        ap = get(node, apkey, nothing)
+        ap === nothing || (r[apkey] = translate_schema(gen, file, ap; pointer = pointer * "/" * apkey))
     else
         for key in ("additionalProperties", "unevaluatedProperties")
             ap = get(node, key, nothing)
             isobject(ap) || continue
             ar = field_residual(gen, file, pointer * "/" * key, ap, depth + 1)
-            ar === nothing || (r["additionalProperties"] = ar)
+            ar === nothing || (r[key] = ar)
         end
     end
     isempty(r) || push!(parts, r)
@@ -836,17 +1008,19 @@ are not enforced by its struct, collected from `node` and the schemas it combine
 """
 function object_residual(gen::Generator, file::String, pointer::String, node)
     parts = Any[]
-    function walk(f, n, d)
+    function walk(f, p, n, d)
         (isobject(n) && d <= 32) || return
         keys_ = [k for k in OBJECT_RESIDUAL_KEYS if haskey(n, k)]
-        isempty(keys_) || push!(parts, translate_schema(gen, f, Dict{String, Any}(k => n[k] for k in keys_)))
+        isempty(keys_) || push!(parts, translate_schema(gen, f, Dict{String, Any}(k => n[k] for k in keys_); pointer = p))
         if haskey(n, "\$ref")
-            f2, p2 = resolve_ref(gen, f, n["\$ref"])
-            walk(f2, get_node(gen, f2, p2), d + 1)
+            f2, p2 = resolve_ref(gen, f, n["\$ref"], p)
+            walk(f2, p2, get_node(gen, f2, p2), d + 1)
         end
-        foreach(sub -> walk(f, sub, d + 1), get(n, "allOf", ()))
+        for (i, sub) in enumerate(get(n, "allOf", ()))
+            walk(f, p * "/allOf/" * string(i - 1), sub, d + 1)
+        end
     end
-    walk(file, node, 0)
+    walk(file, pointer, node, 0)
     return combine_residuals(parts)
 end
 
@@ -1100,9 +1274,13 @@ function generate_module(
     schemas::AbstractVector{<:AbstractString} = String[],
     split::Bool = false,
     type_names::AbstractDict{<:AbstractString, <:AbstractString} = Dict{String, String}(),
+    download::Union{Bool, Function} = false,
+    typed_formats::Bool = false,
 )
     root_file = abspath(normpath(schema_file))
     gen = Generator(root_file, "")
+    gen.typed_formats = typed_formats
+    gen.fetch = download === true ? download_schema : download === false ? nothing : download
     for (k, v) in type_names
         key = startswith(k, "#") ? basename(root_file) * k : String(k)
         occursin('#', key) || throw(ArgumentError("invalid key `$k` in `type_names`; " *
@@ -1166,7 +1344,7 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
             push!(defined, d.name)
         end
         filename = group * ".jl"
-        while filename in (main_file, "runtime.jl") || any(p -> p[1] == filename, group_code)
+        while filename in (main_file, "runtime.jl", "runtime_formats.jl") || any(p -> p[1] == filename, group_code)
             filename = splitext(filename)[1] * "_types.jl"
         end
         push!(group_code, filename => String(take!(io)))
@@ -1190,6 +1368,7 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
     println(io)
     if split
         println(io, "include(\"runtime.jl\")")
+        gen.used_formats && println(io, "include(\"runtime_formats.jl\")")
         println(io)
         println(io, "# Generated types, one file per schema file, in dependency order")
         for (filename, _) in group_code
@@ -1197,6 +1376,7 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
         end
     else
         print(io, RUNTIME_CODE)
+        gen.used_formats && (println(io); print(io, FORMATS_CODE))
         for (i, (_, code)) in enumerate(group_code)
             println(io)
             println(io, "# ", "-"^87)
@@ -1225,6 +1405,7 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
     included = "# This file is included by `$main_file`, generated by JSONSchema2Types.jl from the JSON\n" *
                      "# Schema `$schema_name`. $GENERATED_NOTICE\n"
     push!(files, "runtime.jl" => included * "\n" * RUNTIME_CODE)
+    gen.used_formats && push!(files, "runtime_formats.jl" => included * "\n" * FORMATS_CODE)
     for (i, (filename, code)) in enumerate(group_code)
         push!(files, filename => included * "#\n# Types from " * sources(i) * ".\n\n" * code)
     end

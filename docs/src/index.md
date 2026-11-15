@@ -21,16 +21,13 @@ for the types generated from it, used to read and display real BeerJSON document
 
 ## Installation
 
-Install it from the General registry:
+The package is not registered yet. Install it from GitHub:
 
 ```julia
 julia> using Pkg
 
-julia> Pkg.add("JSONSchema2Types")
+julia> Pkg.add(url = "https://github.com/rmsrosa/JSONSchema2Types.jl")
 ```
-
-or install the development version from GitHub with
-`Pkg.add(url = "https://github.com/rmsrosa/JSONSchema2Types.jl")`.
 
 ## Related packages
 
@@ -64,4 +61,6 @@ julia> writejson("product-copy.json", p);            # and write it back
 * [Examples](@ref): small schemas from the JSON Schema documentation, step by step.
 * [BeerJSON](@ref beerjson): the types generated from the BeerJSON schema, reading and
   displaying recipes, styles, water profiles and hop varieties.
+* [Generated code](@ref): what the generated code looks like and how it works, including
+  the internal functions it calls (`_jsfrom`, `_jscheck`, `_jsto`).
 * [API](@ref): the reference of the package and of the generated modules.

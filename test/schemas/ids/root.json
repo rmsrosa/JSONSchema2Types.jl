@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/customer.json",
+  "title": "Customer",
+  "type": "object",
+  "properties": {
+    "name": { "$ref": "#name" },
+    "address": { "$ref": "address.json" },
+    "street": { "$ref": "https://example.com/schemas/address.json#/$defs/Street" },
+    "favorite": { "$ref": "https://example.org/remote/color.json" },
+    "legacy": { "$ref": "#legacy" }
+  },
+  "required": ["name"],
+  "$defs": {
+    "Name": { "$anchor": "name", "type": "string", "minLength": 1 },
+    "Legacy": { "$id": "#legacy", "type": "integer", "minimum": 0 },
+    "Address": {
+      "$id": "address.json",
+      "type": "object",
+      "properties": {
+        "street": { "$ref": "#/$defs/Street" },
+        "city": { "type": "string" }
+      },
+      "required": ["street"],
+      "$defs": {
+        "Street": { "type": "string", "pattern": "^[0-9]+ " }
+      }
+    }
+  }
+}

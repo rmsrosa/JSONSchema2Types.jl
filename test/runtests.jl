@@ -1,5 +1,6 @@
 using JSONSchema2Types
 using JSON
+using Dates
 using Test
 
 const EXAMPLES = joinpath(@__DIR__, "..", "examples")
@@ -167,6 +168,35 @@ end
     @test_throws E M.fromdict(M.Settings, Dict("name" => "n", "other" => true))
 end
 
+@testset "unevaluatedProperties and unevaluatedItems at runtime" begin
+    M = load_generated(joinpath(@__DIR__, "schemas", "validation.json"))
+    v(schema, x) = M._jsvalid(JSON.parse(schema), JSON.parse(x)) === nothing
+    # properties evaluated by `allOf`, `anyOf`, `oneOf`, `if`/`then` and `dependentSchemas`
+    s = """{"allOf": [{"properties": {"a": {}}}], "properties": {"b": {}}, "unevaluatedProperties": false}"""
+    @test v(s, """{"a": 1, "b": 2}""") && !v(s, """{"a": 1, "c": 3}""")
+    s = """{"anyOf": [{"properties": {"a": {"type": "integer"}}}, {"properties": {"b": {}}, "required": ["b"]}],
+            "unevaluatedProperties": false}"""
+    @test v(s, """{"a": 1, "b": 2}""")                     # both options valid: both evaluated
+    @test !v(s, """{"a": "x", "c": 3}""")
+    s = """{"if": {"properties": {"kind": {"const": "card"}}}, "then": {"properties": {"number": {}}},
+            "else": {"properties": {"cash": {}}}, "properties": {"kind": {}}, "unevaluatedProperties": false}"""
+    @test v(s, """{"kind": "card", "number": 1}""") && !v(s, """{"kind": "card", "cash": 1}""")
+    @test v(s, """{"kind": "x", "cash": 1}""") && !v(s, """{"kind": "x", "number": 1}""")
+    s = """{"dependentSchemas": {"a": {"properties": {"b": {}}}}, "properties": {"a": {}}, "unevaluatedProperties": false}"""
+    @test v(s, """{"a": 1, "b": 2}""") && !v(s, """{"b": 2}""")
+    # `not` does not evaluate anything; a typed `unevaluatedProperties`
+    s = """{"not": {"properties": {"a": {"type": "string"}}, "required": ["a"]}, "unevaluatedProperties": {"type": "integer"}}"""
+    @test v(s, """{"a": 1}""") && !v(s, """{"a": 1.5}""")
+    # items evaluated by `prefixItems`, `contains` and `allOf`
+    s = """{"prefixItems": [{"type": "string"}], "contains": {"type": "integer"}, "unevaluatedItems": false}"""
+    @test v(s, """["s", 1, 2]""") && !v(s, """["s", 1, true]""")
+    s = """{"allOf": [{"prefixItems": [{}, {}]}], "unevaluatedItems": {"type": "boolean"}}"""
+    @test v(s, """[1, "x", true]""") && !v(s, """[1, "x", 3]""")
+    # nested: annotations of a valid `$ref`-inlined subschema (an `allOf` here) count
+    s = """{"allOf": [{"allOf": [{"properties": {"a": {}}}]}], "unevaluatedProperties": false}"""
+    @test v(s, """{"a": 1}""") && !v(s, """{"z": 1}""")
+end
+
 @testset "Type names" begin
     # inline enums get an `Enum` suffix, after the name of the parent without `Type`/`Base`
     M = load_generated(joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json"); root_name = "BeerJSON")
@@ -189,6 +219,98 @@ end
         joinpath(EXAMPLES, "acme_schemas", "acme_flatschema.json"), file; type_names = Dict("#/nowhere" => "X"))
     @test_throws ArgumentError generate_module(joinpath(EXAMPLES, "acme_schemas", "acme_flatschema.json"), file;
                                                type_names = Dict("#" => "not valid"))
+end
+
+@testset "References: \$id, \$anchor and downloads" begin
+    remote = Dict("https://example.org/remote/color.json" =>
+                  """{"\$id": "https://example.org/remote/color.json", "enum": ["red", "blue"]}""")
+    fetched = String[]
+    fetch(url) = (push!(fetched, url); remote[url])
+    schema = joinpath(@__DIR__, "schemas", "ids", "root.json")
+    @test_throws ErrorException generate_module(schema, joinpath(mktempdir(), "x.jl"))  # remote, no downloads
+    M = load_generated(schema; download = fetch)
+    @test fetched == ["https://example.org/remote/color.json"]
+    T = M.Customer
+    # `#name` is an `$anchor`; `address.json` is a nested `$id`, resolved against the
+    # `$id` of the root, and `#/$defs/Street` inside it is relative to that nested resource
+    @test fieldtype(T, :address) == Union{Nothing, M.Address}
+    x = M.fromdict(T, Dict("name" => "Ann", "address" => Dict("street" => "1 Main St"),
+                           "street" => "2 Side St", "favorite" => "red", "legacy" => 3))
+    @test x.address.street == "1 Main St" && x.favorite.value == "red"
+    E = M.SchemaValidationError
+    @test_throws E M.fromdict(T, Dict("name" => ""))                                   # anchor's minLength
+    @test_throws E M.fromdict(T, Dict("name" => "A", "address" => Dict("street" => "Main")))  # nested pattern
+    @test_throws E M.fromdict(T, Dict("name" => "A", "street" => "Main"))              # absolute URI + pointer
+    @test_throws E M.fromdict(T, Dict("name" => "A", "favorite" => "green"))           # downloaded enum
+    @test_throws E M.fromdict(T, Dict("name" => "A", "legacy" => -1))                  # `"$id": "#legacy"`
+    # URI resolution
+    R = JSONSchema2Types.resolve_uri
+    @test R("https://a.org/x/y.json", "z.json") == "https://a.org/x/z.json"
+    @test R("https://a.org/x/y.json", "../z.json#/a") == "https://a.org/z.json#/a"
+    @test R("https://a.org/x/y.json", "/z.json") == "https://a.org/z.json"
+    @test R("https://a.org/x/y.json", "#foo") == "https://a.org/x/y.json#foo"
+    @test R("https://a.org/x/y.json", "urn:example:z") == "urn:example:z"
+end
+
+@testset "Tuples" begin
+    M = load_generated(joinpath(@__DIR__, "schemas", "tuples.json"))
+    T = M.Tuples
+    @test fieldtype(T, :point) == Union{Nothing, Tuple{Float64, Float64}}
+    @test fieldtype(T, :row) == Union{Nothing, Tuple{String, Vararg{Int64}}}
+    @test fieldtype(T, :tagged) == Union{Nothing, Tuple{M.TuplesTaggedItem1Enum, M.TuplesTaggedItem2, Vararg{Any}}}
+    @test fieldtype(T, :optional) == Union{Nothing, Vector{Any}}
+    @test fieldtype(T, :draft7) == Union{Nothing, Tuple{String, Bool}}
+    json = """{"point": [1, 2.5], "row": ["r", 1, 2, 3], "tagged": ["a", {"x": 1}, null, 7],
+               "optional": ["s"], "draft7": ["s", true]}"""
+    x = M.fromjson(T, json)
+    @test x.point == (1.0, 2.5) && x.row == ("r", 1, 2, 3) && x.draft7 == ("s", true)
+    @test x.tagged[2].x == 1 && x.tagged[3] === nothing
+    @test canon(JSON.parse(M.tojson(x))) == canon(JSON.parse(json))
+    @test T(point = (3, 4)).point == (3.0, 4.0)
+    E = M.SchemaValidationError
+    @test_throws E M.fromjson(T, """{"point": [1, 2, 3]}""")      # closed tuple
+    @test_throws E M.fromjson(T, """{"point": [1]}""")
+    @test_throws E M.fromjson(T, """{"row": ["r", -1]}""")         # rest items checked
+    @test_throws E M.fromjson(T, """{"tagged": ["c", {"x": 1}]}""")
+    @test_throws E M.fromjson(T, """{"optional": ["s", "t"]}""")   # prefixItems checked at runtime
+    @test_throws E M.fromjson(T, """{"draft7": ["s", true, 1]}""")
+end
+
+@testset "Typed formats" begin
+    schema = joinpath(@__DIR__, "schemas", "formats.json")
+    # by default, formatted strings stay strings
+    S = load_generated(schema)
+    @test fieldtype(S.Event, :day) == String
+    M = load_generated(schema; typed_formats = true)
+    T = M.Event
+    @test fieldtype(T, :id) == Union{Nothing, M.UUIDs.UUID}
+    @test fieldtype(T, :day) == M.Dates.Date
+    @test fieldtype(T, :starts) == Union{Nothing, M.Dates.DateTime}
+    @test fieldtype(T, :at) == Union{Nothing, String}                  # time stays a string
+    @test fieldtype(T, :days) == Union{Nothing, Vector{M.Dates.Date}}
+    x = M.fromjson(T, """{"id": "123E4567-E89B-12D3-A456-426614174000", "day": "2026-11-15",
+                          "starts": "2026-11-15T10:30:00.250+02:00", "days": ["2026-01-01"], "in2026": "2026-02-03"}""")
+    @test x.day == M.Dates.Date(2026, 11, 15)
+    @test x.starts == M.Dates.DateTime(2026, 11, 15, 8, 30, 0, 250)    # converted to UTC
+    @test x.days == [M.Dates.Date(2026, 1, 1)]
+    # written back in normalized form: UTC date-times, lowercase UUIDs
+    back = JSON.parse(M.tojson(x))
+    @test back["starts"] == "2026-11-15T08:30:00.250Z" && back["day"] == "2026-11-15"
+    @test back["id"] == "123e4567-e89b-12d3-a456-426614174000"
+    @test M.fromjson(T, M.tojson(x)) == x
+    @test T(day = M.Dates.Date(2026, 1, 2)).day == M.Dates.Date(2026, 1, 2)
+    @test JSON.parse(M.tojson(T(day = "2026-01-02", starts = "2026-01-02T03:04:05Z")))["starts"] == "2026-01-02T03:04:05Z"
+    E = M.SchemaValidationError
+    @test_throws E M.fromjson(T, """{"day": "2026-13-01"}""")
+    @test_throws E M.fromjson(T, """{"day": "2026-11-15", "starts": "2026-11-15 10:30"}""")
+    @test_throws E M.fromjson(T, """{"day": "2026-11-15", "id": "123"}""")
+    @test_throws E M.fromjson(T, """{"day": "2026-11-15", "in2026": "2025-02-03"}""")  # pattern on the string form
+    # split output includes the formats runtime
+    dir = joinpath(mktempdir(), "EventTypes")
+    main = generate_module(schema, dir; typed_formats = true, split = true)
+    @test "runtime_formats.jl" in readdir(dir)
+    N = Base.include(Module(), main)
+    @test Base.invokelatest(N.Event; day = "2026-01-01").day isa Dates.Date
 end
 
 @testset "Additional properties are preserved" begin
