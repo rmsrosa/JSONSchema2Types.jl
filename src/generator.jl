@@ -986,13 +986,13 @@ function field_residual(gen::Generator, file::String, pointer::String, node, dep
                                                   pointer = pointer * "/patternProperties")
         apkey = haskey(node, "additionalProperties") ? "additionalProperties" : "unevaluatedProperties"
         ap = get(node, apkey, nothing)
-        ap === nothing || (r["additionalProperties"] = translate_schema(gen, file, ap; pointer = pointer * "/" * apkey))
+        ap === nothing || (r[apkey] = translate_schema(gen, file, ap; pointer = pointer * "/" * apkey))
     else
         for key in ("additionalProperties", "unevaluatedProperties")
             ap = get(node, key, nothing)
             isobject(ap) || continue
             ar = field_residual(gen, file, pointer * "/" * key, ap, depth + 1)
-            ar === nothing || (r["additionalProperties"] = ar)
+            ar === nothing || (r[key] = ar)
         end
     end
     isempty(r) || push!(parts, r)

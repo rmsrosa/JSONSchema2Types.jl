@@ -294,142 +294,202 @@ _jseq(a::AbstractDict, b::AbstractDict) =
 Validate the JSON value `x` against `schema`; return `nothing` if it is valid, or a
 message describing the first problem found.
 """
-function _jsvalid(s, x)
-    s === true && return nothing
-    s === false && return "no value is allowed here"
-    s isa AbstractDict || return nothing
+_jsvalid(s, x) = first(_jsvalidann(s, x))
+
+# Annotations collected while validating: the properties and array items that were
+# evaluated by a (sub)schema, for `unevaluatedProperties` and `unevaluatedItems`.
+_jsok(props = Set{String}(), items = Set{Int}()) = (nothing, props, items)
+_jsbad(msg) = (msg, Set{String}(), Set{Int}())
+
+"""
+    _jsvalidann(schema, x) -> (error, evaluated_properties, evaluated_items)
+
+Validate `x` against `schema` as [`_jsvalid`](@ref), and also return the names of the
+properties and the (1-based) indices of the items that the schema evaluated, as defined by
+JSON Schema 2020-12 for `unevaluatedProperties` and `unevaluatedItems`.
+"""
+function _jsvalidann(s, x)
+    s === true && return _jsok()
+    s === false && return _jsbad("no value is allowed here")
+    s isa AbstractDict || return _jsok()
+    props = Set{String}()
+    items = Set{Int}()
+    addann!(ann) = (union!(props, ann[2]); union!(items, ann[3]))
 
     if haskey(s, "\$type")
-        # a generated type: the value must be convertible to it
+        # a generated type: the value must be convertible to it, which checks all of it
         T = getfield(@__MODULE__, Symbol(s["\$type"]))
         try
             _jsfrom(T, x)
         catch err
             err isa SchemaValidationError || rethrow()
-            return err.msg
+            return _jsbad(err.msg)
         end
+        x isa AbstractDict && union!(props, String.(keys(x)))
+        x isa AbstractVector && union!(items, eachindex(x))
     end
 
     if haskey(s, "type")
         ts = s["type"] isa AbstractVector ? s["type"] : (s["type"],)
-        any(t -> _jstypeok(t, x), ts) || return "expected $(join(ts, " or ")), got $(repr(x))"
+        any(t -> _jstypeok(t, x), ts) || return _jsbad("expected $(join(ts, " or ")), got $(repr(x))")
     end
-    haskey(s, "enum") && !any(v -> _jseq(v, x), s["enum"]) && return "$(repr(x)) is not one of $(s["enum"])"
-    haskey(s, "const") && !_jseq(s["const"], x) && return "expected $(repr(s["const"])), got $(repr(x))"
+    haskey(s, "enum") && !any(v -> _jseq(v, x), s["enum"]) && return _jsbad("$(repr(x)) is not one of $(s["enum"])")
+    haskey(s, "const") && !_jseq(s["const"], x) && return _jsbad("expected $(repr(s["const"])), got $(repr(x))")
 
     if _jsisnumber(x)
-        haskey(s, "minimum") && x < s["minimum"] && return "$x is less than $(s["minimum"])"
-        haskey(s, "maximum") && x > s["maximum"] && return "$x is greater than $(s["maximum"])"
+        haskey(s, "minimum") && x < s["minimum"] && return _jsbad("$x is less than $(s["minimum"])")
+        haskey(s, "maximum") && x > s["maximum"] && return _jsbad("$x is greater than $(s["maximum"])")
         haskey(s, "exclusiveMinimum") && s["exclusiveMinimum"] isa Real && !(s["exclusiveMinimum"] isa Bool) &&
-            x <= s["exclusiveMinimum"] && return "$x is not greater than $(s["exclusiveMinimum"])"
+            x <= s["exclusiveMinimum"] && return _jsbad("$x is not greater than $(s["exclusiveMinimum"])")
         haskey(s, "exclusiveMaximum") && s["exclusiveMaximum"] isa Real && !(s["exclusiveMaximum"] isa Bool) &&
-            x >= s["exclusiveMaximum"] && return "$x is not less than $(s["exclusiveMaximum"])"
+            x >= s["exclusiveMaximum"] && return _jsbad("$x is not less than $(s["exclusiveMaximum"])")
         if haskey(s, "multipleOf")
             q = x / s["multipleOf"]
-            isapprox(q, round(q); atol = 1e-9) || return "$x is not a multiple of $(s["multipleOf"])"
+            isapprox(q, round(q); atol = 1e-9) || return _jsbad("$x is not a multiple of $(s["multipleOf"])")
         end
     elseif x isa AbstractString
-        haskey(s, "minLength") && length(x) < s["minLength"] && return "$(repr(x)) is shorter than $(s["minLength"])"
-        haskey(s, "maxLength") && length(x) > s["maxLength"] && return "$(repr(x)) is longer than $(s["maxLength"])"
+        haskey(s, "minLength") && length(x) < s["minLength"] && return _jsbad("$(repr(x)) is shorter than $(s["minLength"])")
+        haskey(s, "maxLength") && length(x) > s["maxLength"] && return _jsbad("$(repr(x)) is longer than $(s["maxLength"])")
         haskey(s, "pattern") && !occursin(_jsregex(s["pattern"]), x) &&
-            return "$(repr(x)) does not match the pattern $(s["pattern"])"
+            return _jsbad("$(repr(x)) does not match the pattern $(s["pattern"])")
         if haskey(s, "format") && _CHECK_FORMATS[]
             check = get(_FORMATS, s["format"], nothing)
-            check === nothing || check(x) || return "$(repr(x)) is not a valid $(s["format"])"
+            check === nothing || check(x) || return _jsbad("$(repr(x)) is not a valid $(s["format"])")
         end
     elseif x isa AbstractVector
-        haskey(s, "minItems") && length(x) < s["minItems"] && return "fewer than $(s["minItems"]) items"
-        haskey(s, "maxItems") && length(x) > s["maxItems"] && return "more than $(s["maxItems"]) items"
+        haskey(s, "minItems") && length(x) < s["minItems"] && return _jsbad("fewer than $(s["minItems"]) items")
+        haskey(s, "maxItems") && length(x) > s["maxItems"] && return _jsbad("more than $(s["maxItems"]) items")
         if get(s, "uniqueItems", false) === true
             for i in eachindex(x), j in firstindex(x):i-1
-                _jseq(x[i], x[j]) && return "items are not unique"
+                _jseq(x[i], x[j]) && return _jsbad("items are not unique")
             end
         end
         prefix = get(s, "prefixItems", get(s, "items", nothing) isa AbstractVector ? s["items"] : Any[])
         for (i, sub) in enumerate(prefix)
             i <= length(x) || break
             err = _jsvalid(sub, x[i])
-            err === nothing || return "item $i: $err"
+            err === nothing || return _jsbad("item $i: $err")
+            push!(items, i)
         end
         rest = haskey(s, "prefixItems") ? get(s, "items", nothing) :
                get(s, "items", nothing) isa AbstractVector ? get(s, "additionalItems", nothing) : get(s, "items", nothing)
         if rest !== nothing
             for i in (length(prefix) + 1):length(x)
                 err = _jsvalid(rest, x[i])
-                err === nothing || return "item $i: $err"
+                err === nothing || return _jsbad("item $i: $err")
+                push!(items, i)
             end
         end
         if haskey(s, "contains")
-            n = count(el -> _jsvalid(s["contains"], el) === nothing, x)
+            matching = [i for i in eachindex(x) if _jsvalid(s["contains"], x[i]) === nothing]
+            n = length(matching)
             lo = get(s, "minContains", 1); hi = get(s, "maxContains", typemax(Int))
-            lo <= n <= hi || return "$n items match `contains`; expected between $lo and $hi"
+            lo <= n <= hi || return _jsbad("$n items match `contains`; expected between $lo and $hi")
+            union!(items, matching)
         end
     elseif x isa AbstractDict
-        haskey(s, "minProperties") && length(x) < s["minProperties"] && return "fewer than $(s["minProperties"]) properties"
-        haskey(s, "maxProperties") && length(x) > s["maxProperties"] && return "more than $(s["maxProperties"]) properties"
+        haskey(s, "minProperties") && length(x) < s["minProperties"] && return _jsbad("fewer than $(s["minProperties"]) properties")
+        haskey(s, "maxProperties") && length(x) > s["maxProperties"] && return _jsbad("more than $(s["maxProperties"]) properties")
         for k in get(s, "required", ())
-            haskey(x, k) || return "missing required property `$k`"
+            haskey(x, k) || return _jsbad("missing required property `$k`")
         end
-        props = get(s, "properties", Dict{String, Any}())
+        defined = get(s, "properties", Dict{String, Any}())
         patterns = get(s, "patternProperties", Dict{String, Any}())
-        extra = get(s, "additionalProperties", get(s, "unevaluatedProperties", nothing))
+        extra = get(s, "additionalProperties", nothing)
         for (k, v) in x
+            k = String(k)
             matched = false
-            if haskey(props, k)
+            if haskey(defined, k)
                 matched = true
-                err = _jsvalid(props[k], v)
-                err === nothing || return "property `$k`: $err"
+                err = _jsvalid(defined[k], v)
+                err === nothing || return _jsbad("property `$k`: $err")
             end
             for (p, sub) in patterns
                 occursin(_jsregex(p), k) || continue
                 matched = true
                 err = _jsvalid(sub, v)
-                err === nothing || return "property `$k`: $err"
+                err === nothing || return _jsbad("property `$k`: $err")
             end
             if !matched && extra !== nothing
                 err = _jsvalid(extra, v)
-                err === nothing || return extra === false ? "property `$k` is not allowed" : "property `$k`: $err"
+                err === nothing || return _jsbad(extra === false ? "property `$k` is not allowed" : "property `$k`: $err")
+                matched = true
             end
+            matched && push!(props, k)
             if haskey(s, "propertyNames")
                 err = _jsvalid(s["propertyNames"], k)
-                err === nothing || return "property name `$k`: $err"
+                err === nothing || return _jsbad("property name `$k`: $err")
             end
         end
         for (k, deps) in merge(get(s, "dependentRequired", Dict()), filter(p -> p[2] isa AbstractVector, get(s, "dependencies", Dict())))
             haskey(x, k) || continue
             for d in deps
-                haskey(x, d) || return "property `$k` requires property `$d`"
+                haskey(x, d) || return _jsbad("property `$k` requires property `$d`")
             end
         end
         for (k, sub) in merge(get(s, "dependentSchemas", Dict()), filter(p -> !(p[2] isa AbstractVector), get(s, "dependencies", Dict())))
             haskey(x, k) || continue
-            err = _jsvalid(sub, x)
-            err === nothing || return "when `$k` is present: $err"
+            ann = _jsvalidann(sub, x)
+            ann[1] === nothing || return _jsbad("when `$k` is present: $(ann[1])")
+            addann!(ann)
         end
     end
 
     for sub in get(s, "allOf", ())
-        err = _jsvalid(sub, x)
-        err === nothing || return err
+        ann = _jsvalidann(sub, x)
+        ann[1] === nothing || return ann
+        addann!(ann)
     end
     if haskey(s, "anyOf")
-        errs = [_jsvalid(sub, x) for sub in s["anyOf"]]
-        any(isnothing, errs) || return "does not match any option of `anyOf` (" * join(errs, "; ") * ")"
+        anns = [_jsvalidann(sub, x) for sub in s["anyOf"]]
+        valid = filter(a -> a[1] === nothing, anns)
+        isempty(valid) && return _jsbad("does not match any option of `anyOf` (" * join(first.(anns), "; ") * ")")
+        foreach(addann!, valid)
     end
     if haskey(s, "oneOf")
-        n = count(sub -> _jsvalid(sub, x) === nothing, s["oneOf"])
-        n == 1 || return n == 0 ? "does not match any option of `oneOf`" :
-                         "matches $n options of `oneOf`, but must match exactly one"
+        valid = filter(a -> a[1] === nothing, [_jsvalidann(sub, x) for sub in s["oneOf"]])
+        n = length(valid)
+        n == 1 || return _jsbad(n == 0 ? "does not match any option of `oneOf`" :
+                                         "matches $n options of `oneOf`, but must match exactly one")
+        addann!(only(valid))
     end
-    haskey(s, "not") && _jsvalid(s["not"], x) === nothing && return "must not match the schema in `not`"
+    haskey(s, "not") && _jsvalid(s["not"], x) === nothing && return _jsbad("must not match the schema in `not`")
     if haskey(s, "if")
-        branch = _jsvalid(s["if"], x) === nothing ? get(s, "then", nothing) : get(s, "else", nothing)
-        if branch !== nothing
-            err = _jsvalid(branch, x)
-            err === nothing || return (_jsvalid(s["if"], x) === nothing ? "`then`: " : "`else`: ") * err
+        cond = _jsvalidann(s["if"], x)
+        if cond[1] === nothing
+            addann!(cond)
+            if haskey(s, "then")
+                ann = _jsvalidann(s["then"], x)
+                ann[1] === nothing || return _jsbad("`then`: " * ann[1])
+                addann!(ann)
+            end
+        elseif haskey(s, "else")
+            ann = _jsvalidann(s["else"], x)
+            ann[1] === nothing || return _jsbad("`else`: " * ann[1])
+            addann!(ann)
         end
     end
-    return nothing
+
+    # `unevaluatedItems` and `unevaluatedProperties` apply to what no other keyword of this
+    # schema, or of its valid subschemas, evaluated
+    if x isa AbstractVector && haskey(s, "unevaluatedItems")
+        for i in eachindex(x)
+            i in items && continue
+            err = _jsvalid(s["unevaluatedItems"], x[i])
+            err === nothing || return _jsbad(s["unevaluatedItems"] === false ? "item $i is not allowed" : "item $i: $err")
+            push!(items, i)
+        end
+    end
+    if x isa AbstractDict && haskey(s, "unevaluatedProperties")
+        for (k, v) in x
+            String(k) in props && continue
+            err = _jsvalid(s["unevaluatedProperties"], v)
+            err === nothing || return _jsbad(s["unevaluatedProperties"] === false ?
+                                             "property `$k` is not allowed" : "property `$k`: $err")
+            push!(props, String(k))
+        end
+    end
+    return (nothing, props, items)
 end
 
 # --- Conversion from Julia values into JSON-compatible values ---

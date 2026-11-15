@@ -168,6 +168,35 @@ end
     @test_throws E M.fromdict(M.Settings, Dict("name" => "n", "other" => true))
 end
 
+@testset "unevaluatedProperties and unevaluatedItems at runtime" begin
+    M = load_generated(joinpath(@__DIR__, "schemas", "validation.json"))
+    v(schema, x) = M._jsvalid(JSON.parse(schema), JSON.parse(x)) === nothing
+    # properties evaluated by `allOf`, `anyOf`, `oneOf`, `if`/`then` and `dependentSchemas`
+    s = """{"allOf": [{"properties": {"a": {}}}], "properties": {"b": {}}, "unevaluatedProperties": false}"""
+    @test v(s, """{"a": 1, "b": 2}""") && !v(s, """{"a": 1, "c": 3}""")
+    s = """{"anyOf": [{"properties": {"a": {"type": "integer"}}}, {"properties": {"b": {}}, "required": ["b"]}],
+            "unevaluatedProperties": false}"""
+    @test v(s, """{"a": 1, "b": 2}""")                     # both options valid: both evaluated
+    @test !v(s, """{"a": "x", "c": 3}""")
+    s = """{"if": {"properties": {"kind": {"const": "card"}}}, "then": {"properties": {"number": {}}},
+            "else": {"properties": {"cash": {}}}, "properties": {"kind": {}}, "unevaluatedProperties": false}"""
+    @test v(s, """{"kind": "card", "number": 1}""") && !v(s, """{"kind": "card", "cash": 1}""")
+    @test v(s, """{"kind": "x", "cash": 1}""") && !v(s, """{"kind": "x", "number": 1}""")
+    s = """{"dependentSchemas": {"a": {"properties": {"b": {}}}}, "properties": {"a": {}}, "unevaluatedProperties": false}"""
+    @test v(s, """{"a": 1, "b": 2}""") && !v(s, """{"b": 2}""")
+    # `not` does not evaluate anything; a typed `unevaluatedProperties`
+    s = """{"not": {"properties": {"a": {"type": "string"}}, "required": ["a"]}, "unevaluatedProperties": {"type": "integer"}}"""
+    @test v(s, """{"a": 1}""") && !v(s, """{"a": 1.5}""")
+    # items evaluated by `prefixItems`, `contains` and `allOf`
+    s = """{"prefixItems": [{"type": "string"}], "contains": {"type": "integer"}, "unevaluatedItems": false}"""
+    @test v(s, """["s", 1, 2]""") && !v(s, """["s", 1, true]""")
+    s = """{"allOf": [{"prefixItems": [{}, {}]}], "unevaluatedItems": {"type": "boolean"}}"""
+    @test v(s, """[1, "x", true]""") && !v(s, """[1, "x", 3]""")
+    # nested: annotations of a valid `$ref`-inlined subschema (an `allOf` here) count
+    s = """{"allOf": [{"allOf": [{"properties": {"a": {}}}]}], "unevaluatedProperties": false}"""
+    @test v(s, """{"a": 1}""") && !v(s, """{"z": 1}""")
+end
+
 @testset "Type names" begin
     # inline enums get an `Enum` suffix, after the name of the parent without `Type`/`Base`
     M = load_generated(joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json"); root_name = "BeerJSON")
