@@ -108,8 +108,8 @@ _jsfrom(::Type{Bool}, x) = _jsfail("expected a boolean, got $(repr(x))")
 
 _jsfrom(::Type{Bool}, x::Real) = x isa Bool ? x : _jsfail("expected a boolean, got $(repr(x))")
 
-# Numbers: `T` is the `FloatType` (any `Real`, e.g. `Float64`, `BigFloat`, `Rational{BigInt}`)
-# or the `IntType` (any `Integer`, e.g. `Int64`, `Int128`, `BigInt`) of the generated structs.
+# Numbers: `T` is one of the numeric types `I <: Integer` (e.g. `Int64`, `Int128`, `BigInt`)
+# or `T <: Real` (e.g. `Float64`, `BigFloat`, `Rational{BigInt}`) of the generated structs.
 function _jsfrom(::Type{T}, x::Real) where {T <: Real}
     x isa Bool && _jsfail("expected a number, got $(repr(x))")
     x isa T && return x

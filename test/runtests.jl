@@ -342,7 +342,7 @@ end
     push!(x.tags, "c")
     @test M.Settings(name = "n").tags == ["a", "b"]
     code = read(generate_module(schema, joinpath(mktempdir(), "d.jl"); use_defaults = true), String)
-    @test occursin("- `level::Union{Nothing, IntType}`: defaults to `3`.", code)
+    @test occursin("- `level::Union{Nothing, I}`: defaults to `3`.", code)
 end
 
 @testset "setfields and positional constructors" begin
@@ -398,6 +398,15 @@ end
     # positional constructors infer the numeric types from their arguments
     @test M.VolumeType(M.VolumeUnitType("l"), big"2.5") isa M.VolumeType{Int64, BigFloat}
     @test M.setfields(w; value = 3).value isa BigFloat
+    # the names of the type parameters are reserved
+    dir = mktempdir()
+    write(joinpath(dir, "s.json"), """{"title": "R", "type": "object",
+        "properties": {"I": {"type": "integer"}, "T": {"\$ref": "#/\$defs/T"}},
+        "\$defs": {"T": {"type": "object", "properties": {"x": {"type": "number"}}}}}""")
+    N = load_generated(joinpath(dir, "s.json"))
+    @test fieldnames(N.R) == (:I_, :T_, :_extra)
+    r = N.fromjson(N.R{Int, BigFloat}, """{"I": 1, "T": {"x": 2.5}}""")
+    @test r.I_ === 1 && r.T_.x isa BigFloat && N.tojson(r) == """{"I":1,"T":{"x":2.5}}"""
 end
 
 @testset "Additional properties are preserved" begin

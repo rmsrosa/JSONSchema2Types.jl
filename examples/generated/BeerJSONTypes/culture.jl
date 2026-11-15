@@ -27,34 +27,34 @@ _SPECS[CultureFormEnum] = (values = Any["liquid", "dry", "slant", "culture", "dr
 
 """
     CultureInventoryType(; kwargs...)
-    CultureInventoryType{IntType, FloatType}(; kwargs...)
+    CultureInventoryType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `liquid::Union{Nothing, VolumeType{IntType, FloatType}}`
-- `dry::Union{Nothing, MassType{IntType, FloatType}}`
-- `slant::Union{Nothing, VolumeType{IntType, FloatType}}`
-- `culture::Union{Nothing, VolumeType{IntType, FloatType}}`
+- `liquid::Union{Nothing, VolumeType{I, T}}`
+- `dry::Union{Nothing, MassType{I, T}}`
+- `slant::Union{Nothing, VolumeType{I, T}}`
+- `culture::Union{Nothing, VolumeType{I, T}}`
 """
-struct CultureInventoryType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    liquid::Union{Nothing, VolumeType{IntType, FloatType}}
-    dry::Union{Nothing, MassType{IntType, FloatType}}
-    slant::Union{Nothing, VolumeType{IntType, FloatType}}
-    culture::Union{Nothing, VolumeType{IntType, FloatType}}
-    function CultureInventoryType{IntType, FloatType}(; liquid = nothing, dry = nothing, slant = nothing, culture = nothing) where {IntType <: Integer, FloatType <: Real}
-        liquid = _jsfrom(Union{Nothing, VolumeType{IntType, FloatType}}, liquid)
-        dry = _jsfrom(Union{Nothing, MassType{IntType, FloatType}}, dry)
-        slant = _jsfrom(Union{Nothing, VolumeType{IntType, FloatType}}, slant)
-        culture = _jsfrom(Union{Nothing, VolumeType{IntType, FloatType}}, culture)
-        _jscheck(CultureInventoryType{IntType, FloatType}, (liquid, dry, slant, culture), nothing)
+struct CultureInventoryType{I <: Integer, T <: Real} <: AbstractSchemaObject
+    liquid::Union{Nothing, VolumeType{I, T}}
+    dry::Union{Nothing, MassType{I, T}}
+    slant::Union{Nothing, VolumeType{I, T}}
+    culture::Union{Nothing, VolumeType{I, T}}
+    function CultureInventoryType{I, T}(; liquid = nothing, dry = nothing, slant = nothing, culture = nothing) where {I <: Integer, T <: Real}
+        liquid = _jsfrom(Union{Nothing, VolumeType{I, T}}, liquid)
+        dry = _jsfrom(Union{Nothing, MassType{I, T}}, dry)
+        slant = _jsfrom(Union{Nothing, VolumeType{I, T}}, slant)
+        culture = _jsfrom(Union{Nothing, VolumeType{I, T}}, culture)
+        _jscheck(CultureInventoryType{I, T}, (liquid, dry, slant, culture), nothing)
         return new(liquid, dry, slant, culture)
     end
 end
 CultureInventoryType(; kwargs...) = CultureInventoryType{Int64, Float64}(; kwargs...)
-CultureInventoryType{IntType, FloatType}(liquid, dry, slant, culture) where {IntType <: Integer, FloatType <: Real} = CultureInventoryType{IntType, FloatType}(; liquid, dry, slant, culture)
+CultureInventoryType{I, T}(liquid, dry, slant, culture) where {I <: Integer, T <: Real} = CultureInventoryType{I, T}(; liquid, dry, slant, culture)
 CultureInventoryType(liquid, dry, slant, culture) = CultureInventoryType{_jsnumbertypes(liquid, dry, slant, culture)...}(; liquid, dry, slant, culture)
 _SPECS[CultureInventoryType] = (
     fields = (
@@ -72,11 +72,11 @@ _SPECS[CultureInventoryType] = (
 
 """
     Zymocide(; kwargs...)
-    Zymocide{IntType, FloatType}(; kwargs...)
+    Zymocide{I, T}(; kwargs...)
 
 Zymocide, also known as killer yeast properties, is common among wine yeast. There are also some ale and brett yeasts that are immune to some zymocidic properties, these are known as killer neutral.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -87,24 +87,24 @@ and `Float64`.
 - `klus::Union{Nothing, Bool}`
 - `neutral::Union{Nothing, Bool}`
 """
-struct Zymocide{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct Zymocide{I <: Integer, T <: Real} <: AbstractSchemaObject
     no1::Union{Nothing, Bool}
     no2::Union{Nothing, Bool}
     no28::Union{Nothing, Bool}
     klus::Union{Nothing, Bool}
     neutral::Union{Nothing, Bool}
-    function Zymocide{IntType, FloatType}(; no1 = nothing, no2 = nothing, no28 = nothing, klus = nothing, neutral = nothing) where {IntType <: Integer, FloatType <: Real}
+    function Zymocide{I, T}(; no1 = nothing, no2 = nothing, no28 = nothing, klus = nothing, neutral = nothing) where {I <: Integer, T <: Real}
         no1 = _jsfrom(Union{Nothing, Bool}, no1)
         no2 = _jsfrom(Union{Nothing, Bool}, no2)
         no28 = _jsfrom(Union{Nothing, Bool}, no28)
         klus = _jsfrom(Union{Nothing, Bool}, klus)
         neutral = _jsfrom(Union{Nothing, Bool}, neutral)
-        _jscheck(Zymocide{IntType, FloatType}, (no1, no2, no28, klus, neutral), nothing)
+        _jscheck(Zymocide{I, T}, (no1, no2, no28, klus, neutral), nothing)
         return new(no1, no2, no28, klus, neutral)
     end
 end
 Zymocide(; kwargs...) = Zymocide{Int64, Float64}(; kwargs...)
-Zymocide{IntType, FloatType}(no1, no2, no28, klus, neutral) where {IntType <: Integer, FloatType <: Real} = Zymocide{IntType, FloatType}(; no1, no2, no28, klus, neutral)
+Zymocide{I, T}(no1, no2, no28, klus, neutral) where {I <: Integer, T <: Real} = Zymocide{I, T}(; no1, no2, no28, klus, neutral)
 Zymocide(no1, no2, no28, klus, neutral) = Zymocide{_jsnumbertypes(no1, no2, no28, klus, neutral)...}(; no1, no2, no28, klus, neutral)
 _SPECS[Zymocide] = (
     fields = (
@@ -123,11 +123,11 @@ _SPECS[Zymocide] = (
 
 """
     CultureInformation(; kwargs...)
-    CultureInformation{IntType, FloatType}(; kwargs...)
+    CultureInformation{I, T}(; kwargs...)
 
 CultureInformation collects the attributes of a microbial culture.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -137,61 +137,61 @@ and `Float64`.
 - `form::CultureFormEnum` (required)
 - `producer::Union{Nothing, String}`
 - `product_id::Union{Nothing, String}`
-- `temperature_range::Union{Nothing, TemperatureRangeType{IntType, FloatType}}`: The recommended temperature range of fermentation by the culture producer.
-- `alcohol_tolerance::Union{Nothing, PercentType{IntType, FloatType}}`: The recommended limit of abv by the culture producer before attenuation stops.
+- `temperature_range::Union{Nothing, TemperatureRangeType{I, T}}`: The recommended temperature range of fermentation by the culture producer.
+- `alcohol_tolerance::Union{Nothing, PercentType{I, T}}`: The recommended limit of abv by the culture producer before attenuation stops.
 - `flocculation::Union{Nothing, QualitativeRangeType}`: Floculation refers to the ability of yeast to aggregate to form large flocs which drop out of suspension.
-- `attenuation_range::Union{Nothing, PercentRangeType{IntType, FloatType}}`
+- `attenuation_range::Union{Nothing, PercentRangeType{I, T}}`
 - `notes::Union{Nothing, String}`
 - `best_for::Union{Nothing, String}`: Recommended styles for a particular culture.
-- `max_reuse::Union{Nothing, IntType}`: Maximum number of times to reuse a culture before a new lab source is recommended.
+- `max_reuse::Union{Nothing, I}`: Maximum number of times to reuse a culture before a new lab source is recommended.
 - `pof::Union{Nothing, Bool}`: A POF+ culture is capable of producing phenols, which is a common distinctive property of saison, and brett yeasts.
 - `glucoamylase::Union{Nothing, Bool}`: A glucoamylase positive culture is capable of producing glucoamylase, the enzyme produced through expression of the diastatic gene, which allows yeast to attenuate dextrins and starches leading to a very low FG. This is positive in some saison/brett yeasts as well as the new gulo hybrid by Omega yeast labs.
-- `inventory::Union{Nothing, CultureInventoryType{IntType, FloatType}}`
-- `zymocide::Union{Nothing, Zymocide{IntType, FloatType}}`: Zymocide, also known as killer yeast properties, is common among wine yeast. There are also some ale and brett yeasts that are immune to some zymocidic properties, these are known as killer neutral.
+- `inventory::Union{Nothing, CultureInventoryType{I, T}}`
+- `zymocide::Union{Nothing, Zymocide{I, T}}`: Zymocide, also known as killer yeast properties, is common among wine yeast. There are also some ale and brett yeasts that are immune to some zymocidic properties, these are known as killer neutral.
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct CultureInformation{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct CultureInformation{I <: Integer, T <: Real} <: AbstractSchemaObject
     name::String
     type::CultureTypeEnum
     form::CultureFormEnum
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
-    temperature_range::Union{Nothing, TemperatureRangeType{IntType, FloatType}}
-    alcohol_tolerance::Union{Nothing, PercentType{IntType, FloatType}}
+    temperature_range::Union{Nothing, TemperatureRangeType{I, T}}
+    alcohol_tolerance::Union{Nothing, PercentType{I, T}}
     flocculation::Union{Nothing, QualitativeRangeType}
-    attenuation_range::Union{Nothing, PercentRangeType{IntType, FloatType}}
+    attenuation_range::Union{Nothing, PercentRangeType{I, T}}
     notes::Union{Nothing, String}
     best_for::Union{Nothing, String}
-    max_reuse::Union{Nothing, IntType}
+    max_reuse::Union{Nothing, I}
     pof::Union{Nothing, Bool}
     glucoamylase::Union{Nothing, Bool}
-    inventory::Union{Nothing, CultureInventoryType{IntType, FloatType}}
-    zymocide::Union{Nothing, Zymocide{IntType, FloatType}}
+    inventory::Union{Nothing, CultureInventoryType{I, T}}
+    zymocide::Union{Nothing, Zymocide{I, T}}
     _extra::Dict{String, Any}
-    function CultureInformation{IntType, FloatType}(; name, type, form, producer = nothing, product_id = nothing, temperature_range = nothing, alcohol_tolerance = nothing, flocculation = nothing, attenuation_range = nothing, notes = nothing, best_for = nothing, max_reuse = nothing, pof = nothing, glucoamylase = nothing, inventory = nothing, zymocide = nothing, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function CultureInformation{I, T}(; name, type, form, producer = nothing, product_id = nothing, temperature_range = nothing, alcohol_tolerance = nothing, flocculation = nothing, attenuation_range = nothing, notes = nothing, best_for = nothing, max_reuse = nothing, pof = nothing, glucoamylase = nothing, inventory = nothing, zymocide = nothing, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         name = _jsfrom(String, name)
         type = _jsfrom(CultureTypeEnum, type)
         form = _jsfrom(CultureFormEnum, form)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
-        temperature_range = _jsfrom(Union{Nothing, TemperatureRangeType{IntType, FloatType}}, temperature_range)
-        alcohol_tolerance = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, alcohol_tolerance)
+        temperature_range = _jsfrom(Union{Nothing, TemperatureRangeType{I, T}}, temperature_range)
+        alcohol_tolerance = _jsfrom(Union{Nothing, PercentType{I, T}}, alcohol_tolerance)
         flocculation = _jsfrom(Union{Nothing, QualitativeRangeType}, flocculation)
-        attenuation_range = _jsfrom(Union{Nothing, PercentRangeType{IntType, FloatType}}, attenuation_range)
+        attenuation_range = _jsfrom(Union{Nothing, PercentRangeType{I, T}}, attenuation_range)
         notes = _jsfrom(Union{Nothing, String}, notes)
         best_for = _jsfrom(Union{Nothing, String}, best_for)
-        max_reuse = _jsfrom(Union{Nothing, IntType}, max_reuse)
+        max_reuse = _jsfrom(Union{Nothing, I}, max_reuse)
         pof = _jsfrom(Union{Nothing, Bool}, pof)
         glucoamylase = _jsfrom(Union{Nothing, Bool}, glucoamylase)
-        inventory = _jsfrom(Union{Nothing, CultureInventoryType{IntType, FloatType}}, inventory)
-        zymocide = _jsfrom(Union{Nothing, Zymocide{IntType, FloatType}}, zymocide)
+        inventory = _jsfrom(Union{Nothing, CultureInventoryType{I, T}}, inventory)
+        zymocide = _jsfrom(Union{Nothing, Zymocide{I, T}}, zymocide)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(CultureInformation{IntType, FloatType}, (name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide), _extra)
+        _jscheck(CultureInformation{I, T}, (name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide), _extra)
         return new(name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra)
     end
 end
 CultureInformation(; kwargs...) = CultureInformation{Int64, Float64}(; kwargs...)
-CultureInformation{IntType, FloatType}(name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra) where {IntType <: Integer, FloatType <: Real} = CultureInformation{IntType, FloatType}(; name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra)
+CultureInformation{I, T}(name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra) where {I <: Integer, T <: Real} = CultureInformation{I, T}(; name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra)
 CultureInformation(name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra) = CultureInformation{_jsnumbertypes(name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra)...}(; name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra)
 _SPECS[CultureInformation] = (
     fields = (
@@ -221,11 +221,11 @@ _SPECS[CultureInformation] = (
 
 """
     CultureAdditionType(; kwargs...)
-    CultureAdditionType{IntType, FloatType}(; kwargs...)
+    CultureAdditionType{I, T}(; kwargs...)
 
 CultureAdditionType collects the attributes of each culture ingredient for use in a recipe.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -235,43 +235,43 @@ and `Float64`.
 - `form::CultureFormEnum` (required)
 - `producer::Union{Nothing, String}`
 - `product_id::Union{Nothing, String}`
-- `attenuation::Union{Nothing, PercentType{IntType, FloatType}}`: The expected, or measured apparent attenuation for a given culture in a given recipe. In comparison to attenuation range, this is a single value.
-- `times_cultured::Union{Nothing, IntType}`
-- `timing::Union{Nothing, TimingType{IntType, FloatType}}`: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
-- `cell_count_billions::Union{Nothing, IntType}`
-- `amount::Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}, UnitType{IntType, FloatType}}` (required)
+- `attenuation::Union{Nothing, PercentType{I, T}}`: The expected, or measured apparent attenuation for a given culture in a given recipe. In comparison to attenuation range, this is a single value.
+- `times_cultured::Union{Nothing, I}`
+- `timing::Union{Nothing, TimingType{I, T}}`: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
+- `cell_count_billions::Union{Nothing, I}`
+- `amount::Union{VolumeType{I, T}, MassType{I, T}, UnitType{I, T}}` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct CultureAdditionType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct CultureAdditionType{I <: Integer, T <: Real} <: AbstractSchemaObject
     name::String
     type::CultureTypeEnum
     form::CultureFormEnum
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
-    attenuation::Union{Nothing, PercentType{IntType, FloatType}}
-    times_cultured::Union{Nothing, IntType}
-    timing::Union{Nothing, TimingType{IntType, FloatType}}
-    cell_count_billions::Union{Nothing, IntType}
-    amount::Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}, UnitType{IntType, FloatType}}
+    attenuation::Union{Nothing, PercentType{I, T}}
+    times_cultured::Union{Nothing, I}
+    timing::Union{Nothing, TimingType{I, T}}
+    cell_count_billions::Union{Nothing, I}
+    amount::Union{VolumeType{I, T}, MassType{I, T}, UnitType{I, T}}
     _extra::Dict{String, Any}
-    function CultureAdditionType{IntType, FloatType}(; name, type, form, producer = nothing, product_id = nothing, attenuation = nothing, times_cultured = nothing, timing = nothing, cell_count_billions = nothing, amount, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function CultureAdditionType{I, T}(; name, type, form, producer = nothing, product_id = nothing, attenuation = nothing, times_cultured = nothing, timing = nothing, cell_count_billions = nothing, amount, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         name = _jsfrom(String, name)
         type = _jsfrom(CultureTypeEnum, type)
         form = _jsfrom(CultureFormEnum, form)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
-        attenuation = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, attenuation)
-        times_cultured = _jsfrom(Union{Nothing, IntType}, times_cultured)
-        timing = _jsfrom(Union{Nothing, TimingType{IntType, FloatType}}, timing)
-        cell_count_billions = _jsfrom(Union{Nothing, IntType}, cell_count_billions)
-        amount = _jsfrom(Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}, UnitType{IntType, FloatType}}, amount)
+        attenuation = _jsfrom(Union{Nothing, PercentType{I, T}}, attenuation)
+        times_cultured = _jsfrom(Union{Nothing, I}, times_cultured)
+        timing = _jsfrom(Union{Nothing, TimingType{I, T}}, timing)
+        cell_count_billions = _jsfrom(Union{Nothing, I}, cell_count_billions)
+        amount = _jsfrom(Union{VolumeType{I, T}, MassType{I, T}, UnitType{I, T}}, amount)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(CultureAdditionType{IntType, FloatType}, (name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount), _extra)
+        _jscheck(CultureAdditionType{I, T}, (name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount), _extra)
         return new(name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra)
     end
 end
 CultureAdditionType(; kwargs...) = CultureAdditionType{Int64, Float64}(; kwargs...)
-CultureAdditionType{IntType, FloatType}(name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra) where {IntType <: Integer, FloatType <: Real} = CultureAdditionType{IntType, FloatType}(; name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra)
+CultureAdditionType{I, T}(name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra) where {I <: Integer, T <: Real} = CultureAdditionType{I, T}(; name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra)
 CultureAdditionType(name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra) = CultureAdditionType{_jsnumbertypes(name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra)...}(; name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra)
 _SPECS[CultureAdditionType] = (
     fields = (

@@ -120,8 +120,8 @@ _jsfrom(::Type{Bool}, x) = _jsfail("expected a boolean, got $(repr(x))")
 
 _jsfrom(::Type{Bool}, x::Real) = x isa Bool ? x : _jsfail("expected a boolean, got $(repr(x))")
 
-# Numbers: `T` is the `FloatType` (any `Real`, e.g. `Float64`, `BigFloat`, `Rational{BigInt}`)
-# or the `IntType` (any `Integer`, e.g. `Int64`, `Int128`, `BigInt`) of the generated structs.
+# Numbers: `T` is one of the numeric types `I <: Integer` (e.g. `Int64`, `Int128`, `BigInt`)
+# or `T <: Real` (e.g. `Float64`, `BigFloat`, `Rational{BigInt}`) of the generated structs.
 function _jsfrom(::Type{T}, x::Real) where {T <: Real}
     x isa Bool && _jsfail("expected a number, got $(repr(x))")
     x isa T && return x
@@ -1026,33 +1026,33 @@ end
 
 """
     LongitudeAndLatitude(; kwargs...)
-    LongitudeAndLatitude{IntType, FloatType}(; kwargs...)
+    LongitudeAndLatitude{I, T}(; kwargs...)
 
 A geographical coordinate on a planet (most commonly Earth).
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `latitude::FloatType` (required)
-- `longitude::FloatType` (required)
+- `latitude::T` (required)
+- `longitude::T` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct LongitudeAndLatitude{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    latitude::FloatType
-    longitude::FloatType
+struct LongitudeAndLatitude{I <: Integer, T <: Real} <: AbstractSchemaObject
+    latitude::T
+    longitude::T
     _extra::Dict{String, Any}
-    function LongitudeAndLatitude{IntType, FloatType}(; latitude, longitude, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
-        latitude = _jsfrom(FloatType, latitude)
-        longitude = _jsfrom(FloatType, longitude)
+    function LongitudeAndLatitude{I, T}(; latitude, longitude, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
+        latitude = _jsfrom(T, latitude)
+        longitude = _jsfrom(T, longitude)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(LongitudeAndLatitude{IntType, FloatType}, (latitude, longitude), _extra)
+        _jscheck(LongitudeAndLatitude{I, T}, (latitude, longitude), _extra)
         return new(latitude, longitude, _extra)
     end
 end
 LongitudeAndLatitude(; kwargs...) = LongitudeAndLatitude{Int64, Float64}(; kwargs...)
-LongitudeAndLatitude{IntType, FloatType}(latitude, longitude, _extra) where {IntType <: Integer, FloatType <: Real} = LongitudeAndLatitude{IntType, FloatType}(; latitude, longitude, _extra)
+LongitudeAndLatitude{I, T}(latitude, longitude, _extra) where {I <: Integer, T <: Real} = LongitudeAndLatitude{I, T}(; latitude, longitude, _extra)
 LongitudeAndLatitude(latitude, longitude, _extra) = LongitudeAndLatitude{_jsnumbertypes(latitude, longitude, _extra)...}(; latitude, longitude, _extra)
 _SPECS[LongitudeAndLatitude] = (
     fields = (
@@ -1073,34 +1073,34 @@ _SPECS[LongitudeAndLatitude] = (
 
 """
     ProductDimensions(; kwargs...)
-    ProductDimensions{IntType, FloatType}(; kwargs...)
+    ProductDimensions{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `length::FloatType` (required)
-- `width::FloatType` (required)
-- `height::FloatType` (required)
+- `length::T` (required)
+- `width::T` (required)
+- `height::T` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct ProductDimensions{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    length::FloatType
-    width::FloatType
-    height::FloatType
+struct ProductDimensions{I <: Integer, T <: Real} <: AbstractSchemaObject
+    length::T
+    width::T
+    height::T
     _extra::Dict{String, Any}
-    function ProductDimensions{IntType, FloatType}(; length, width, height, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
-        length = _jsfrom(FloatType, length)
-        width = _jsfrom(FloatType, width)
-        height = _jsfrom(FloatType, height)
+    function ProductDimensions{I, T}(; length, width, height, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
+        length = _jsfrom(T, length)
+        width = _jsfrom(T, width)
+        height = _jsfrom(T, height)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(ProductDimensions{IntType, FloatType}, (length, width, height), _extra)
+        _jscheck(ProductDimensions{I, T}, (length, width, height), _extra)
         return new(length, width, height, _extra)
     end
 end
 ProductDimensions(; kwargs...) = ProductDimensions{Int64, Float64}(; kwargs...)
-ProductDimensions{IntType, FloatType}(length, width, height, _extra) where {IntType <: Integer, FloatType <: Real} = ProductDimensions{IntType, FloatType}(; length, width, height, _extra)
+ProductDimensions{I, T}(length, width, height, _extra) where {I <: Integer, T <: Real} = ProductDimensions{I, T}(; length, width, height, _extra)
 ProductDimensions(length, width, height, _extra) = ProductDimensions{_jsnumbertypes(length, width, height, _extra)...}(; length, width, height, _extra)
 _SPECS[ProductDimensions] = (
     fields = (
@@ -1117,45 +1117,45 @@ _SPECS[ProductDimensions] = (
 
 """
     Product(; kwargs...)
-    Product{IntType, FloatType}(; kwargs...)
+    Product{I, T}(; kwargs...)
 
 A product from Acme's catalog
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `productId::IntType` (required): The unique identifier for a product
+- `productId::I` (required): The unique identifier for a product
 - `productName::String` (required): Name of the product
-- `price::FloatType` (required): The price of the product
+- `price::T` (required): The price of the product
 - `tags::Union{Nothing, Vector{String}}`: Tags for the product
-- `dimensions::Union{Nothing, ProductDimensions{IntType, FloatType}}`
-- `warehouseLocation::Union{Nothing, LongitudeAndLatitude{IntType, FloatType}}`: Coordinates of the warehouse where the product is located.
+- `dimensions::Union{Nothing, ProductDimensions{I, T}}`
+- `warehouseLocation::Union{Nothing, LongitudeAndLatitude{I, T}}`: Coordinates of the warehouse where the product is located.
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct Product{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    productId::IntType
+struct Product{I <: Integer, T <: Real} <: AbstractSchemaObject
+    productId::I
     productName::String
-    price::FloatType
+    price::T
     tags::Union{Nothing, Vector{String}}
-    dimensions::Union{Nothing, ProductDimensions{IntType, FloatType}}
-    warehouseLocation::Union{Nothing, LongitudeAndLatitude{IntType, FloatType}}
+    dimensions::Union{Nothing, ProductDimensions{I, T}}
+    warehouseLocation::Union{Nothing, LongitudeAndLatitude{I, T}}
     _extra::Dict{String, Any}
-    function Product{IntType, FloatType}(; productId, productName, price, tags = nothing, dimensions = nothing, warehouseLocation = nothing, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
-        productId = _jsfrom(IntType, productId)
+    function Product{I, T}(; productId, productName, price, tags = nothing, dimensions = nothing, warehouseLocation = nothing, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
+        productId = _jsfrom(I, productId)
         productName = _jsfrom(String, productName)
-        price = _jsfrom(FloatType, price)
+        price = _jsfrom(T, price)
         tags = _jsfrom(Union{Nothing, Vector{String}}, tags)
-        dimensions = _jsfrom(Union{Nothing, ProductDimensions{IntType, FloatType}}, dimensions)
-        warehouseLocation = _jsfrom(Union{Nothing, LongitudeAndLatitude{IntType, FloatType}}, warehouseLocation)
+        dimensions = _jsfrom(Union{Nothing, ProductDimensions{I, T}}, dimensions)
+        warehouseLocation = _jsfrom(Union{Nothing, LongitudeAndLatitude{I, T}}, warehouseLocation)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(Product{IntType, FloatType}, (productId, productName, price, tags, dimensions, warehouseLocation), _extra)
+        _jscheck(Product{I, T}, (productId, productName, price, tags, dimensions, warehouseLocation), _extra)
         return new(productId, productName, price, tags, dimensions, warehouseLocation, _extra)
     end
 end
 Product(; kwargs...) = Product{Int64, Float64}(; kwargs...)
-Product{IntType, FloatType}(productId, productName, price, tags, dimensions, warehouseLocation, _extra) where {IntType <: Integer, FloatType <: Real} = Product{IntType, FloatType}(; productId, productName, price, tags, dimensions, warehouseLocation, _extra)
+Product{I, T}(productId, productName, price, tags, dimensions, warehouseLocation, _extra) where {I <: Integer, T <: Real} = Product{I, T}(; productId, productName, price, tags, dimensions, warehouseLocation, _extra)
 Product(productId, productName, price, tags, dimensions, warehouseLocation, _extra) = Product{_jsnumbertypes(productId, productName, price, tags, dimensions, warehouseLocation, _extra)...}(; productId, productName, price, tags, dimensions, warehouseLocation, _extra)
 _SPECS[Product] = (
     fields = (

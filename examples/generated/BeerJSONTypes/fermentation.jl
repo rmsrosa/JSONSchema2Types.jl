@@ -5,11 +5,11 @@
 
 """
     FermentationProcedureType(; kwargs...)
-    FermentationProcedureType{IntType, FloatType}(; kwargs...)
+    FermentationProcedureType{I, T}(; kwargs...)
 
 FermentationProcedureType defines the procedure for performing fermentation.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -17,24 +17,24 @@ and `Float64`.
 - `name::String` (required)
 - `description::Union{Nothing, String}`
 - `notes::Union{Nothing, String}`
-- `fermentation_steps::Vector{FermentationStepType{IntType, FloatType}}` (required)
+- `fermentation_steps::Vector{FermentationStepType{I, T}}` (required)
 """
-struct FermentationProcedureType{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct FermentationProcedureType{I <: Integer, T <: Real} <: AbstractSchemaObject
     name::String
     description::Union{Nothing, String}
     notes::Union{Nothing, String}
-    fermentation_steps::Vector{FermentationStepType{IntType, FloatType}}
-    function FermentationProcedureType{IntType, FloatType}(; name, description = nothing, notes = nothing, fermentation_steps) where {IntType <: Integer, FloatType <: Real}
+    fermentation_steps::Vector{FermentationStepType{I, T}}
+    function FermentationProcedureType{I, T}(; name, description = nothing, notes = nothing, fermentation_steps) where {I <: Integer, T <: Real}
         name = _jsfrom(String, name)
         description = _jsfrom(Union{Nothing, String}, description)
         notes = _jsfrom(Union{Nothing, String}, notes)
-        fermentation_steps = _jsfrom(Vector{FermentationStepType{IntType, FloatType}}, fermentation_steps)
-        _jscheck(FermentationProcedureType{IntType, FloatType}, (name, description, notes, fermentation_steps), nothing)
+        fermentation_steps = _jsfrom(Vector{FermentationStepType{I, T}}, fermentation_steps)
+        _jscheck(FermentationProcedureType{I, T}, (name, description, notes, fermentation_steps), nothing)
         return new(name, description, notes, fermentation_steps)
     end
 end
 FermentationProcedureType(; kwargs...) = FermentationProcedureType{Int64, Float64}(; kwargs...)
-FermentationProcedureType{IntType, FloatType}(name, description, notes, fermentation_steps) where {IntType <: Integer, FloatType <: Real} = FermentationProcedureType{IntType, FloatType}(; name, description, notes, fermentation_steps)
+FermentationProcedureType{I, T}(name, description, notes, fermentation_steps) where {I <: Integer, T <: Real} = FermentationProcedureType{I, T}(; name, description, notes, fermentation_steps)
 FermentationProcedureType(name, description, notes, fermentation_steps) = FermentationProcedureType{_jsnumbertypes(name, description, notes, fermentation_steps)...}(; name, description, notes, fermentation_steps)
 _SPECS[FermentationProcedureType] = (
     fields = (

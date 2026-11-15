@@ -18,8 +18,8 @@ const FORMAT_TYPES = Dict(
 
 const PRIMITIVE_TYPES = Dict(
     "string" => "String",
-    "number" => "FloatType",
-    "integer" => "IntType",
+    "number" => "T",
+    "integer" => "I",
     "boolean" => "Bool",
     "null" => "Nothing",
 )
@@ -31,7 +31,7 @@ const RESERVED_NAMES = Set([
     "import", "in", "isa", "let", "local", "macro", "module", "mutable", "new", "outer",
     "primitive", "public", "quote", "return", "struct", "true", "try", "type", "using",
     "where", "while", "nothing", "missing", "Any", "Nothing", "String", "Bool", "Int64",
-    "Float64", "Vector", "Dict", "Union", "IntType", "FloatType",
+    "Float64", "Vector", "Dict", "Union", "I", "T",
 ])
 # `type` is not a reserved word in Julia, so we allow it as a field name.
 delete!(RESERVED_NAMES, "type")
@@ -493,7 +493,8 @@ function register_name!(gen::Generator, file::String, pointer::String)
         return name
     end
     hint = name_hint(gen, file, pointer)
-    isfree(n) = !haskey(gen.taken, n) && !(n in values(gen.overrides))
+    # (`I` and `T` are the names of the type parameters of the structs)
+    isfree(n) = !haskey(gen.taken, n) && !(n in values(gen.overrides)) && !(n in ("I", "T"))
     name = hint
     if !isfree(name)
         name = type_identifier(splitext(basename(file))[1]) * hint
@@ -729,18 +730,18 @@ function resolve_type(gen::Generator, file::String, pointer::String, node, depth
 end
 
 # The type of a generated type in field types: structs are parametrized by the integer and
-# floating-point types, `IntType` and `FloatType`, of the struct that contains them.
+# other numeric types, `I` and `T`, of the struct that contains them.
 function named_typeref(gen::Generator, name::String)
     def = gen.types[gen.taken[name]]
-    return TypeRef(def isa ObjectDef ? "$name{IntType, FloatType}" : name, [name])
+    return TypeRef(def isa ObjectDef ? "$name{I, T}" : name, [name])
 end
 
-# The types `IntType` and `FloatType` replaced by the default ones, `Int64` and `Float64`,
+# The types `I` and `T` replaced by the default ones, `Int64` and `Float64`,
 # and parametric structs by their `UnionAll` types (whose constructors use these defaults).
 function default_numbers(expr::String)
-    m = match(r"^([A-Za-z_][A-Za-z0-9_]*)\{IntType, FloatType\}$", expr)
+    m = match(r"^([A-Za-z_][A-Za-z0-9_]*)\{I, T\}$", expr)
     m === nothing || return String(m[1])
-    return replace(expr, r"\bIntType\b" => "Int64", r"\bFloatType\b" => "Float64")
+    return replace(expr, r"\bI\b" => "Int64", r"\bT\b" => "Float64")
 end
 
 function union_typeref(options::Vector{TypeRef})
@@ -1284,10 +1285,10 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
     # docstring
     println(io, "\"\"\"")
     println(io, "    ", d.name, "(; kwargs...)")
-    println(io, "    ", d.name, "{IntType, FloatType}(; kwargs...)")
+    println(io, "    ", d.name, "{I, T}(; kwargs...)")
     println(io)
     isempty(d.description) || (println(io, escape_docstring(d.description)); println(io))
-    println(io, "Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`")
+    println(io, "Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`")
     println(io, "and `Float64`.")
     println(io)
     if !isempty(d.fields)
@@ -1310,7 +1311,7 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
     println(io, "\"\"\"")
 
     # struct definition
-    params = "{IntType <: Integer, FloatType <: Real}"
+    params = "{I <: Integer, T <: Real}"
     println(io, "struct ", d.name, params, " <: AbstractSchemaObject")
     for f in d.fields
         # Types not yet defined (due to cyclic dependencies) are declared as `Any`;
@@ -1327,13 +1328,13 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
         println(io, "    ", extra, "::Dict{String, ", extra_type, "}")
         push!(kwargs, extra * " = Dict{String, Any}()")
     end
-    println(io, "    function ", d.name, "{IntType, FloatType}(; ", join(kwargs, ", "), ") where ", params)
+    println(io, "    function ", d.name, "{I, T}(; ", join(kwargs, ", "), ") where ", params)
     for f in d.fields
         println(io, "        ", f.name, " = _jsfrom(", f.type.expr, ", ", f.name, ")")
     end
     extra === nothing || println(io, "        ", extra, " = _jsfrom(Dict{String, ", d.extra_type.expr, "}, ", extra, ")")
     vals = join([f.name for f in d.fields], ", ")
-    println(io, "        _jscheck(", d.name, "{IntType, FloatType}, (", vals, isempty(d.fields) || length(d.fields) > 1 ? "" : ",", "), ",
+    println(io, "        _jscheck(", d.name, "{I, T}, (", vals, isempty(d.fields) || length(d.fields) > 1 ? "" : ",", "), ",
             something(extra, "nothing"), ")")
     println(io, "        return new(", join(vcat([f.name for f in d.fields], extra === nothing ? String[] : [extra]), ", "), ")")
     println(io, "    end")
@@ -1346,8 +1347,8 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
     allfields = vcat([f.name for f in d.fields], extra === nothing ? String[] : [extra])
     if !isempty(allfields)
         args = join(allfields, ", ")
-        println(io, d.name, "{IntType, FloatType}(", args, ") where ", params, " = ",
-                d.name, "{IntType, FloatType}(; ", args, ")")
+        println(io, d.name, "{I, T}(", args, ") where ", params, " = ",
+                d.name, "{I, T}(; ", args, ")")
         println(io, d.name, "(", args, ") = ", d.name, "{_jsnumbertypes(", args, ")...}(; ", args, ")")
     end
 

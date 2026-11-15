@@ -120,8 +120,8 @@ _jsfrom(::Type{Bool}, x) = _jsfail("expected a boolean, got $(repr(x))")
 
 _jsfrom(::Type{Bool}, x::Real) = x isa Bool ? x : _jsfail("expected a boolean, got $(repr(x))")
 
-# Numbers: `T` is the `FloatType` (any `Real`, e.g. `Float64`, `BigFloat`, `Rational{BigInt}`)
-# or the `IntType` (any `Integer`, e.g. `Int64`, `Int128`, `BigInt`) of the generated structs.
+# Numbers: `T` is one of the numeric types `I <: Integer` (e.g. `Int64`, `Int128`, `BigInt`)
+# or `T <: Real` (e.g. `Float64`, `BigFloat`, `Rational{BigInt}`) of the generated structs.
 function _jsfrom(::Type{T}, x::Real) where {T <: Real}
     x isa Bool && _jsfail("expected a number, got $(repr(x))")
     x isa T && return x
@@ -1026,39 +1026,39 @@ end
 
 """
     Product(; kwargs...)
-    Product{IntType, FloatType}(; kwargs...)
+    Product{I, T}(; kwargs...)
 
 A product from Acme's catalog
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `productId::IntType` (required): The unique identifier for a product
+- `productId::I` (required): The unique identifier for a product
 - `productName::String` (required): Name of the product
-- `price::FloatType` (required): The price of the product
+- `price::T` (required): The price of the product
 - `tags::Union{Nothing, Vector{String}}`: Tags for the product
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct Product{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    productId::IntType
+struct Product{I <: Integer, T <: Real} <: AbstractSchemaObject
+    productId::I
     productName::String
-    price::FloatType
+    price::T
     tags::Union{Nothing, Vector{String}}
     _extra::Dict{String, Any}
-    function Product{IntType, FloatType}(; productId, productName, price, tags = nothing, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
-        productId = _jsfrom(IntType, productId)
+    function Product{I, T}(; productId, productName, price, tags = nothing, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
+        productId = _jsfrom(I, productId)
         productName = _jsfrom(String, productName)
-        price = _jsfrom(FloatType, price)
+        price = _jsfrom(T, price)
         tags = _jsfrom(Union{Nothing, Vector{String}}, tags)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(Product{IntType, FloatType}, (productId, productName, price, tags), _extra)
+        _jscheck(Product{I, T}, (productId, productName, price, tags), _extra)
         return new(productId, productName, price, tags, _extra)
     end
 end
 Product(; kwargs...) = Product{Int64, Float64}(; kwargs...)
-Product{IntType, FloatType}(productId, productName, price, tags, _extra) where {IntType <: Integer, FloatType <: Real} = Product{IntType, FloatType}(; productId, productName, price, tags, _extra)
+Product{I, T}(productId, productName, price, tags, _extra) where {I <: Integer, T <: Real} = Product{I, T}(; productId, productName, price, tags, _extra)
 Product(productId, productName, price, tags, _extra) = Product{_jsnumbertypes(productId, productName, price, tags, _extra)...}(; productId, productName, price, tags, _extra)
 _SPECS[Product] = (
     fields = (

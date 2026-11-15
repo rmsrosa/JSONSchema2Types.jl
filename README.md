@@ -126,7 +126,7 @@ before it. Schema files whose types depend on each other in a cycle share a sing
 | `prefixItems` (or `items` as a list), all required | `Tuple{A, B}`, or `Tuple{A, B, Vararg{T}}` when more items are allowed |
 | `object` without `properties` | `Dict{String, T}` (`T` from `additionalProperties`, or `Any`) |
 | `string`, `boolean`, `null` | `String`, `Bool`, `Nothing` |
-| `integer`, `number` | the type parameters `IntType`, `FloatType` of the structs (`Int64`, `Float64` by default) |
+| `integer`, `number` | the type parameters `I <: Integer` and `T <: Real` of the structs (`Int64`, `Float64` by default) |
 | optional property, or `null` allowed | `Union{Nothing, T}`; optional fields default to `nothing` and are omitted when writing |
 | `additionalProperties` not `false` | unknown properties are kept in the `_extra::Dict{String, Any}` field, so nothing is lost when a document is read and written back |
 | `additionalProperties: false` | unknown properties are an error |
@@ -200,8 +200,8 @@ in `schemas`, or downloaded with `download = true`.
 
 ### Numeric types
 
-The generated structs are parametric in the types of their numbers: `VolumeType{IntType, FloatType}`,
-with `IntType <: Integer` for the integers and `FloatType <: Real` for the other numbers,
+The generated structs are parametric in the types of their numbers: `VolumeType{I, T}`,
+with `I <: Integer` for the integers and `T <: Real` for the other numbers,
 passed on to the structs they contain. They default to `Int64` and `Float64`, and can be
 chosen when constructing or reading values, e.g. `readjson(BeerJSON{BigInt, BigFloat}, file)`
 (numbers are then parsed with full precision).

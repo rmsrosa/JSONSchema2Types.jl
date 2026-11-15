@@ -120,8 +120,8 @@ _jsfrom(::Type{Bool}, x) = _jsfail("expected a boolean, got $(repr(x))")
 
 _jsfrom(::Type{Bool}, x::Real) = x isa Bool ? x : _jsfail("expected a boolean, got $(repr(x))")
 
-# Numbers: `T` is the `FloatType` (any `Real`, e.g. `Float64`, `BigFloat`, `Rational{BigInt}`)
-# or the `IntType` (any `Integer`, e.g. `Int64`, `Int128`, `BigInt`) of the generated structs.
+# Numbers: `T` is one of the numeric types `I <: Integer` (e.g. `Int64`, `Int128`, `BigInt`)
+# or `T <: Real` (e.g. `Float64`, `BigFloat`, `Rational{BigInt}`) of the generated structs.
 function _jsfrom(::Type{T}, x::Real) where {T <: Real}
     x isa Bool && _jsfail("expected a number, got $(repr(x))")
     x isa T && return x
@@ -1026,34 +1026,34 @@ end
 
 """
     Customer(; kwargs...)
-    Customer{IntType, FloatType}(; kwargs...)
+    Customer{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
-- `id::IntType` (required): The unique identifier for the customer.
+- `id::I` (required): The unique identifier for the customer.
 - `name::String` (required): The customer's full name.
 - `email::Union{Nothing, String}`: The customer's email address.
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct Customer{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
-    id::IntType
+struct Customer{I <: Integer, T <: Real} <: AbstractSchemaObject
+    id::I
     name::String
     email::Union{Nothing, String}
     _extra::Dict{String, Any}
-    function Customer{IntType, FloatType}(; id, name, email = nothing, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
-        id = _jsfrom(IntType, id)
+    function Customer{I, T}(; id, name, email = nothing, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
+        id = _jsfrom(I, id)
         name = _jsfrom(String, name)
         email = _jsfrom(Union{Nothing, String}, email)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(Customer{IntType, FloatType}, (id, name, email), _extra)
+        _jscheck(Customer{I, T}, (id, name, email), _extra)
         return new(id, name, email, _extra)
     end
 end
 Customer(; kwargs...) = Customer{Int64, Float64}(; kwargs...)
-Customer{IntType, FloatType}(id, name, email, _extra) where {IntType <: Integer, FloatType <: Real} = Customer{IntType, FloatType}(; id, name, email, _extra)
+Customer{I, T}(id, name, email, _extra) where {I <: Integer, T <: Real} = Customer{I, T}(; id, name, email, _extra)
 Customer(id, name, email, _extra) = Customer{_jsnumbertypes(id, name, email, _extra)...}(; id, name, email, _extra)
 _SPECS[Customer] = (
     fields = (
@@ -1075,31 +1075,31 @@ _SPECS[Customer] = (
 
 """
     OrderItemsItem(; kwargs...)
-    OrderItemsItem{IntType, FloatType}(; kwargs...)
+    OrderItemsItem{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `productId::String` (required)
-- `quantity::IntType` (required)
+- `quantity::I` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct OrderItemsItem{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct OrderItemsItem{I <: Integer, T <: Real} <: AbstractSchemaObject
     productId::String
-    quantity::IntType
+    quantity::I
     _extra::Dict{String, Any}
-    function OrderItemsItem{IntType, FloatType}(; productId, quantity, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function OrderItemsItem{I, T}(; productId, quantity, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         productId = _jsfrom(String, productId)
-        quantity = _jsfrom(IntType, quantity)
+        quantity = _jsfrom(I, quantity)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(OrderItemsItem{IntType, FloatType}, (productId, quantity), _extra)
+        _jscheck(OrderItemsItem{I, T}, (productId, quantity), _extra)
         return new(productId, quantity, _extra)
     end
 end
 OrderItemsItem(; kwargs...) = OrderItemsItem{Int64, Float64}(; kwargs...)
-OrderItemsItem{IntType, FloatType}(productId, quantity, _extra) where {IntType <: Integer, FloatType <: Real} = OrderItemsItem{IntType, FloatType}(; productId, quantity, _extra)
+OrderItemsItem{I, T}(productId, quantity, _extra) where {I <: Integer, T <: Real} = OrderItemsItem{I, T}(; productId, quantity, _extra)
 OrderItemsItem(productId, quantity, _extra) = OrderItemsItem{_jsnumbertypes(productId, quantity, _extra)...}(; productId, quantity, _extra)
 _SPECS[OrderItemsItem] = (
     fields = (
@@ -1115,34 +1115,34 @@ _SPECS[OrderItemsItem] = (
 
 """
     Order(; kwargs...)
-    Order{IntType, FloatType}(; kwargs...)
+    Order{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I <: Integer` and other numbers as `T <: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `orderId::String` (required)
-- `customer::Customer{IntType, FloatType}` (required)
-- `items::Vector{OrderItemsItem{IntType, FloatType}}` (required)
+- `customer::Customer{I, T}` (required)
+- `items::Vector{OrderItemsItem{I, T}}` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 """
-struct Order{IntType <: Integer, FloatType <: Real} <: AbstractSchemaObject
+struct Order{I <: Integer, T <: Real} <: AbstractSchemaObject
     orderId::String
-    customer::Customer{IntType, FloatType}
-    items::Vector{OrderItemsItem{IntType, FloatType}}
+    customer::Customer{I, T}
+    items::Vector{OrderItemsItem{I, T}}
     _extra::Dict{String, Any}
-    function Order{IntType, FloatType}(; orderId, customer, items, _extra = Dict{String, Any}()) where {IntType <: Integer, FloatType <: Real}
+    function Order{I, T}(; orderId, customer, items, _extra = Dict{String, Any}()) where {I <: Integer, T <: Real}
         orderId = _jsfrom(String, orderId)
-        customer = _jsfrom(Customer{IntType, FloatType}, customer)
-        items = _jsfrom(Vector{OrderItemsItem{IntType, FloatType}}, items)
+        customer = _jsfrom(Customer{I, T}, customer)
+        items = _jsfrom(Vector{OrderItemsItem{I, T}}, items)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(Order{IntType, FloatType}, (orderId, customer, items), _extra)
+        _jscheck(Order{I, T}, (orderId, customer, items), _extra)
         return new(orderId, customer, items, _extra)
     end
 end
 Order(; kwargs...) = Order{Int64, Float64}(; kwargs...)
-Order{IntType, FloatType}(orderId, customer, items, _extra) where {IntType <: Integer, FloatType <: Real} = Order{IntType, FloatType}(; orderId, customer, items, _extra)
+Order{I, T}(orderId, customer, items, _extra) where {I <: Integer, T <: Real} = Order{I, T}(; orderId, customer, items, _extra)
 Order(orderId, customer, items, _extra) = Order{_jsnumbertypes(orderId, customer, items, _extra)...}(; orderId, customer, items, _extra)
 _SPECS[Order] = (
     fields = (
