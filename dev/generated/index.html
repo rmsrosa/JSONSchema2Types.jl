@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="referrer" content="no-referrer"/><title>Generated code · JSONSchema2Types.jl</title><meta name="title" content="Generated code · JSONSchema2Types.jl"/><meta property="og:title" content="Generated code · JSONSchema2Types.jl"/><meta property="twitter:title" content="Generated code · JSONSchema2Types.jl"/><meta name="description" content="Documentation for JSONSchema2Types.jl."/><meta property="og:description" content="Documentation for JSONSchema2Types.jl."/><meta property="twitter:description" content="Documentation for JSONSchema2Types.jl."/><meta property="og:url" content="https://rmsrosa.github.io/JSONSchema2Types.jl/generated/"/><meta property="twitter:url" content="https://rmsrosa.github.io/JSONSchema2Types.jl/generated/"/><link rel="canonical" href="https://rmsrosa.github.io/JSONSchema2Types.jl/generated/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">JSONSchema2Types.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../guide/">Guide</a></li><li><a class="tocitem" href="../examples/">Examples</a></li><li><a class="tocitem" href="../beerjson/">BeerJSON</a></li><li class="is-active"><a class="tocitem" href>Generated code</a><ul class="internal"><li><a class="tocitem" href="#A-generated-struct"><span>A generated struct</span></a></li><li><a class="tocitem" href="#_jsfrom:-from-JSON-to-Julia"><span><code>_jsfrom</code>: from JSON to Julia</span></a></li><li><a class="tocitem" href="#_jscheck-and-_SPECS:-the-constraints"><span><code>_jscheck</code> and <code>_SPECS</code>: the constraints</span></a></li><li><a class="tocitem" href="#_jsto:-from-Julia-to-JSON"><span><code>_jsto</code>: from Julia to JSON</span></a></li><li><a class="tocitem" href="#Enum-types"><span>Enum types</span></a></li><li><a class="tocitem" href="#The-runtime-code"><span>The runtime code</span></a></li></ul></li><li><a class="tocitem" href="../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Generated code</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Generated code</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/rmsrosa/JSONSchema2Types.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/rmsrosa/JSONSchema2Types.jl/blob/main/docs/src/generated.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Generated-code"><a class="docs-heading-anchor" href="#Generated-code">Generated code</a><a id="Generated-code-1"></a><a class="docs-heading-anchor-permalink" href="#Generated-code" title="Permalink"></a></h1><p>This page explains the code that <a href="../api/#JSONSchema2Types.generate_module"><code>generate_module</code></a> writes, using the BeerJSON types as an example. Knowing it is not needed to use the generated types, but helps to read the generated files, which contain calls to a few internal functions: <code>_jsfrom</code>, <code>_jscheck</code>, <code>_jsto</code>, and the metadata in <code>_SPECS</code>.</p><h2 id="A-generated-struct"><a class="docs-heading-anchor" href="#A-generated-struct">A generated struct</a><a id="A-generated-struct-1"></a><a class="docs-heading-anchor-permalink" href="#A-generated-struct" title="Permalink"></a></h2><p>The schema of a volume, in <code>measureable_units.json</code>, is</p><pre><code class="language-json hljs">&quot;VolumeType&quot;: {
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;additionalProperties&quot;: false,
+  &quot;properties&quot;: {
+    &quot;unit&quot;: { &quot;$ref&quot;: &quot;#/definitions/VolumeUnitType&quot; },
+    &quot;value&quot;: { &quot;type&quot;: &quot;number&quot; }
+  },
+  &quot;required&quot;: [&quot;unit&quot;, &quot;value&quot;]
+}</code></pre><p>and this is the code generated for it:</p><pre><code class="language-julia hljs">show_definition(&quot;measureable_units.jl&quot;, &quot;VolumeType&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&quot;&quot;
+    VolumeType(; kwargs...)
+
+# Fields
+
+- `unit::VolumeUnitType` (required)
+- `value::Float64` (required)
+&quot;&quot;&quot;
+struct VolumeType &lt;: AbstractSchemaObject
+    unit::VolumeUnitType
+    value::Float64
+    function VolumeType(; unit, value)
+        unit = _jsfrom(VolumeUnitType, unit)
+        value = _jsfrom(Float64, value)
+        _jscheck(VolumeType, (unit, value), nothing)
+        return new(unit, value)
+    end
+end
+_SPECS[VolumeType] = (
+    fields = (
+        (name = :unit, key = &quot;unit&quot;, required = true, nullable = false, constraints = nothing),
+        (name = :value, key = &quot;value&quot;, required = true, nullable = false, constraints = nothing),
+    ),
+    additionalProperties = false,
+    extra = nothing,
+    minProperties = nothing,
+    maxProperties = nothing,
+    schema = nothing,
+)</code></pre><p>It has four parts:</p><ol><li><strong>A docstring</strong>, from the descriptions in the schema, listing the fields with their types and whether they are required.</li><li><strong>The struct</strong>, a subtype of <code>AbstractSchemaObject</code>, with one field per property. Optional properties have the type <code>Union{Nothing, T}</code>.</li><li><strong>An inner keyword constructor</strong>, the only way to create a value of the type. Each argument is passed through <strong><code>_jsfrom</code></strong> with the type of its field, which converts and validates it. Then <strong><code>_jscheck</code></strong> checks the constraints of the schema on the converted values, and <code>new</code> creates the value. Optional arguments default to <code>nothing</code>.</li><li><strong>The metadata <code>_SPECS[VolumeType]</code></strong>: the JSON name of each field (which may differ from the Julia name, e.g. for <code>first-name</code> or <code>end</code>), whether it is required, its constraints, and more, used for reading, writing and checking.</li></ol><h2 id="_jsfrom:-from-JSON-to-Julia"><a class="docs-heading-anchor" href="#_jsfrom:-from-JSON-to-Julia"><code>_jsfrom</code>: from JSON to Julia</a><a id="_jsfrom:-from-JSON-to-Julia-1"></a><a class="docs-heading-anchor-permalink" href="#_jsfrom:-from-JSON-to-Julia" title="Permalink"></a></h2><p><code>_jsfrom(T, x)</code> converts <code>x</code> into a value of type <code>T</code>, and throws a <code>SchemaValidationError</code> if it cannot. The name stands for &quot;from JSON&quot;. <code>x</code> can be a parsed JSON value, or a plain Julia one (a <code>Dict</code> or a named tuple for an object, a vector for an array, a string, a number...), or already a value of type <code>T</code>:</p><pre><code class="language-julia hljs">BeerJSONTypes._jsfrom(Float64, 20)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">20.0</code></pre><pre><code class="language-julia hljs">BeerJSONTypes._jsfrom(VolumeUnitType, &quot;l&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">VolumeUnitType(&quot;l&quot;)</code></pre><pre><code class="language-julia hljs">BeerJSONTypes._jsfrom(VolumeType, Dict(&quot;unit&quot; =&gt; &quot;l&quot;, &quot;value&quot; =&gt; 20))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.BeerJSONTypes.VolumeType(VolumeUnitType(&quot;l&quot;), 20.0)</code></pre><pre><code class="language-julia hljs">BeerJSONTypes._jsfrom(Union{VolumeType, MassType}, (unit = &quot;kg&quot;, value = 2))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.BeerJSONTypes.MassType(MassUnitType(&quot;kg&quot;), 2.0)</code></pre><pre><code class="language-julia hljs">try
+    BeerJSONTypes._jsfrom(Int64, 2.5)
+catch err
+    showerror(stdout, err)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SchemaValidationError: expected an integer, got 2.5</code></pre><p>The conversion is recursive. For a generated struct, <code>_jsfrom</code> calls its keyword constructor with the properties of the dict, whose arguments go through <code>_jsfrom</code> in turn, and so on. For a <code>Union</code>, which comes from <code>oneOf</code>, <code>anyOf</code> or an optional field, the options are tried in turn.</p><p>So constructing a value and reading a document are the same thing. <code>VolumeType(unit = &quot;l&quot;, value = 20)</code> converts <code>&quot;l&quot;</code> with <code>_jsfrom(VolumeUnitType, &quot;l&quot;)</code> and <code>20</code> with <code>_jsfrom(Float64, 20)</code>. Reading a document is <code>_jsfrom(RootType, JSON.parse(text))</code>, which is what <code>fromjson</code> does. Either way, the result is valid.</p><h2 id="_jscheck-and-_SPECS:-the-constraints"><a class="docs-heading-anchor" href="#_jscheck-and-_SPECS:-the-constraints"><code>_jscheck</code> and <code>_SPECS</code>: the constraints</a><a id="_jscheck-and-_SPECS:-the-constraints-1"></a><a class="docs-heading-anchor-permalink" href="#_jscheck-and-_SPECS:-the-constraints" title="Permalink"></a></h2><p>The types enforce much of the schema by themselves: the type of each property, the required ones, enums. The rest is checked by <code>_jscheck</code>, using the metadata in <code>_SPECS</code>: the constraints of each field (<code>minimum</code>, <code>pattern</code>, <code>minItems</code>...), and the keywords that cannot be expressed by types at all (<code>not</code>, <code>if</code>/<code>then</code>/<code>else</code>, the exclusivity of <code>oneOf</code>, <code>format</code>...). The generator embeds these as subschemas in <code>_SPECS</code>, written as JSON, and <code>_jscheck</code> validates the JSON form of the values against them with a small JSON Schema validator, <code>_jsvalid</code>. For instance, the amount of a hop addition is a volume or a mass, exactly one of them:</p><pre><code class="language-julia hljs">show_definition(&quot;hop.jl&quot;, &quot;HopAdditionType&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&quot;&quot;
+    HopAdditionType(; kwargs...)
+
+HopAdditionType collects the attributes of each hop ingredient for use in a recipe hop bil.
+
+# Fields
+
+- `name::String` (required)
+- `producer::Union{Nothing, String}`
+- `product_id::Union{Nothing, String}`
+- `origin::Union{Nothing, String}`
+- `year::Union{Nothing, String}`
+- `form::Union{Nothing, HopVarietyFormEnum}`
+- `alpha_acid::PercentType` (required)
+- `beta_acid::Union{Nothing, PercentType}`
+- `timing::TimingType` (required): The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
+- `amount::Union{VolumeType, MassType}` (required)
+- `_extra::Dict{String, Any}`: additional properties, not described in the schema
+&quot;&quot;&quot;
+struct HopAdditionType &lt;: AbstractSchemaObject
+    name::String
+    producer::Union{Nothing, String}
+    product_id::Union{Nothing, String}
+    origin::Union{Nothing, String}
+    year::Union{Nothing, String}
+    form::Union{Nothing, HopVarietyFormEnum}
+    alpha_acid::PercentType
+    beta_acid::Union{Nothing, PercentType}
+    timing::TimingType
+    amount::Union{VolumeType, MassType}
+    _extra::Dict{String, Any}
+    function HopAdditionType(; name, producer = nothing, product_id = nothing, origin = nothing, year = nothing, form = nothing, alpha_acid, beta_acid = nothing, timing, amount, _extra = Dict{String, Any}())
+        name = _jsfrom(String, name)
+        producer = _jsfrom(Union{Nothing, String}, producer)
+        product_id = _jsfrom(Union{Nothing, String}, product_id)
+        origin = _jsfrom(Union{Nothing, String}, origin)
+        year = _jsfrom(Union{Nothing, String}, year)
+        form = _jsfrom(Union{Nothing, HopVarietyFormEnum}, form)
+        alpha_acid = _jsfrom(PercentType, alpha_acid)
+        beta_acid = _jsfrom(Union{Nothing, PercentType}, beta_acid)
+        timing = _jsfrom(TimingType, timing)
+        amount = _jsfrom(Union{VolumeType, MassType}, amount)
+        _extra = _jsfrom(Dict{String, Any}, _extra)
+        _jscheck(HopAdditionType, (name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount), _extra)
+        return new(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
+    end
+end
+_SPECS[HopAdditionType] = (
+    fields = (
+        (name = :name, key = &quot;name&quot;, required = true, nullable = false, constraints = nothing),
+        (name = :producer, key = &quot;producer&quot;, required = false, nullable = false, constraints = nothing),
+        (name = :product_id, key = &quot;product_id&quot;, required = false, nullable = false, constraints = nothing),
+        (name = :origin, key = &quot;origin&quot;, required = false, nullable = false, constraints = nothing),
+        (name = :year, key = &quot;year&quot;, required = false, nullable = false, constraints = nothing),
+        (name = :form, key = &quot;form&quot;, required = false, nullable = false, constraints = nothing),
+        (name = :alpha_acid, key = &quot;alpha_acid&quot;, required = true, nullable = false, constraints = nothing),
+        (name = :beta_acid, key = &quot;beta_acid&quot;, required = false, nullable = false, constraints = nothing),
+        (name = :timing, key = &quot;timing&quot;, required = true, nullable = false, constraints = nothing),
+        (name = :amount, key = &quot;amount&quot;, required = true, nullable = false, constraints = (schema = JSON.parse(&quot;&quot;&quot;
+            {
+              &quot;oneOf&quot;: [
+                {
+                  &quot;\$type&quot;: &quot;VolumeType&quot;
+                },
+                {
+                  &quot;\$type&quot;: &quot;MassType&quot;
+                }
+              ]
+            }
+            &quot;&quot;&quot;),)),
+    ),
+    additionalProperties = true,
+    extra = :_extra,
+    minProperties = nothing,
+    maxProperties = nothing,
+    schema = nothing,
+)</code></pre><p>The validator can be called directly, with a schema and a value as parsed JSON:</p><pre><code class="language-julia hljs">schema = Dict(&quot;type&quot; =&gt; &quot;string&quot;, &quot;not&quot; =&gt; Dict(&quot;enum&quot; =&gt; [&quot;password&quot;, &quot;123456&quot;]))
+BeerJSONTypes._jsvalid(schema, &quot;123456&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;must not match the schema in `not`&quot;</code></pre><h2 id="_jsto:-from-Julia-to-JSON"><a class="docs-heading-anchor" href="#_jsto:-from-Julia-to-JSON"><code>_jsto</code>: from Julia to JSON</a><a id="_jsto:-from-Julia-to-JSON-1"></a><a class="docs-heading-anchor-permalink" href="#_jsto:-from-Julia-to-JSON" title="Permalink"></a></h2><p><code>_jsto(x)</code> is the inverse of <code>_jsfrom</code> (&quot;to JSON&quot;). It converts a value into JSON-compatible values: structs become objects with the original JSON property names (leaving out optional fields that are <code>nothing</code>), enums become their values, vectors and tuples become arrays:</p><pre><code class="language-julia hljs">v = VolumeType(unit = &quot;l&quot;, value = 20)
+BeerJSONTypes._jsto(v)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">JSON.Object{String, Any} with 2 entries:
+  &quot;unit&quot;  =&gt; &quot;l&quot;
+  &quot;value&quot; =&gt; 20</code></pre><p><code>todict</code> is <code>_jsto</code>, and <code>tojson</code> and <code>writejson</code> serialize its result with JSON.jl.</p><h2 id="Enum-types"><a class="docs-heading-anchor" href="#Enum-types">Enum types</a><a id="Enum-types-1"></a><a class="docs-heading-anchor-permalink" href="#Enum-types" title="Permalink"></a></h2><p>An <code>enum</code> becomes a type wrapping the value, whose constructor checks it against the allowed values, recorded in <code>_SPECS</code>:</p><pre><code class="language-julia hljs">show_definition(&quot;measureable_units.jl&quot;, &quot;VolumeUnitType&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&quot;&quot;
+    VolumeUnitType(value)
+
+Allowed values: `&quot;ml&quot;`, `&quot;l&quot;`, `&quot;tsp&quot;`, `&quot;tbsp&quot;`, `&quot;floz&quot;`, `&quot;cup&quot;`, `&quot;pt&quot;`, `&quot;qt&quot;`, `&quot;gal&quot;`, `&quot;bbl&quot;`, `&quot;ifloz&quot;`, `&quot;ipt&quot;`, `&quot;iqt&quot;`, `&quot;igal&quot;`, `&quot;ibbl&quot;`.
+&quot;&quot;&quot;
+struct VolumeUnitType &lt;: AbstractSchemaEnum
+    value::String
+    VolumeUnitType(value) = new(_jscheckenum(VolumeUnitType, _jsfrom(String, value)))
+end
+_SPECS[VolumeUnitType] = (values = Any[&quot;ml&quot;, &quot;l&quot;, &quot;tsp&quot;, &quot;tbsp&quot;, &quot;floz&quot;, &quot;cup&quot;, &quot;pt&quot;, &quot;qt&quot;, &quot;gal&quot;, &quot;bbl&quot;, &quot;ifloz&quot;, &quot;ipt&quot;, &quot;iqt&quot;, &quot;igal&quot;, &quot;ibbl&quot;],)</code></pre><h2 id="The-runtime-code"><a class="docs-heading-anchor" href="#The-runtime-code">The runtime code</a><a id="The-runtime-code-1"></a><a class="docs-heading-anchor-permalink" href="#The-runtime-code" title="Permalink"></a></h2><p>All of these functions are defined in the generated module itself, in <code>runtime.jl</code> (or at the top of the file, for a single-file module), so a generated module does not depend on JSONSchema2Types.jl. The runtime code is the same for every generated module. Its functions are internal (their names start with <code>_js</code>), except for those listed in the <a href="../api/#API">API</a>, which are exported.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../beerjson/">« BeerJSON</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Sunday 15 November 2026 11:00">Sunday 15 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
