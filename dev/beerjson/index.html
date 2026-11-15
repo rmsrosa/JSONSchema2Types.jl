@@ -24,9 +24,9 @@ readdir(dirname(main))</code></pre><pre class="documenter-example-output"><code 
  &quot;timing.jl&quot;
  &quot;water.jl&quot;</code></pre><pre><code class="language-julia hljs">include(main)
 using .BeerJSONTypes</code></pre><p>A BeerJSON document is an object with a single property, <code>beerjson</code>, which holds the version of the format and lists of records: recipes, fermentables, hop varieties, styles, water profiles...</p><pre><code class="language-julia hljs">fieldnames(BeerJSONContent)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(:version, :timing_object, :fermentables, :miscellaneous_ingredients, :hop_varieties, :cultures, :profiles, :styles, :mashes, :fermentations, :recipes, :equipments, :boil, :packaging)</code></pre><p>The types follow the schema. For instance, a hop addition in a recipe:</p><pre><code class="language-julia hljs">@doc HopAdditionType</code></pre><div class="markdown"><pre><code class="language-julia">HopAdditionType&#40;; kwargs...&#41;
-HopAdditionType&#123;IntType, FloatType&#125;&#40;; kwargs...&#41;</code></pre>
+HopAdditionType&#123;I, T&#125;&#40;; kwargs...&#41;</code></pre>
 <p>HopAdditionType collects the attributes of each hop ingredient for use in a recipe hop bil.</p>
-<p>Integers are stored as <code>IntType</code> and other numbers as <code>FloatType</code>; by default, <code>Int64</code> and <code>Float64</code>.</p>
+<p>Integers are stored as <code>I &lt;: Integer</code> and other numbers as <code>T &lt;: Real</code>; by default, <code>Int64</code> and <code>Float64</code>.</p>
 <h1>Fields</h1>
 <ul>
 <li><p><code>name::String</code> &#40;required&#41;</p>
@@ -41,13 +41,13 @@ HopAdditionType&#123;IntType, FloatType&#125;&#40;; kwargs...&#41;</code></pre>
 </li>
 <li><p><code>form::Union&#123;Nothing, HopVarietyFormEnum&#125;</code></p>
 </li>
-<li><p><code>alpha_acid::PercentType&#123;IntType, FloatType&#125;</code> &#40;required&#41;</p>
+<li><p><code>alpha_acid::PercentType&#123;I, T&#125;</code> &#40;required&#41;</p>
 </li>
-<li><p><code>beta_acid::Union&#123;Nothing, PercentType&#123;IntType, FloatType&#125;&#125;</code></p>
+<li><p><code>beta_acid::Union&#123;Nothing, PercentType&#123;I, T&#125;&#125;</code></p>
 </li>
-<li><p><code>timing::TimingType&#123;IntType, FloatType&#125;</code> &#40;required&#41;: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.</p>
+<li><p><code>timing::TimingType&#123;I, T&#125;</code> &#40;required&#41;: The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.</p>
 </li>
-<li><p><code>amount::Union&#123;VolumeType&#123;IntType, FloatType&#125;, MassType&#123;IntType, FloatType&#125;&#125;</code> &#40;required&#41;</p>
+<li><p><code>amount::Union&#123;VolumeType&#123;I, T&#125;, MassType&#123;I, T&#125;&#125;</code> &#40;required&#41;</p>
 </li>
 <li><p><code>_extra::Dict&#123;String, Any&#125;</code>: additional properties, not described in the schema</p>
 </li>
@@ -174,4 +174,4 @@ files = [joinpath(dir, f) for dir in readdir(SAMPLES; join = true) if isdir(dir)
 unchanged = count(files) do f
     canon(JSON.parse(tojson(readjson(RootType, f)))) == canon(JSON.parse(read(f, String)))
 end
-&quot;$unchanged of $(length(files)) documents read and written back unchanged&quot;</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;43 of 43 documents read and written back unchanged&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../examples/">« Examples</a><a class="docs-footer-nextpage" href="../generated/">Generated code »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Sunday 15 November 2026 14:31">Sunday 15 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+&quot;$unchanged of $(length(files)) documents read and written back unchanged&quot;</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;43 of 43 documents read and written back unchanged&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../examples/">« Examples</a><a class="docs-footer-nextpage" href="../generated/">Generated code »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Sunday 15 November 2026 21:16">Sunday 15 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

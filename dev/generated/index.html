@@ -9,28 +9,28 @@
   &quot;required&quot;: [&quot;unit&quot;, &quot;value&quot;]
 }</code></pre><p>and this is the code generated for it:</p><pre><code class="language-julia hljs">show_definition(&quot;measureable_units.jl&quot;, &quot;VolumeType&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&quot;&quot;
     VolumeType(; kwargs...)
-    VolumeType{IntType, FloatType}(; kwargs...)
+    VolumeType{I, T}(; kwargs...)
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I &lt;: Integer` and other numbers as `T &lt;: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
 
 - `unit::VolumeUnitType` (required)
-- `value::FloatType` (required)
+- `value::T` (required)
 &quot;&quot;&quot;
-struct VolumeType{IntType &lt;: Integer, FloatType &lt;: Real} &lt;: AbstractSchemaObject
+struct VolumeType{I &lt;: Integer, T &lt;: Real} &lt;: AbstractSchemaObject
     unit::VolumeUnitType
-    value::FloatType
-    function VolumeType{IntType, FloatType}(; unit, value) where {IntType &lt;: Integer, FloatType &lt;: Real}
+    value::T
+    function VolumeType{I, T}(; unit, value) where {I &lt;: Integer, T &lt;: Real}
         unit = _jsfrom(VolumeUnitType, unit)
-        value = _jsfrom(FloatType, value)
-        _jscheck(VolumeType{IntType, FloatType}, (unit, value), nothing)
+        value = _jsfrom(T, value)
+        _jscheck(VolumeType{I, T}, (unit, value), nothing)
         return new(unit, value)
     end
 end
 VolumeType(; kwargs...) = VolumeType{Int64, Float64}(; kwargs...)
-VolumeType{IntType, FloatType}(unit, value) where {IntType &lt;: Integer, FloatType &lt;: Real} = VolumeType{IntType, FloatType}(; unit, value)
+VolumeType{I, T}(unit, value) where {I &lt;: Integer, T &lt;: Real} = VolumeType{I, T}(; unit, value)
 VolumeType(unit, value) = VolumeType{_jsnumbertypes(unit, value)...}(; unit, value)
 _SPECS[VolumeType] = (
     fields = (
@@ -48,11 +48,11 @@ catch err
     showerror(stdout, err)
 end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SchemaValidationError: expected an integer, got 2.5</code></pre><p>The conversion is recursive. For a generated struct, <code>_jsfrom</code> calls its keyword constructor with the properties of the dict, whose arguments go through <code>_jsfrom</code> in turn, and so on. For a <code>Union</code>, which comes from <code>oneOf</code>, <code>anyOf</code> or an optional field, the options are tried in turn.</p><p>So constructing a value and reading a document are the same thing. <code>VolumeType(unit = &quot;l&quot;, value = 20)</code> converts <code>&quot;l&quot;</code> with <code>_jsfrom(VolumeUnitType, &quot;l&quot;)</code> and <code>20</code> with <code>_jsfrom(Float64, 20)</code>. Reading a document is <code>_jsfrom(RootType, JSON.parse(text))</code>, which is what <code>fromjson</code> does. Either way, the result is valid.</p><h2 id="_jscheck-and-_SPECS:-the-constraints"><a class="docs-heading-anchor" href="#_jscheck-and-_SPECS:-the-constraints"><code>_jscheck</code> and <code>_SPECS</code>: the constraints</a><a id="_jscheck-and-_SPECS:-the-constraints-1"></a><a class="docs-heading-anchor-permalink" href="#_jscheck-and-_SPECS:-the-constraints" title="Permalink"></a></h2><p>The types enforce much of the schema by themselves: the type of each property, the required ones, enums. The rest is checked by <code>_jscheck</code>, using the metadata in <code>_SPECS</code>: the constraints of each field (<code>minimum</code>, <code>pattern</code>, <code>minItems</code>...), and the keywords that cannot be expressed by types at all (<code>not</code>, <code>if</code>/<code>then</code>/<code>else</code>, the exclusivity of <code>oneOf</code>, <code>format</code>...). The generator embeds these as subschemas in <code>_SPECS</code>, written as JSON, and <code>_jscheck</code> validates the JSON form of the values against them with a small JSON Schema validator, <code>_jsvalid</code>. For instance, the amount of a hop addition is a volume or a mass, exactly one of them:</p><pre><code class="language-julia hljs">show_definition(&quot;hop.jl&quot;, &quot;HopAdditionType&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&quot;&quot;
     HopAdditionType(; kwargs...)
-    HopAdditionType{IntType, FloatType}(; kwargs...)
+    HopAdditionType{I, T}(; kwargs...)
 
 HopAdditionType collects the attributes of each hop ingredient for use in a recipe hop bil.
 
-Integers are stored as `IntType` and other numbers as `FloatType`; by default, `Int64`
+Integers are stored as `I &lt;: Integer` and other numbers as `T &lt;: Real`; by default, `Int64`
 and `Float64`.
 
 # Fields
@@ -63,42 +63,42 @@ and `Float64`.
 - `origin::Union{Nothing, String}`
 - `year::Union{Nothing, String}`
 - `form::Union{Nothing, HopVarietyFormEnum}`
-- `alpha_acid::PercentType{IntType, FloatType}` (required)
-- `beta_acid::Union{Nothing, PercentType{IntType, FloatType}}`
-- `timing::TimingType{IntType, FloatType}` (required): The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
-- `amount::Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}` (required)
+- `alpha_acid::PercentType{I, T}` (required)
+- `beta_acid::Union{Nothing, PercentType{I, T}}`
+- `timing::TimingType{I, T}` (required): The timing object fully describes the timing of an addition with options for basis on time, gravity, or pH at any process step.
+- `amount::Union{VolumeType{I, T}, MassType{I, T}}` (required)
 - `_extra::Dict{String, Any}`: additional properties, not described in the schema
 &quot;&quot;&quot;
-struct HopAdditionType{IntType &lt;: Integer, FloatType &lt;: Real} &lt;: AbstractSchemaObject
+struct HopAdditionType{I &lt;: Integer, T &lt;: Real} &lt;: AbstractSchemaObject
     name::String
     producer::Union{Nothing, String}
     product_id::Union{Nothing, String}
     origin::Union{Nothing, String}
     year::Union{Nothing, String}
     form::Union{Nothing, HopVarietyFormEnum}
-    alpha_acid::PercentType{IntType, FloatType}
-    beta_acid::Union{Nothing, PercentType{IntType, FloatType}}
-    timing::TimingType{IntType, FloatType}
-    amount::Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}
+    alpha_acid::PercentType{I, T}
+    beta_acid::Union{Nothing, PercentType{I, T}}
+    timing::TimingType{I, T}
+    amount::Union{VolumeType{I, T}, MassType{I, T}}
     _extra::Dict{String, Any}
-    function HopAdditionType{IntType, FloatType}(; name, producer = nothing, product_id = nothing, origin = nothing, year = nothing, form = nothing, alpha_acid, beta_acid = nothing, timing, amount, _extra = Dict{String, Any}()) where {IntType &lt;: Integer, FloatType &lt;: Real}
+    function HopAdditionType{I, T}(; name, producer = nothing, product_id = nothing, origin = nothing, year = nothing, form = nothing, alpha_acid, beta_acid = nothing, timing, amount, _extra = Dict{String, Any}()) where {I &lt;: Integer, T &lt;: Real}
         name = _jsfrom(String, name)
         producer = _jsfrom(Union{Nothing, String}, producer)
         product_id = _jsfrom(Union{Nothing, String}, product_id)
         origin = _jsfrom(Union{Nothing, String}, origin)
         year = _jsfrom(Union{Nothing, String}, year)
         form = _jsfrom(Union{Nothing, HopVarietyFormEnum}, form)
-        alpha_acid = _jsfrom(PercentType{IntType, FloatType}, alpha_acid)
-        beta_acid = _jsfrom(Union{Nothing, PercentType{IntType, FloatType}}, beta_acid)
-        timing = _jsfrom(TimingType{IntType, FloatType}, timing)
-        amount = _jsfrom(Union{VolumeType{IntType, FloatType}, MassType{IntType, FloatType}}, amount)
+        alpha_acid = _jsfrom(PercentType{I, T}, alpha_acid)
+        beta_acid = _jsfrom(Union{Nothing, PercentType{I, T}}, beta_acid)
+        timing = _jsfrom(TimingType{I, T}, timing)
+        amount = _jsfrom(Union{VolumeType{I, T}, MassType{I, T}}, amount)
         _extra = _jsfrom(Dict{String, Any}, _extra)
-        _jscheck(HopAdditionType{IntType, FloatType}, (name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount), _extra)
+        _jscheck(HopAdditionType{I, T}, (name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount), _extra)
         return new(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
     end
 end
 HopAdditionType(; kwargs...) = HopAdditionType{Int64, Float64}(; kwargs...)
-HopAdditionType{IntType, FloatType}(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra) where {IntType &lt;: Integer, FloatType &lt;: Real} = HopAdditionType{IntType, FloatType}(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
+HopAdditionType{I, T}(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra) where {I &lt;: Integer, T &lt;: Real} = HopAdditionType{I, T}(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
 HopAdditionType(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra) = HopAdditionType{_jsnumbertypes(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)...}(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
 _SPECS[HopAdditionType] = (
     fields = (
@@ -142,4 +142,4 @@ struct VolumeUnitType &lt;: AbstractSchemaEnum
     value::String
     VolumeUnitType(value) = new(_jscheckenum(VolumeUnitType, _jsfrom(String, value)))
 end
-_SPECS[VolumeUnitType] = (values = Any[&quot;ml&quot;, &quot;l&quot;, &quot;tsp&quot;, &quot;tbsp&quot;, &quot;floz&quot;, &quot;cup&quot;, &quot;pt&quot;, &quot;qt&quot;, &quot;gal&quot;, &quot;bbl&quot;, &quot;ifloz&quot;, &quot;ipt&quot;, &quot;iqt&quot;, &quot;igal&quot;, &quot;ibbl&quot;],)</code></pre><h2 id="The-runtime-code"><a class="docs-heading-anchor" href="#The-runtime-code">The runtime code</a><a id="The-runtime-code-1"></a><a class="docs-heading-anchor-permalink" href="#The-runtime-code" title="Permalink"></a></h2><p>All of these functions are defined in the generated module itself, in <code>runtime.jl</code> (or at the top of the file, for a single-file module), so a generated module does not depend on JSONSchema2Types.jl. The runtime code is the same for every generated module. Its functions are internal (their names start with <code>_js</code>), except for those listed in the <a href="../api/#API">API</a>, which are exported.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../beerjson/">« BeerJSON</a><a class="docs-footer-nextpage" href="../conformance/">Conformance »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Sunday 15 November 2026 14:31">Sunday 15 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+_SPECS[VolumeUnitType] = (values = Any[&quot;ml&quot;, &quot;l&quot;, &quot;tsp&quot;, &quot;tbsp&quot;, &quot;floz&quot;, &quot;cup&quot;, &quot;pt&quot;, &quot;qt&quot;, &quot;gal&quot;, &quot;bbl&quot;, &quot;ifloz&quot;, &quot;ipt&quot;, &quot;iqt&quot;, &quot;igal&quot;, &quot;ibbl&quot;],)</code></pre><h2 id="The-runtime-code"><a class="docs-heading-anchor" href="#The-runtime-code">The runtime code</a><a id="The-runtime-code-1"></a><a class="docs-heading-anchor-permalink" href="#The-runtime-code" title="Permalink"></a></h2><p>All of these functions are defined in the generated module itself, in <code>runtime.jl</code> (or at the top of the file, for a single-file module), so a generated module does not depend on JSONSchema2Types.jl. The runtime code is the same for every generated module. Its functions are internal (their names start with <code>_js</code>), except for those listed in the <a href="../api/#API">API</a>, which are exported.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../beerjson/">« BeerJSON</a><a class="docs-footer-nextpage" href="../conformance/">Conformance »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Sunday 15 November 2026 21:16">Sunday 15 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
