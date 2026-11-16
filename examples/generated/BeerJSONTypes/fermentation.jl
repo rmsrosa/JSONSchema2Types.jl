@@ -36,7 +36,7 @@ end
 FermentationProcedureType(; kwargs...) = FermentationProcedureType{Int64, Float64}(; kwargs...)
 FermentationProcedureType{I, T}(name, description, notes, fermentation_steps) where {I <: Integer, T <: Real} = FermentationProcedureType{I, T}(; name, description, notes, fermentation_steps)
 FermentationProcedureType(name, description, notes, fermentation_steps) = FermentationProcedureType{_jsnumbertypes(name, description, notes, fermentation_steps)...}(; name, description, notes, fermentation_steps)
-_SPECS[FermentationProcedureType] = (
+const _SPEC_FermentationProcedureType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :description, key = "description", required = false, nullable = false, constraints = nothing),
@@ -49,4 +49,6 @@ _SPECS[FermentationProcedureType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:FermentationProcedureType}) = _SPEC_FermentationProcedureType
+_SPECS[FermentationProcedureType] = _SPEC_FermentationProcedureType
 

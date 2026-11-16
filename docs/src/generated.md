@@ -17,9 +17,8 @@ using .BeerJSONTypes
 function show_definition(file, name)
     code = read(joinpath(dir, file), String)
     i = first(findfirst("\"\"\"\n    $name(", code))
-    k = first(findfirst("_SPECS[$name] = (", code))
-    eol = findnext('\n', code, k)
-    j = endswith(code[k:eol-1], ")") ? eol - 1 : last(findnext(r"\n\)\n", code, k)) - 1
+    k = first(findfirst("_SPECS[$name] = ", code))
+    j = findnext('\n', code, k) - 1
     print(code[i:j])
 end
 ```
@@ -56,9 +55,11 @@ It has four parts:
    argument is passed through **`_jsfrom`** with the type of its field, which converts
    and validates it. Then **`_jscheck`** checks the constraints of the schema on the
    converted values, and `new` creates the value. Optional arguments default to `nothing`.
-4. **The metadata `_SPECS[VolumeType]`**: the JSON name of each field (which may differ
+4. **The metadata `_SPEC_VolumeType`**: the JSON name of each field (which may differ
    from the Julia name, e.g. for `first-name` or `end`), whether it is required, its
-   constraints, and more, used for reading, writing and checking.
+   constraints, and more, used for reading, writing and checking. It is a constant, returned
+   by `_specs(VolumeType)`, so that the checks are type stable and compiled for each type
+   (and also registered in the dictionary `_SPECS`, by type).
 
 ## `_jsfrom`: from JSON to Julia
 

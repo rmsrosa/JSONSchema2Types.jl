@@ -42,7 +42,7 @@ end
 BoilProcedureType(; kwargs...) = BoilProcedureType{Int64, Float64}(; kwargs...)
 BoilProcedureType{I, T}(name, description, notes, pre_boil_size, boil_time, boil_steps) where {I <: Integer, T <: Real} = BoilProcedureType{I, T}(; name, description, notes, pre_boil_size, boil_time, boil_steps)
 BoilProcedureType(name, description, notes, pre_boil_size, boil_time, boil_steps) = BoilProcedureType{_jsnumbertypes(name, description, notes, pre_boil_size, boil_time, boil_steps)...}(; name, description, notes, pre_boil_size, boil_time, boil_steps)
-_SPECS[BoilProcedureType] = (
+const _SPEC_BoilProcedureType = (
     fields = (
         (name = :name, key = "name", required = false, nullable = false, constraints = nothing),
         (name = :description, key = "description", required = false, nullable = false, constraints = nothing),
@@ -57,4 +57,6 @@ _SPECS[BoilProcedureType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:BoilProcedureType}) = _SPEC_BoilProcedureType
+_SPECS[BoilProcedureType] = _SPEC_BoilProcedureType
 

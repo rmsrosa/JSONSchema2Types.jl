@@ -66,7 +66,7 @@ end
 BeerJSONContent(; kwargs...) = BeerJSONContent{Int64, Float64}(; kwargs...)
 BeerJSONContent{I, T}(version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging) where {I <: Integer, T <: Real} = BeerJSONContent{I, T}(; version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging)
 BeerJSONContent(version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging) = BeerJSONContent{_jsnumbertypes(version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging)...}(; version, timing_object, fermentables, miscellaneous_ingredients, hop_varieties, cultures, profiles, styles, mashes, fermentations, recipes, equipments, boil, packaging)
-_SPECS[BeerJSONContent] = (
+const _SPEC_BeerJSONContent = (
     fields = (
         (name = :version, key = "version", required = true, nullable = false, constraints = nothing),
         (name = :timing_object, key = "timing_object", required = false, nullable = false, constraints = nothing),
@@ -89,6 +89,8 @@ _SPECS[BeerJSONContent] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:BeerJSONContent}) = _SPEC_BeerJSONContent
+_SPECS[BeerJSONContent] = _SPEC_BeerJSONContent
 
 """
     BeerJSON(; kwargs...)
@@ -112,7 +114,7 @@ end
 BeerJSON(; kwargs...) = BeerJSON{Int64, Float64}(; kwargs...)
 BeerJSON{I, T}(beerjson) where {I <: Integer, T <: Real} = BeerJSON{I, T}(; beerjson)
 BeerJSON(beerjson) = BeerJSON{_jsnumbertypes(beerjson)...}(; beerjson)
-_SPECS[BeerJSON] = (
+const _SPEC_BeerJSON = (
     fields = (
         (name = :beerjson, key = "beerjson", required = true, nullable = false, constraints = nothing),
     ),
@@ -122,4 +124,6 @@ _SPECS[BeerJSON] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:BeerJSON}) = _SPEC_BeerJSON
+_SPECS[BeerJSON] = _SPEC_BeerJSON
 

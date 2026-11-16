@@ -12,7 +12,9 @@ struct CultureTypeEnum <: AbstractSchemaEnum
     value::String
     CultureTypeEnum(value) = new(_jscheckenum(CultureTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[CultureTypeEnum] = (values = Any["ale", "bacteria", "brett", "champagne", "kveik", "lacto", "lager", "malolactic", "mixed-culture", "other", "pedio", "spontaneous", "wine"],)
+const _VALUES_CultureTypeEnum = ("ale", "bacteria", "brett", "champagne", "kveik", "lacto", "lager", "malolactic", "mixed-culture", "other", "pedio", "spontaneous", "wine")
+_enumvalues(::Type{CultureTypeEnum}) = _VALUES_CultureTypeEnum
+_SPECS[CultureTypeEnum] = (values = _VALUES_CultureTypeEnum,)
 
 """
     CultureFormEnum(value)
@@ -23,7 +25,9 @@ struct CultureFormEnum <: AbstractSchemaEnum
     value::String
     CultureFormEnum(value) = new(_jscheckenum(CultureFormEnum, _jsfrom(String, value)))
 end
-_SPECS[CultureFormEnum] = (values = Any["liquid", "dry", "slant", "culture", "dregs"],)
+const _VALUES_CultureFormEnum = ("liquid", "dry", "slant", "culture", "dregs")
+_enumvalues(::Type{CultureFormEnum}) = _VALUES_CultureFormEnum
+_SPECS[CultureFormEnum] = (values = _VALUES_CultureFormEnum,)
 
 """
     CultureInventoryType(; kwargs...)
@@ -56,7 +60,7 @@ end
 CultureInventoryType(; kwargs...) = CultureInventoryType{Int64, Float64}(; kwargs...)
 CultureInventoryType{I, T}(liquid, dry, slant, culture) where {I <: Integer, T <: Real} = CultureInventoryType{I, T}(; liquid, dry, slant, culture)
 CultureInventoryType(liquid, dry, slant, culture) = CultureInventoryType{_jsnumbertypes(liquid, dry, slant, culture)...}(; liquid, dry, slant, culture)
-_SPECS[CultureInventoryType] = (
+const _SPEC_CultureInventoryType = (
     fields = (
         (name = :liquid, key = "liquid", required = false, nullable = false, constraints = nothing),
         (name = :dry, key = "dry", required = false, nullable = false, constraints = nothing),
@@ -69,6 +73,8 @@ _SPECS[CultureInventoryType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:CultureInventoryType}) = _SPEC_CultureInventoryType
+_SPECS[CultureInventoryType] = _SPEC_CultureInventoryType
 
 """
     Zymocide(; kwargs...)
@@ -106,7 +112,7 @@ end
 Zymocide(; kwargs...) = Zymocide{Int64, Float64}(; kwargs...)
 Zymocide{I, T}(no1, no2, no28, klus, neutral) where {I <: Integer, T <: Real} = Zymocide{I, T}(; no1, no2, no28, klus, neutral)
 Zymocide(no1, no2, no28, klus, neutral) = Zymocide{_jsnumbertypes(no1, no2, no28, klus, neutral)...}(; no1, no2, no28, klus, neutral)
-_SPECS[Zymocide] = (
+const _SPEC_Zymocide = (
     fields = (
         (name = :no1, key = "no1", required = false, nullable = false, constraints = nothing),
         (name = :no2, key = "no2", required = false, nullable = false, constraints = nothing),
@@ -120,6 +126,8 @@ _SPECS[Zymocide] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:Zymocide}) = _SPEC_Zymocide
+_SPECS[Zymocide] = _SPEC_Zymocide
 
 """
     CultureInformation(; kwargs...)
@@ -193,7 +201,7 @@ end
 CultureInformation(; kwargs...) = CultureInformation{Int64, Float64}(; kwargs...)
 CultureInformation{I, T}(name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra) where {I <: Integer, T <: Real} = CultureInformation{I, T}(; name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra)
 CultureInformation(name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra) = CultureInformation{_jsnumbertypes(name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra)...}(; name, type, form, producer, product_id, temperature_range, alcohol_tolerance, flocculation, attenuation_range, notes, best_for, max_reuse, pof, glucoamylase, inventory, zymocide, _extra)
-_SPECS[CultureInformation] = (
+const _SPEC_CultureInformation = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = true, nullable = false, constraints = nothing),
@@ -218,6 +226,8 @@ _SPECS[CultureInformation] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:CultureInformation}) = _SPEC_CultureInformation
+_SPECS[CultureInformation] = _SPEC_CultureInformation
 
 """
     CultureAdditionType(; kwargs...)
@@ -273,7 +283,7 @@ end
 CultureAdditionType(; kwargs...) = CultureAdditionType{Int64, Float64}(; kwargs...)
 CultureAdditionType{I, T}(name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra) where {I <: Integer, T <: Real} = CultureAdditionType{I, T}(; name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra)
 CultureAdditionType(name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra) = CultureAdditionType{_jsnumbertypes(name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra)...}(; name, type, form, producer, product_id, attenuation, times_cultured, timing, cell_count_billions, amount, _extra)
-_SPECS[CultureAdditionType] = (
+const _SPEC_CultureAdditionType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = true, nullable = false, constraints = nothing),
@@ -306,4 +316,6 @@ _SPECS[CultureAdditionType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:CultureAdditionType}) = _SPEC_CultureAdditionType
+_SPECS[CultureAdditionType] = _SPEC_CultureAdditionType
 

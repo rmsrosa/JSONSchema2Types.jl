@@ -12,7 +12,9 @@ struct TimeUnitType <: AbstractSchemaEnum
     value::String
     TimeUnitType(value) = new(_jscheckenum(TimeUnitType, _jsfrom(String, value)))
 end
-_SPECS[TimeUnitType] = (values = Any["sec", "min", "hr", "day", "week"],)
+const _VALUES_TimeUnitType = ("sec", "min", "hr", "day", "week")
+_enumvalues(::Type{TimeUnitType}) = _VALUES_TimeUnitType
+_SPECS[TimeUnitType] = (values = _VALUES_TimeUnitType,)
 
 """
     GravityUnitType(value)
@@ -23,7 +25,9 @@ struct GravityUnitType <: AbstractSchemaEnum
     value::String
     GravityUnitType(value) = new(_jscheckenum(GravityUnitType, _jsfrom(String, value)))
 end
-_SPECS[GravityUnitType] = (values = Any["sg", "plato", "brix"],)
+const _VALUES_GravityUnitType = ("sg", "plato", "brix")
+_enumvalues(::Type{GravityUnitType}) = _VALUES_GravityUnitType
+_SPECS[GravityUnitType] = (values = _VALUES_GravityUnitType,)
 
 """
     AcidityUnitType(value)
@@ -34,7 +38,9 @@ struct AcidityUnitType <: AbstractSchemaEnum
     value::String
     AcidityUnitType(value) = new(_jscheckenum(AcidityUnitType, _jsfrom(String, value)))
 end
-_SPECS[AcidityUnitType] = (values = Any["pH"],)
+const _VALUES_AcidityUnitType = ("pH",)
+_enumvalues(::Type{AcidityUnitType}) = _VALUES_AcidityUnitType
+_SPECS[AcidityUnitType] = (values = _VALUES_AcidityUnitType,)
 
 """
     PercentUnitType(value)
@@ -45,7 +51,9 @@ struct PercentUnitType <: AbstractSchemaEnum
     value::String
     PercentUnitType(value) = new(_jscheckenum(PercentUnitType, _jsfrom(String, value)))
 end
-_SPECS[PercentUnitType] = (values = Any["%"],)
+const _VALUES_PercentUnitType = ("%",)
+_enumvalues(::Type{PercentUnitType}) = _VALUES_PercentUnitType
+_SPECS[PercentUnitType] = (values = _VALUES_PercentUnitType,)
 
 """
     ColorUnitType(value)
@@ -56,7 +64,9 @@ struct ColorUnitType <: AbstractSchemaEnum
     value::String
     ColorUnitType(value) = new(_jscheckenum(ColorUnitType, _jsfrom(String, value)))
 end
-_SPECS[ColorUnitType] = (values = Any["EBC", "Lovi", "SRM"],)
+const _VALUES_ColorUnitType = ("EBC", "Lovi", "SRM")
+_enumvalues(::Type{ColorUnitType}) = _VALUES_ColorUnitType
+_SPECS[ColorUnitType] = (values = _VALUES_ColorUnitType,)
 
 """
     DiastaticPowerUnitType(value)
@@ -67,7 +77,9 @@ struct DiastaticPowerUnitType <: AbstractSchemaEnum
     value::String
     DiastaticPowerUnitType(value) = new(_jscheckenum(DiastaticPowerUnitType, _jsfrom(String, value)))
 end
-_SPECS[DiastaticPowerUnitType] = (values = Any["Lintner", "WK"],)
+const _VALUES_DiastaticPowerUnitType = ("Lintner", "WK")
+_enumvalues(::Type{DiastaticPowerUnitType}) = _VALUES_DiastaticPowerUnitType
+_SPECS[DiastaticPowerUnitType] = (values = _VALUES_DiastaticPowerUnitType,)
 
 """
     VolumeUnitType(value)
@@ -78,7 +90,9 @@ struct VolumeUnitType <: AbstractSchemaEnum
     value::String
     VolumeUnitType(value) = new(_jscheckenum(VolumeUnitType, _jsfrom(String, value)))
 end
-_SPECS[VolumeUnitType] = (values = Any["ml", "l", "tsp", "tbsp", "floz", "cup", "pt", "qt", "gal", "bbl", "ifloz", "ipt", "iqt", "igal", "ibbl"],)
+const _VALUES_VolumeUnitType = ("ml", "l", "tsp", "tbsp", "floz", "cup", "pt", "qt", "gal", "bbl", "ifloz", "ipt", "iqt", "igal", "ibbl")
+_enumvalues(::Type{VolumeUnitType}) = _VALUES_VolumeUnitType
+_SPECS[VolumeUnitType] = (values = _VALUES_VolumeUnitType,)
 
 """
     MassUnitType(value)
@@ -89,7 +103,9 @@ struct MassUnitType <: AbstractSchemaEnum
     value::String
     MassUnitType(value) = new(_jscheckenum(MassUnitType, _jsfrom(String, value)))
 end
-_SPECS[MassUnitType] = (values = Any["mg", "g", "kg", "lb", "oz"],)
+const _VALUES_MassUnitType = ("mg", "g", "kg", "lb", "oz")
+_enumvalues(::Type{MassUnitType}) = _VALUES_MassUnitType
+_SPECS[MassUnitType] = (values = _VALUES_MassUnitType,)
 
 """
     ViscosityUnitType(value)
@@ -100,7 +116,9 @@ struct ViscosityUnitType <: AbstractSchemaEnum
     value::String
     ViscosityUnitType(value) = new(_jscheckenum(ViscosityUnitType, _jsfrom(String, value)))
 end
-_SPECS[ViscosityUnitType] = (values = Any["cP", "mPa-s"],)
+const _VALUES_ViscosityUnitType = ("cP", "mPa-s")
+_enumvalues(::Type{ViscosityUnitType}) = _VALUES_ViscosityUnitType
+_SPECS[ViscosityUnitType] = (values = _VALUES_ViscosityUnitType,)
 
 """
     ConcentrationUnitType(value)
@@ -111,7 +129,9 @@ struct ConcentrationUnitType <: AbstractSchemaEnum
     value::String
     ConcentrationUnitType(value) = new(_jscheckenum(ConcentrationUnitType, _jsfrom(String, value)))
 end
-_SPECS[ConcentrationUnitType] = (values = Any["ppm", "ppb", "mg/l"],)
+const _VALUES_ConcentrationUnitType = ("ppm", "ppb", "mg/l")
+_enumvalues(::Type{ConcentrationUnitType}) = _VALUES_ConcentrationUnitType
+_SPECS[ConcentrationUnitType] = (values = _VALUES_ConcentrationUnitType,)
 
 """
     UnitUnitType(value)
@@ -122,7 +142,9 @@ struct UnitUnitType <: AbstractSchemaEnum
     value::String
     UnitUnitType(value) = new(_jscheckenum(UnitUnitType, _jsfrom(String, value)))
 end
-_SPECS[UnitUnitType] = (values = Any["1", "unit", "each", "dimensionless", "pkg"],)
+const _VALUES_UnitUnitType = ("1", "unit", "each", "dimensionless", "pkg")
+_enumvalues(::Type{UnitUnitType}) = _VALUES_UnitUnitType
+_SPECS[UnitUnitType] = (values = _VALUES_UnitUnitType,)
 
 """
     TemperatureUnitType(value)
@@ -133,7 +155,9 @@ struct TemperatureUnitType <: AbstractSchemaEnum
     value::String
     TemperatureUnitType(value) = new(_jscheckenum(TemperatureUnitType, _jsfrom(String, value)))
 end
-_SPECS[TemperatureUnitType] = (values = Any["C", "F"],)
+const _VALUES_TemperatureUnitType = ("C", "F")
+_enumvalues(::Type{TemperatureUnitType}) = _VALUES_TemperatureUnitType
+_SPECS[TemperatureUnitType] = (values = _VALUES_TemperatureUnitType,)
 
 """
     QualitativeRangeType(value)
@@ -144,7 +168,9 @@ struct QualitativeRangeType <: AbstractSchemaEnum
     value::String
     QualitativeRangeType(value) = new(_jscheckenum(QualitativeRangeType, _jsfrom(String, value)))
 end
-_SPECS[QualitativeRangeType] = (values = Any["very low", "low", "medium low", "medium", "medium high", "high", "very high"],)
+const _VALUES_QualitativeRangeType = ("very low", "low", "medium low", "medium", "medium high", "high", "very high")
+_enumvalues(::Type{QualitativeRangeType}) = _VALUES_QualitativeRangeType
+_SPECS[QualitativeRangeType] = (values = _VALUES_QualitativeRangeType,)
 
 """
     BitternessUnitType(value)
@@ -155,7 +181,9 @@ struct BitternessUnitType <: AbstractSchemaEnum
     value::String
     BitternessUnitType(value) = new(_jscheckenum(BitternessUnitType, _jsfrom(String, value)))
 end
-_SPECS[BitternessUnitType] = (values = Any["IBUs"],)
+const _VALUES_BitternessUnitType = ("IBUs",)
+_enumvalues(::Type{BitternessUnitType}) = _VALUES_BitternessUnitType
+_SPECS[BitternessUnitType] = (values = _VALUES_BitternessUnitType,)
 
 """
     CarbonationUnitType(value)
@@ -166,7 +194,9 @@ struct CarbonationUnitType <: AbstractSchemaEnum
     value::String
     CarbonationUnitType(value) = new(_jscheckenum(CarbonationUnitType, _jsfrom(String, value)))
 end
-_SPECS[CarbonationUnitType] = (values = Any["vols", "g/l"],)
+const _VALUES_CarbonationUnitType = ("vols", "g/l")
+_enumvalues(::Type{CarbonationUnitType}) = _VALUES_CarbonationUnitType
+_SPECS[CarbonationUnitType] = (values = _VALUES_CarbonationUnitType,)
 
 """
     SpecificVolumeUnitType(value)
@@ -177,7 +207,9 @@ struct SpecificVolumeUnitType <: AbstractSchemaEnum
     value::String
     SpecificVolumeUnitType(value) = new(_jscheckenum(SpecificVolumeUnitType, _jsfrom(String, value)))
 end
-_SPECS[SpecificVolumeUnitType] = (values = Any["qt/lb", "gal/lb", "gal/oz", "l/g", "l/kg", "floz/oz", "m^3/kg", "ft^3/lb"],)
+const _VALUES_SpecificVolumeUnitType = ("qt/lb", "gal/lb", "gal/oz", "l/g", "l/kg", "floz/oz", "m^3/kg", "ft^3/lb")
+_enumvalues(::Type{SpecificVolumeUnitType}) = _VALUES_SpecificVolumeUnitType
+_SPECS[SpecificVolumeUnitType] = (values = _VALUES_SpecificVolumeUnitType,)
 
 """
     SpecificHeatUnitType(value)
@@ -188,7 +220,9 @@ struct SpecificHeatUnitType <: AbstractSchemaEnum
     value::String
     SpecificHeatUnitType(value) = new(_jscheckenum(SpecificHeatUnitType, _jsfrom(String, value)))
 end
-_SPECS[SpecificHeatUnitType] = (values = Any["Cal/(g C)", "J/(kg K)", "BTU/(lb F)"],)
+const _VALUES_SpecificHeatUnitType = ("Cal/(g C)", "J/(kg K)", "BTU/(lb F)")
+_enumvalues(::Type{SpecificHeatUnitType}) = _VALUES_SpecificHeatUnitType
+_SPECS[SpecificHeatUnitType] = (values = _VALUES_SpecificHeatUnitType,)
 
 """
     TimeType(; kwargs...)
@@ -215,7 +249,7 @@ end
 TimeType(; kwargs...) = TimeType{Int64, Float64}(; kwargs...)
 TimeType{I, T}(unit, value) where {I <: Integer, T <: Real} = TimeType{I, T}(; unit, value)
 TimeType(unit, value) = TimeType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[TimeType] = (
+const _SPEC_TimeType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -226,6 +260,8 @@ _SPECS[TimeType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:TimeType}) = _SPEC_TimeType
+_SPECS[TimeType] = _SPEC_TimeType
 
 """
     GravityType(; kwargs...)
@@ -254,7 +290,7 @@ end
 GravityType(; kwargs...) = GravityType{Int64, Float64}(; kwargs...)
 GravityType{I, T}(unit, value) where {I <: Integer, T <: Real} = GravityType{I, T}(; unit, value)
 GravityType(unit, value) = GravityType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[GravityType] = (
+const _SPEC_GravityType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -265,6 +301,8 @@ _SPECS[GravityType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:GravityType}) = _SPEC_GravityType
+_SPECS[GravityType] = _SPEC_GravityType
 
 """
     AcidityType(; kwargs...)
@@ -291,7 +329,7 @@ end
 AcidityType(; kwargs...) = AcidityType{Int64, Float64}(; kwargs...)
 AcidityType{I, T}(unit, value) where {I <: Integer, T <: Real} = AcidityType{I, T}(; unit, value)
 AcidityType(unit, value) = AcidityType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[AcidityType] = (
+const _SPEC_AcidityType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -302,6 +340,8 @@ _SPECS[AcidityType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:AcidityType}) = _SPEC_AcidityType
+_SPECS[AcidityType] = _SPEC_AcidityType
 
 """
     PercentType(; kwargs...)
@@ -328,7 +368,7 @@ end
 PercentType(; kwargs...) = PercentType{Int64, Float64}(; kwargs...)
 PercentType{I, T}(unit, value) where {I <: Integer, T <: Real} = PercentType{I, T}(; unit, value)
 PercentType(unit, value) = PercentType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[PercentType] = (
+const _SPEC_PercentType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -339,6 +379,8 @@ _SPECS[PercentType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:PercentType}) = _SPEC_PercentType
+_SPECS[PercentType] = _SPEC_PercentType
 
 """
     ColorType(; kwargs...)
@@ -367,7 +409,7 @@ end
 ColorType(; kwargs...) = ColorType{Int64, Float64}(; kwargs...)
 ColorType{I, T}(unit, value) where {I <: Integer, T <: Real} = ColorType{I, T}(; unit, value)
 ColorType(unit, value) = ColorType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[ColorType] = (
+const _SPEC_ColorType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -378,6 +420,8 @@ _SPECS[ColorType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:ColorType}) = _SPEC_ColorType
+_SPECS[ColorType] = _SPEC_ColorType
 
 """
     DiastaticPowerType(; kwargs...)
@@ -406,7 +450,7 @@ end
 DiastaticPowerType(; kwargs...) = DiastaticPowerType{Int64, Float64}(; kwargs...)
 DiastaticPowerType{I, T}(unit, value) where {I <: Integer, T <: Real} = DiastaticPowerType{I, T}(; unit, value)
 DiastaticPowerType(unit, value) = DiastaticPowerType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[DiastaticPowerType] = (
+const _SPEC_DiastaticPowerType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -417,6 +461,8 @@ _SPECS[DiastaticPowerType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:DiastaticPowerType}) = _SPEC_DiastaticPowerType
+_SPECS[DiastaticPowerType] = _SPEC_DiastaticPowerType
 
 """
     VolumeType(; kwargs...)
@@ -443,7 +489,7 @@ end
 VolumeType(; kwargs...) = VolumeType{Int64, Float64}(; kwargs...)
 VolumeType{I, T}(unit, value) where {I <: Integer, T <: Real} = VolumeType{I, T}(; unit, value)
 VolumeType(unit, value) = VolumeType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[VolumeType] = (
+const _SPEC_VolumeType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -454,6 +500,8 @@ _SPECS[VolumeType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:VolumeType}) = _SPEC_VolumeType
+_SPECS[VolumeType] = _SPEC_VolumeType
 
 """
     MassType(; kwargs...)
@@ -480,7 +528,7 @@ end
 MassType(; kwargs...) = MassType{Int64, Float64}(; kwargs...)
 MassType{I, T}(unit, value) where {I <: Integer, T <: Real} = MassType{I, T}(; unit, value)
 MassType(unit, value) = MassType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[MassType] = (
+const _SPEC_MassType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -491,6 +539,8 @@ _SPECS[MassType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:MassType}) = _SPEC_MassType
+_SPECS[MassType] = _SPEC_MassType
 
 """
     ViscosityType(; kwargs...)
@@ -519,7 +569,7 @@ end
 ViscosityType(; kwargs...) = ViscosityType{Int64, Float64}(; kwargs...)
 ViscosityType{I, T}(unit, value) where {I <: Integer, T <: Real} = ViscosityType{I, T}(; unit, value)
 ViscosityType(unit, value) = ViscosityType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[ViscosityType] = (
+const _SPEC_ViscosityType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -530,6 +580,8 @@ _SPECS[ViscosityType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:ViscosityType}) = _SPEC_ViscosityType
+_SPECS[ViscosityType] = _SPEC_ViscosityType
 
 """
     ConcentrationType(; kwargs...)
@@ -558,7 +610,7 @@ end
 ConcentrationType(; kwargs...) = ConcentrationType{Int64, Float64}(; kwargs...)
 ConcentrationType{I, T}(unit, value) where {I <: Integer, T <: Real} = ConcentrationType{I, T}(; unit, value)
 ConcentrationType(unit, value) = ConcentrationType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[ConcentrationType] = (
+const _SPEC_ConcentrationType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -569,6 +621,8 @@ _SPECS[ConcentrationType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:ConcentrationType}) = _SPEC_ConcentrationType
+_SPECS[ConcentrationType] = _SPEC_ConcentrationType
 
 """
     UnitType(; kwargs...)
@@ -597,7 +651,7 @@ end
 UnitType(; kwargs...) = UnitType{Int64, Float64}(; kwargs...)
 UnitType{I, T}(unit, value) where {I <: Integer, T <: Real} = UnitType{I, T}(; unit, value)
 UnitType(unit, value) = UnitType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[UnitType] = (
+const _SPEC_UnitType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -608,6 +662,8 @@ _SPECS[UnitType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:UnitType}) = _SPEC_UnitType
+_SPECS[UnitType] = _SPEC_UnitType
 
 """
     TemperatureType(; kwargs...)
@@ -634,7 +690,7 @@ end
 TemperatureType(; kwargs...) = TemperatureType{Int64, Float64}(; kwargs...)
 TemperatureType{I, T}(unit, value) where {I <: Integer, T <: Real} = TemperatureType{I, T}(; unit, value)
 TemperatureType(unit, value) = TemperatureType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[TemperatureType] = (
+const _SPEC_TemperatureType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -645,6 +701,8 @@ _SPECS[TemperatureType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:TemperatureType}) = _SPEC_TemperatureType
+_SPECS[TemperatureType] = _SPEC_TemperatureType
 
 """
     TemperatureRangeType(; kwargs...)
@@ -671,7 +729,7 @@ end
 TemperatureRangeType(; kwargs...) = TemperatureRangeType{Int64, Float64}(; kwargs...)
 TemperatureRangeType{I, T}(minimum, maximum) where {I <: Integer, T <: Real} = TemperatureRangeType{I, T}(; minimum, maximum)
 TemperatureRangeType(minimum, maximum) = TemperatureRangeType{_jsnumbertypes(minimum, maximum)...}(; minimum, maximum)
-_SPECS[TemperatureRangeType] = (
+const _SPEC_TemperatureRangeType = (
     fields = (
         (name = :minimum, key = "minimum", required = true, nullable = false, constraints = nothing),
         (name = :maximum, key = "maximum", required = true, nullable = false, constraints = nothing),
@@ -682,6 +740,8 @@ _SPECS[TemperatureRangeType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:TemperatureRangeType}) = _SPEC_TemperatureRangeType
+_SPECS[TemperatureRangeType] = _SPEC_TemperatureRangeType
 
 """
     PercentRangeType(; kwargs...)
@@ -708,7 +768,7 @@ end
 PercentRangeType(; kwargs...) = PercentRangeType{Int64, Float64}(; kwargs...)
 PercentRangeType{I, T}(minimum, maximum) where {I <: Integer, T <: Real} = PercentRangeType{I, T}(; minimum, maximum)
 PercentRangeType(minimum, maximum) = PercentRangeType{_jsnumbertypes(minimum, maximum)...}(; minimum, maximum)
-_SPECS[PercentRangeType] = (
+const _SPEC_PercentRangeType = (
     fields = (
         (name = :minimum, key = "minimum", required = true, nullable = false, constraints = nothing),
         (name = :maximum, key = "maximum", required = true, nullable = false, constraints = nothing),
@@ -719,6 +779,8 @@ _SPECS[PercentRangeType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:PercentRangeType}) = _SPEC_PercentRangeType
+_SPECS[PercentRangeType] = _SPEC_PercentRangeType
 
 """
     GravityRangeType(; kwargs...)
@@ -745,7 +807,7 @@ end
 GravityRangeType(; kwargs...) = GravityRangeType{Int64, Float64}(; kwargs...)
 GravityRangeType{I, T}(minimum, maximum) where {I <: Integer, T <: Real} = GravityRangeType{I, T}(; minimum, maximum)
 GravityRangeType(minimum, maximum) = GravityRangeType{_jsnumbertypes(minimum, maximum)...}(; minimum, maximum)
-_SPECS[GravityRangeType] = (
+const _SPEC_GravityRangeType = (
     fields = (
         (name = :minimum, key = "minimum", required = true, nullable = false, constraints = nothing),
         (name = :maximum, key = "maximum", required = true, nullable = false, constraints = nothing),
@@ -756,6 +818,8 @@ _SPECS[GravityRangeType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:GravityRangeType}) = _SPEC_GravityRangeType
+_SPECS[GravityRangeType] = _SPEC_GravityRangeType
 
 """
     BitternessType(; kwargs...)
@@ -782,7 +846,7 @@ end
 BitternessType(; kwargs...) = BitternessType{Int64, Float64}(; kwargs...)
 BitternessType{I, T}(unit, value) where {I <: Integer, T <: Real} = BitternessType{I, T}(; unit, value)
 BitternessType(unit, value) = BitternessType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[BitternessType] = (
+const _SPEC_BitternessType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -793,6 +857,8 @@ _SPECS[BitternessType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:BitternessType}) = _SPEC_BitternessType
+_SPECS[BitternessType] = _SPEC_BitternessType
 
 """
     BitternessRangeType(; kwargs...)
@@ -819,7 +885,7 @@ end
 BitternessRangeType(; kwargs...) = BitternessRangeType{Int64, Float64}(; kwargs...)
 BitternessRangeType{I, T}(minimum, maximum) where {I <: Integer, T <: Real} = BitternessRangeType{I, T}(; minimum, maximum)
 BitternessRangeType(minimum, maximum) = BitternessRangeType{_jsnumbertypes(minimum, maximum)...}(; minimum, maximum)
-_SPECS[BitternessRangeType] = (
+const _SPEC_BitternessRangeType = (
     fields = (
         (name = :minimum, key = "minimum", required = true, nullable = false, constraints = nothing),
         (name = :maximum, key = "maximum", required = true, nullable = false, constraints = nothing),
@@ -830,6 +896,8 @@ _SPECS[BitternessRangeType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:BitternessRangeType}) = _SPEC_BitternessRangeType
+_SPECS[BitternessRangeType] = _SPEC_BitternessRangeType
 
 """
     ColorRangeType(; kwargs...)
@@ -856,7 +924,7 @@ end
 ColorRangeType(; kwargs...) = ColorRangeType{Int64, Float64}(; kwargs...)
 ColorRangeType{I, T}(minimum, maximum) where {I <: Integer, T <: Real} = ColorRangeType{I, T}(; minimum, maximum)
 ColorRangeType(minimum, maximum) = ColorRangeType{_jsnumbertypes(minimum, maximum)...}(; minimum, maximum)
-_SPECS[ColorRangeType] = (
+const _SPEC_ColorRangeType = (
     fields = (
         (name = :minimum, key = "minimum", required = true, nullable = false, constraints = nothing),
         (name = :maximum, key = "maximum", required = true, nullable = false, constraints = nothing),
@@ -867,6 +935,8 @@ _SPECS[ColorRangeType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:ColorRangeType}) = _SPEC_ColorRangeType
+_SPECS[ColorRangeType] = _SPEC_ColorRangeType
 
 """
     CarbonationType(; kwargs...)
@@ -893,7 +963,7 @@ end
 CarbonationType(; kwargs...) = CarbonationType{Int64, Float64}(; kwargs...)
 CarbonationType{I, T}(unit, value) where {I <: Integer, T <: Real} = CarbonationType{I, T}(; unit, value)
 CarbonationType(unit, value) = CarbonationType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[CarbonationType] = (
+const _SPEC_CarbonationType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -904,6 +974,8 @@ _SPECS[CarbonationType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:CarbonationType}) = _SPEC_CarbonationType
+_SPECS[CarbonationType] = _SPEC_CarbonationType
 
 """
     CarbonationRangeType(; kwargs...)
@@ -930,7 +1002,7 @@ end
 CarbonationRangeType(; kwargs...) = CarbonationRangeType{Int64, Float64}(; kwargs...)
 CarbonationRangeType{I, T}(minimum, maximum) where {I <: Integer, T <: Real} = CarbonationRangeType{I, T}(; minimum, maximum)
 CarbonationRangeType(minimum, maximum) = CarbonationRangeType{_jsnumbertypes(minimum, maximum)...}(; minimum, maximum)
-_SPECS[CarbonationRangeType] = (
+const _SPEC_CarbonationRangeType = (
     fields = (
         (name = :minimum, key = "minimum", required = true, nullable = false, constraints = nothing),
         (name = :maximum, key = "maximum", required = true, nullable = false, constraints = nothing),
@@ -941,6 +1013,8 @@ _SPECS[CarbonationRangeType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:CarbonationRangeType}) = _SPEC_CarbonationRangeType
+_SPECS[CarbonationRangeType] = _SPEC_CarbonationRangeType
 
 """
     SpecificVolumeType(; kwargs...)
@@ -969,7 +1043,7 @@ end
 SpecificVolumeType(; kwargs...) = SpecificVolumeType{Int64, Float64}(; kwargs...)
 SpecificVolumeType{I, T}(unit, value) where {I <: Integer, T <: Real} = SpecificVolumeType{I, T}(; unit, value)
 SpecificVolumeType(unit, value) = SpecificVolumeType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[SpecificVolumeType] = (
+const _SPEC_SpecificVolumeType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -980,6 +1054,8 @@ _SPECS[SpecificVolumeType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:SpecificVolumeType}) = _SPEC_SpecificVolumeType
+_SPECS[SpecificVolumeType] = _SPEC_SpecificVolumeType
 
 """
     SpecificHeatType(; kwargs...)
@@ -1008,7 +1084,7 @@ end
 SpecificHeatType(; kwargs...) = SpecificHeatType{Int64, Float64}(; kwargs...)
 SpecificHeatType{I, T}(unit, value) where {I <: Integer, T <: Real} = SpecificHeatType{I, T}(; unit, value)
 SpecificHeatType(unit, value) = SpecificHeatType{_jsnumbertypes(unit, value)...}(; unit, value)
-_SPECS[SpecificHeatType] = (
+const _SPEC_SpecificHeatType = (
     fields = (
         (name = :unit, key = "unit", required = true, nullable = false, constraints = nothing),
         (name = :value, key = "value", required = true, nullable = false, constraints = nothing),
@@ -1019,4 +1095,6 @@ _SPECS[SpecificHeatType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:SpecificHeatType}) = _SPEC_SpecificHeatType
+_SPECS[SpecificHeatType] = _SPEC_SpecificHeatType
 

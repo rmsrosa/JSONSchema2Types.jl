@@ -74,10 +74,24 @@ const _SPECS = Dict{Any, Any}()
 const _ROOT_CONSTRAINTS = Ref{Any}(nothing)
 
 # (the structs are parametric: their metadata is stored for the `UnionAll` type)
+# (the generated code also defines a method of `_specs` for each struct returning its
+# metadata as a constant, so that the checks are type-stable; this is the fallback)
 _specs(::Type{T}) where {T <: AbstractSchemaObject} = _SPECS[Base.typename(T).wrapper]
 
 # Metadata of each generated enum type: the allowed values.
 _enumvalues(::Type{T}) where {T <: AbstractSchemaEnum} = _SPECS[T].values
+
+# Where a value is in a document, for the messages of the errors: built only when a check
+# fails, so that valid values cost no string allocations.
+struct _JSField{T}
+    key::String
+end
+Base.print(io::IO, w::_JSField{T}) where {T} = print(io, "`", w.key, "` in `", _jsname(T), "`")
+struct _JSItem{W}
+    parent::W
+    index::Int
+end
+Base.print(io::IO, w::_JSItem) = print(io, w.parent, "[", w.index, "]")
 
 # --- Conversion from parsed JSON values into Julia values ---
 
@@ -238,7 +252,7 @@ _jslength(x::AbstractString) = length(x)
 _jsscalar(x) = x
 
 # `nothing` is an absent optional field, unless `null` is a value (e.g. a JSON document `null`)
-function _jsvalidate(x, c, where_::String; null_is_value::Bool = false)
+function _jsvalidate(x, c, where_; null_is_value::Bool = false)
     c === nothing && return nothing
     x === nothing && !null_is_value && return nothing
     x = _jsscalar(x)
@@ -265,7 +279,7 @@ function _jsvalidate(x, c, where_::String; null_is_value::Bool = false)
         haskey(c, :uniqueItems) && c.uniqueItems && !_jsallunique(x) && _jsfail("$where_ must have unique items")
         if haskey(c, :items)
             for (i, el) in enumerate(x)
-                _jsvalidate(el, c.items, "$where_[$i]")
+                _jsvalidate(el, c.items, _JSItem(where_, i))
             end
         end
     elseif x isa AbstractDict
@@ -287,14 +301,7 @@ constraints on the object as a whole (`minProperties`, `if`/`then`/`else`...).
 """
 function _jscheck(::Type{T}, values::Tuple, extra) where {T <: AbstractSchemaObject}
     spec = _specs(T)
-    nprops = extra === nothing ? 0 : length(extra)
-    for (f, v) in zip(spec.fields, values)
-        if v === nothing && f.required && !f.nullable
-            _jsfail("required property `$(f.key)` of `$(_jsname(T))` cannot be `nothing`")
-        end
-        (v !== nothing || (f.required && f.nullable)) && (nprops += 1)
-        _jsvalidate(v, f.constraints, "`$(f.key)` in `$(_jsname(T))`")
-    end
+    nprops = (extra === nothing ? 0 : length(extra)) + _jscheckfields(T, spec.fields, values)
     spec.minProperties !== nothing && nprops < spec.minProperties &&
         _jsfail("`$(_jsname(T))` must have at least $(spec.minProperties) properties set, got $nprops")
     spec.maxProperties !== nothing && nprops > spec.maxProperties &&
@@ -313,11 +320,26 @@ function _jscheck(::Type{T}, values::Tuple, extra) where {T <: AbstractSchemaObj
     return nothing
 end
 
+# The checks of the fields, unrolled over the tuples of field metadata and values (the
+# metadata is a constant, so this is type-stable); returns the number of properties set.
+@inline _jscheckfields(::Type, ::Tuple{}, ::Tuple{}) = 0
+@inline function _jscheckfields(::Type{T}, fields::Tuple, values::Tuple) where {T}
+    f, v = first(fields), first(values)
+    if v === nothing && f.required && !f.nullable
+        _jsfail("required property `$(f.key)` of `$(_jsname(T))` cannot be `nothing`")
+    end
+    f.constraints === nothing || _jsvalidate(v, f.constraints, _JSField{T}(f.key))
+    set = v !== nothing || (f.required && f.nullable)
+    return Int(set) + _jscheckfields(T, Base.tail(fields), Base.tail(values))
+end
+
 # Called by the inner constructors of the generated enum types.
 function _jscheckenum(::Type{T}, value) where {T <: AbstractSchemaEnum}
     vals = _enumvalues(T)
-    any(v -> _jseq(v, value), vals) ||
-        _jsfail("invalid value $(repr(value)) for `$(_jsname(T))`; allowed values are $(join(repr.(vals), ", "))")
+    # (strings are compared directly; other values with the equality of JSON values)
+    ok = value isa AbstractString ? any(v -> v isa AbstractString && v == value, vals) :
+                                    any(v -> _jseq(v, value), vals)
+    ok || _jsfail("invalid value $(repr(value)) for `$(_jsname(T))`; allowed values are $(join(repr.(vals), ", "))")
     return value
 end
 
@@ -951,7 +973,8 @@ function setfields(x::T; kwargs...) where {T <: AbstractSchemaObject}
     for k in keys(kwargs)
         hasfield(T, k) || throw(ArgumentError("`$(_jsname(T))` has no field `$k`"))
     end
-    return T(; (n => getfield(x, n) for n in fieldnames(T))..., kwargs...)
+    current = NamedTuple{fieldnames(T)}(ntuple(i -> getfield(x, i), Val(fieldcount(T))))
+    return T(; merge(current, values(kwargs))...)
 end
 
 """
@@ -1034,7 +1057,9 @@ struct PersonUserTypeEnum <: AbstractSchemaEnum
     value::String
     PersonUserTypeEnum(value) = new(_jscheckenum(PersonUserTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[PersonUserTypeEnum] = (values = Any["person"],)
+const _VALUES_PersonUserTypeEnum = ("person",)
+_enumvalues(::Type{PersonUserTypeEnum}) = _VALUES_PersonUserTypeEnum
+_SPECS[PersonUserTypeEnum] = (values = _VALUES_PersonUserTypeEnum,)
 
 """
     CompanyUserTypeEnum(value)
@@ -1045,7 +1070,9 @@ struct CompanyUserTypeEnum <: AbstractSchemaEnum
     value::String
     CompanyUserTypeEnum(value) = new(_jscheckenum(CompanyUserTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[CompanyUserTypeEnum] = (values = Any["company"],)
+const _VALUES_CompanyUserTypeEnum = ("company",)
+_enumvalues(::Type{CompanyUserTypeEnum}) = _VALUES_CompanyUserTypeEnum
+_SPECS[CompanyUserTypeEnum] = (values = _VALUES_CompanyUserTypeEnum,)
 
 """
     Person(; kwargs...)
@@ -1078,7 +1105,7 @@ end
 Person(; kwargs...) = Person{Int64, Float64}(; kwargs...)
 Person{I, T}(user_type, first_name, last_name, _extra) where {I <: Integer, T <: Real} = Person{I, T}(; user_type, first_name, last_name, _extra)
 Person(user_type, first_name, last_name, _extra) = Person{_jsnumbertypes(user_type, first_name, last_name, _extra)...}(; user_type, first_name, last_name, _extra)
-_SPECS[Person] = (
+const _SPEC_Person = (
     fields = (
         (name = :user_type, key = "user_type", required = true, nullable = false, constraints = nothing),
         (name = :first_name, key = "first_name", required = true, nullable = false, constraints = nothing),
@@ -1090,6 +1117,8 @@ _SPECS[Person] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:Person}) = _SPEC_Person
+_SPECS[Person] = _SPEC_Person
 
 """
     Company(; kwargs...)
@@ -1119,7 +1148,7 @@ end
 Company(; kwargs...) = Company{Int64, Float64}(; kwargs...)
 Company{I, T}(user_type, company_name, _extra) where {I <: Integer, T <: Real} = Company{I, T}(; user_type, company_name, _extra)
 Company(user_type, company_name, _extra) = Company{_jsnumbertypes(user_type, company_name, _extra)...}(; user_type, company_name, _extra)
-_SPECS[Company] = (
+const _SPEC_Company = (
     fields = (
         (name = :user_type, key = "user_type", required = true, nullable = false, constraints = nothing),
         (name = :company_name, key = "company_name", required = true, nullable = false, constraints = nothing),
@@ -1130,6 +1159,8 @@ _SPECS[Company] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:Company}) = _SPEC_Company
+_SPECS[Company] = _SPEC_Company
 
 """
     CombinedSchemaExampleAnyOfIdentifierOption1(; kwargs...)
@@ -1156,7 +1187,7 @@ end
 CombinedSchemaExampleAnyOfIdentifierOption1(; kwargs...) = CombinedSchemaExampleAnyOfIdentifierOption1{Int64, Float64}(; kwargs...)
 CombinedSchemaExampleAnyOfIdentifierOption1{I, T}(sku, _extra) where {I <: Integer, T <: Real} = CombinedSchemaExampleAnyOfIdentifierOption1{I, T}(; sku, _extra)
 CombinedSchemaExampleAnyOfIdentifierOption1(sku, _extra) = CombinedSchemaExampleAnyOfIdentifierOption1{_jsnumbertypes(sku, _extra)...}(; sku, _extra)
-_SPECS[CombinedSchemaExampleAnyOfIdentifierOption1] = (
+const _SPEC_CombinedSchemaExampleAnyOfIdentifierOption1 = (
     fields = (
         (name = :sku, key = "sku", required = true, nullable = false, constraints = nothing),
     ),
@@ -1166,6 +1197,8 @@ _SPECS[CombinedSchemaExampleAnyOfIdentifierOption1] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:CombinedSchemaExampleAnyOfIdentifierOption1}) = _SPEC_CombinedSchemaExampleAnyOfIdentifierOption1
+_SPECS[CombinedSchemaExampleAnyOfIdentifierOption1] = _SPEC_CombinedSchemaExampleAnyOfIdentifierOption1
 
 """
     CombinedSchemaExampleAnyOfIdentifierOption2(; kwargs...)
@@ -1192,7 +1225,7 @@ end
 CombinedSchemaExampleAnyOfIdentifierOption2(; kwargs...) = CombinedSchemaExampleAnyOfIdentifierOption2{Int64, Float64}(; kwargs...)
 CombinedSchemaExampleAnyOfIdentifierOption2{I, T}(product_code, _extra) where {I <: Integer, T <: Real} = CombinedSchemaExampleAnyOfIdentifierOption2{I, T}(; product_code, _extra)
 CombinedSchemaExampleAnyOfIdentifierOption2(product_code, _extra) = CombinedSchemaExampleAnyOfIdentifierOption2{_jsnumbertypes(product_code, _extra)...}(; product_code, _extra)
-_SPECS[CombinedSchemaExampleAnyOfIdentifierOption2] = (
+const _SPEC_CombinedSchemaExampleAnyOfIdentifierOption2 = (
     fields = (
         (name = :product_code, key = "product_code", required = true, nullable = false, constraints = nothing),
     ),
@@ -1202,6 +1235,8 @@ _SPECS[CombinedSchemaExampleAnyOfIdentifierOption2] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:CombinedSchemaExampleAnyOfIdentifierOption2}) = _SPEC_CombinedSchemaExampleAnyOfIdentifierOption2
+_SPECS[CombinedSchemaExampleAnyOfIdentifierOption2] = _SPEC_CombinedSchemaExampleAnyOfIdentifierOption2
 
 """
     CombinedSchemaExampleAllOfRequest(; kwargs...)
@@ -1236,7 +1271,7 @@ end
 CombinedSchemaExampleAllOfRequest(; kwargs...) = CombinedSchemaExampleAllOfRequest{Int64, Float64}(; kwargs...)
 CombinedSchemaExampleAllOfRequest{I, T}(payload, api_key, timestamp, _extra) where {I <: Integer, T <: Real} = CombinedSchemaExampleAllOfRequest{I, T}(; payload, api_key, timestamp, _extra)
 CombinedSchemaExampleAllOfRequest(payload, api_key, timestamp, _extra) = CombinedSchemaExampleAllOfRequest{_jsnumbertypes(payload, api_key, timestamp, _extra)...}(; payload, api_key, timestamp, _extra)
-_SPECS[CombinedSchemaExampleAllOfRequest] = (
+const _SPEC_CombinedSchemaExampleAllOfRequest = (
     fields = (
         (name = :payload, key = "payload", required = true, nullable = false, constraints = nothing),
         (name = :api_key, key = "api_key", required = true, nullable = false, constraints = nothing),
@@ -1248,6 +1283,8 @@ _SPECS[CombinedSchemaExampleAllOfRequest] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:CombinedSchemaExampleAllOfRequest}) = _SPEC_CombinedSchemaExampleAllOfRequest
+_SPECS[CombinedSchemaExampleAllOfRequest] = _SPEC_CombinedSchemaExampleAllOfRequest
 
 """
     CombinedSchemaExample(; kwargs...)
@@ -1285,7 +1322,7 @@ end
 CombinedSchemaExample(; kwargs...) = CombinedSchemaExample{Int64, Float64}(; kwargs...)
 CombinedSchemaExample{I, T}(one_of_user, any_of_identifier, all_of_request, not_a_password, _extra) where {I <: Integer, T <: Real} = CombinedSchemaExample{I, T}(; one_of_user, any_of_identifier, all_of_request, not_a_password, _extra)
 CombinedSchemaExample(one_of_user, any_of_identifier, all_of_request, not_a_password, _extra) = CombinedSchemaExample{_jsnumbertypes(one_of_user, any_of_identifier, all_of_request, not_a_password, _extra)...}(; one_of_user, any_of_identifier, all_of_request, not_a_password, _extra)
-_SPECS[CombinedSchemaExample] = (
+const _SPEC_CombinedSchemaExample = (
     fields = (
         (name = :one_of_user, key = "one_of_user", required = true, nullable = false, constraints = (schema = JSON.parse("""
             {
@@ -1326,6 +1363,8 @@ _SPECS[CombinedSchemaExample] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:CombinedSchemaExample}) = _SPEC_CombinedSchemaExample
+_SPECS[CombinedSchemaExample] = _SPEC_CombinedSchemaExample
 
 
 """

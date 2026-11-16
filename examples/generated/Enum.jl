@@ -74,10 +74,24 @@ const _SPECS = Dict{Any, Any}()
 const _ROOT_CONSTRAINTS = Ref{Any}(nothing)
 
 # (the structs are parametric: their metadata is stored for the `UnionAll` type)
+# (the generated code also defines a method of `_specs` for each struct returning its
+# metadata as a constant, so that the checks are type-stable; this is the fallback)
 _specs(::Type{T}) where {T <: AbstractSchemaObject} = _SPECS[Base.typename(T).wrapper]
 
 # Metadata of each generated enum type: the allowed values.
 _enumvalues(::Type{T}) where {T <: AbstractSchemaEnum} = _SPECS[T].values
+
+# Where a value is in a document, for the messages of the errors: built only when a check
+# fails, so that valid values cost no string allocations.
+struct _JSField{T}
+    key::String
+end
+Base.print(io::IO, w::_JSField{T}) where {T} = print(io, "`", w.key, "` in `", _jsname(T), "`")
+struct _JSItem{W}
+    parent::W
+    index::Int
+end
+Base.print(io::IO, w::_JSItem) = print(io, w.parent, "[", w.index, "]")
 
 # --- Conversion from parsed JSON values into Julia values ---
 
@@ -238,7 +252,7 @@ _jslength(x::AbstractString) = length(x)
 _jsscalar(x) = x
 
 # `nothing` is an absent optional field, unless `null` is a value (e.g. a JSON document `null`)
-function _jsvalidate(x, c, where_::String; null_is_value::Bool = false)
+function _jsvalidate(x, c, where_; null_is_value::Bool = false)
     c === nothing && return nothing
     x === nothing && !null_is_value && return nothing
     x = _jsscalar(x)
@@ -265,7 +279,7 @@ function _jsvalidate(x, c, where_::String; null_is_value::Bool = false)
         haskey(c, :uniqueItems) && c.uniqueItems && !_jsallunique(x) && _jsfail("$where_ must have unique items")
         if haskey(c, :items)
             for (i, el) in enumerate(x)
-                _jsvalidate(el, c.items, "$where_[$i]")
+                _jsvalidate(el, c.items, _JSItem(where_, i))
             end
         end
     elseif x isa AbstractDict
@@ -287,14 +301,7 @@ constraints on the object as a whole (`minProperties`, `if`/`then`/`else`...).
 """
 function _jscheck(::Type{T}, values::Tuple, extra) where {T <: AbstractSchemaObject}
     spec = _specs(T)
-    nprops = extra === nothing ? 0 : length(extra)
-    for (f, v) in zip(spec.fields, values)
-        if v === nothing && f.required && !f.nullable
-            _jsfail("required property `$(f.key)` of `$(_jsname(T))` cannot be `nothing`")
-        end
-        (v !== nothing || (f.required && f.nullable)) && (nprops += 1)
-        _jsvalidate(v, f.constraints, "`$(f.key)` in `$(_jsname(T))`")
-    end
+    nprops = (extra === nothing ? 0 : length(extra)) + _jscheckfields(T, spec.fields, values)
     spec.minProperties !== nothing && nprops < spec.minProperties &&
         _jsfail("`$(_jsname(T))` must have at least $(spec.minProperties) properties set, got $nprops")
     spec.maxProperties !== nothing && nprops > spec.maxProperties &&
@@ -313,11 +320,26 @@ function _jscheck(::Type{T}, values::Tuple, extra) where {T <: AbstractSchemaObj
     return nothing
 end
 
+# The checks of the fields, unrolled over the tuples of field metadata and values (the
+# metadata is a constant, so this is type-stable); returns the number of properties set.
+@inline _jscheckfields(::Type, ::Tuple{}, ::Tuple{}) = 0
+@inline function _jscheckfields(::Type{T}, fields::Tuple, values::Tuple) where {T}
+    f, v = first(fields), first(values)
+    if v === nothing && f.required && !f.nullable
+        _jsfail("required property `$(f.key)` of `$(_jsname(T))` cannot be `nothing`")
+    end
+    f.constraints === nothing || _jsvalidate(v, f.constraints, _JSField{T}(f.key))
+    set = v !== nothing || (f.required && f.nullable)
+    return Int(set) + _jscheckfields(T, Base.tail(fields), Base.tail(values))
+end
+
 # Called by the inner constructors of the generated enum types.
 function _jscheckenum(::Type{T}, value) where {T <: AbstractSchemaEnum}
     vals = _enumvalues(T)
-    any(v -> _jseq(v, value), vals) ||
-        _jsfail("invalid value $(repr(value)) for `$(_jsname(T))`; allowed values are $(join(repr.(vals), ", "))")
+    # (strings are compared directly; other values with the equality of JSON values)
+    ok = value isa AbstractString ? any(v -> v isa AbstractString && v == value, vals) :
+                                    any(v -> _jseq(v, value), vals)
+    ok || _jsfail("invalid value $(repr(value)) for `$(_jsname(T))`; allowed values are $(join(repr.(vals), ", "))")
     return value
 end
 
@@ -951,7 +973,8 @@ function setfields(x::T; kwargs...) where {T <: AbstractSchemaObject}
     for k in keys(kwargs)
         hasfield(T, k) || throw(ArgumentError("`$(_jsname(T))` has no field `$k`"))
     end
-    return T(; (n => getfield(x, n) for n in fieldnames(T))..., kwargs...)
+    current = NamedTuple{fieldnames(T)}(ntuple(i -> getfield(x, i), Val(fieldcount(T))))
+    return T(; merge(current, values(kwargs))...)
 end
 
 """
@@ -1036,7 +1059,9 @@ struct ComplexEnumExampleProductShippingStatusEnum <: AbstractSchemaEnum
     value::String
     ComplexEnumExampleProductShippingStatusEnum(value) = new(_jscheckenum(ComplexEnumExampleProductShippingStatusEnum, _jsfrom(String, value)))
 end
-_SPECS[ComplexEnumExampleProductShippingStatusEnum] = (values = Any["pending", "shipped", "delivered"],)
+const _VALUES_ComplexEnumExampleProductShippingStatusEnum = ("pending", "shipped", "delivered")
+_enumvalues(::Type{ComplexEnumExampleProductShippingStatusEnum}) = _VALUES_ComplexEnumExampleProductShippingStatusEnum
+_SPECS[ComplexEnumExampleProductShippingStatusEnum] = (values = _VALUES_ComplexEnumExampleProductShippingStatusEnum,)
 
 """
     ComplexEnumExampleOrderStatusPriorityEnum(value)
@@ -1049,7 +1074,9 @@ struct ComplexEnumExampleOrderStatusPriorityEnum <: AbstractSchemaEnum
     value::Int64
     ComplexEnumExampleOrderStatusPriorityEnum(value) = new(_jscheckenum(ComplexEnumExampleOrderStatusPriorityEnum, _jsfrom(Int64, value)))
 end
-_SPECS[ComplexEnumExampleOrderStatusPriorityEnum] = (values = Any[1, 2, 3, 4, 5],)
+const _VALUES_ComplexEnumExampleOrderStatusPriorityEnum = (1, 2, 3, 4, 5)
+_enumvalues(::Type{ComplexEnumExampleOrderStatusPriorityEnum}) = _VALUES_ComplexEnumExampleOrderStatusPriorityEnum
+_SPECS[ComplexEnumExampleOrderStatusPriorityEnum] = (values = _VALUES_ComplexEnumExampleOrderStatusPriorityEnum,)
 
 """
     PaymentStatus(value)
@@ -1062,7 +1089,9 @@ struct PaymentStatus <: AbstractSchemaEnum
     value::String
     PaymentStatus(value) = new(_jscheckenum(PaymentStatus, _jsfrom(String, value)))
 end
-_SPECS[PaymentStatus] = (values = Any["paid", "pending", "failed"],)
+const _VALUES_PaymentStatus = ("paid", "pending", "failed")
+_enumvalues(::Type{PaymentStatus}) = _VALUES_PaymentStatus
+_SPECS[PaymentStatus] = (values = _VALUES_PaymentStatus,)
 
 """
     ComplexEnumExampleMixedEnumTestEnum(value)
@@ -1075,7 +1104,9 @@ struct ComplexEnumExampleMixedEnumTestEnum <: AbstractSchemaEnum
     value::Any
     ComplexEnumExampleMixedEnumTestEnum(value) = new(_jscheckenum(ComplexEnumExampleMixedEnumTestEnum, _jsfrom(Any, value)))
 end
-_SPECS[ComplexEnumExampleMixedEnumTestEnum] = (values = Any["a", 1, true],)
+const _VALUES_ComplexEnumExampleMixedEnumTestEnum = ("a", 1, true)
+_enumvalues(::Type{ComplexEnumExampleMixedEnumTestEnum}) = _VALUES_ComplexEnumExampleMixedEnumTestEnum
+_SPECS[ComplexEnumExampleMixedEnumTestEnum] = (values = _VALUES_ComplexEnumExampleMixedEnumTestEnum,)
 
 """
     ComplexEnumExampleProduct(; kwargs...)
@@ -1107,7 +1138,7 @@ end
 ComplexEnumExampleProduct(; kwargs...) = ComplexEnumExampleProduct{Int64, Float64}(; kwargs...)
 ComplexEnumExampleProduct{I, T}(id, shipping_status, _extra) where {I <: Integer, T <: Real} = ComplexEnumExampleProduct{I, T}(; id, shipping_status, _extra)
 ComplexEnumExampleProduct(id, shipping_status, _extra) = ComplexEnumExampleProduct{_jsnumbertypes(id, shipping_status, _extra)...}(; id, shipping_status, _extra)
-_SPECS[ComplexEnumExampleProduct] = (
+const _SPEC_ComplexEnumExampleProduct = (
     fields = (
         (name = :id, key = "id", required = true, nullable = false, constraints = nothing),
         (name = :shipping_status, key = "shipping_status", required = true, nullable = false, constraints = nothing),
@@ -1118,6 +1149,8 @@ _SPECS[ComplexEnumExampleProduct] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:ComplexEnumExampleProduct}) = _SPEC_ComplexEnumExampleProduct
+_SPECS[ComplexEnumExampleProduct] = _SPEC_ComplexEnumExampleProduct
 
 """
     ComplexEnumExampleOrderStatus(; kwargs...)
@@ -1149,7 +1182,7 @@ end
 ComplexEnumExampleOrderStatus(; kwargs...) = ComplexEnumExampleOrderStatus{Int64, Float64}(; kwargs...)
 ComplexEnumExampleOrderStatus{I, T}(priority, payment_status, _extra) where {I <: Integer, T <: Real} = ComplexEnumExampleOrderStatus{I, T}(; priority, payment_status, _extra)
 ComplexEnumExampleOrderStatus(priority, payment_status, _extra) = ComplexEnumExampleOrderStatus{_jsnumbertypes(priority, payment_status, _extra)...}(; priority, payment_status, _extra)
-_SPECS[ComplexEnumExampleOrderStatus] = (
+const _SPEC_ComplexEnumExampleOrderStatus = (
     fields = (
         (name = :priority, key = "priority", required = true, nullable = false, constraints = nothing),
         (name = :payment_status, key = "payment_status", required = true, nullable = false, constraints = nothing),
@@ -1160,6 +1193,8 @@ _SPECS[ComplexEnumExampleOrderStatus] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:ComplexEnumExampleOrderStatus}) = _SPEC_ComplexEnumExampleOrderStatus
+_SPECS[ComplexEnumExampleOrderStatus] = _SPEC_ComplexEnumExampleOrderStatus
 
 """
     ComplexEnumExample(; kwargs...)
@@ -1194,7 +1229,7 @@ end
 ComplexEnumExample(; kwargs...) = ComplexEnumExample{Int64, Float64}(; kwargs...)
 ComplexEnumExample{I, T}(product, order_status, mixed_enum_test, _extra) where {I <: Integer, T <: Real} = ComplexEnumExample{I, T}(; product, order_status, mixed_enum_test, _extra)
 ComplexEnumExample(product, order_status, mixed_enum_test, _extra) = ComplexEnumExample{_jsnumbertypes(product, order_status, mixed_enum_test, _extra)...}(; product, order_status, mixed_enum_test, _extra)
-_SPECS[ComplexEnumExample] = (
+const _SPEC_ComplexEnumExample = (
     fields = (
         (name = :product, key = "product", required = true, nullable = false, constraints = nothing),
         (name = :order_status, key = "order_status", required = true, nullable = false, constraints = nothing),
@@ -1206,6 +1241,8 @@ _SPECS[ComplexEnumExample] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:ComplexEnumExample}) = _SPEC_ComplexEnumExample
+_SPECS[ComplexEnumExample] = _SPEC_ComplexEnumExample
 
 
 """

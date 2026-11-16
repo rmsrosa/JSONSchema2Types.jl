@@ -36,7 +36,7 @@ end
 MashProcedureType(; kwargs...) = MashProcedureType{Int64, Float64}(; kwargs...)
 MashProcedureType{I, T}(name, grain_temperature, notes, mash_steps) where {I <: Integer, T <: Real} = MashProcedureType{I, T}(; name, grain_temperature, notes, mash_steps)
 MashProcedureType(name, grain_temperature, notes, mash_steps) = MashProcedureType{_jsnumbertypes(name, grain_temperature, notes, mash_steps)...}(; name, grain_temperature, notes, mash_steps)
-_SPECS[MashProcedureType] = (
+const _SPEC_MashProcedureType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :grain_temperature, key = "grain_temperature", required = true, nullable = false, constraints = nothing),
@@ -49,4 +49,6 @@ _SPECS[MashProcedureType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:MashProcedureType}) = _SPEC_MashProcedureType
+_SPECS[MashProcedureType] = _SPEC_MashProcedureType
 

@@ -12,7 +12,9 @@ struct FermentableTypeEnum <: AbstractSchemaEnum
     value::String
     FermentableTypeEnum(value) = new(_jscheckenum(FermentableTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[FermentableTypeEnum] = (values = Any["dry extract", "extract", "grain", "sugar", "fruit", "juice", "honey", "other"],)
+const _VALUES_FermentableTypeEnum = ("dry extract", "extract", "grain", "sugar", "fruit", "juice", "honey", "other")
+_enumvalues(::Type{FermentableTypeEnum}) = _VALUES_FermentableTypeEnum
+_SPECS[FermentableTypeEnum] = (values = _VALUES_FermentableTypeEnum,)
 
 """
     FermentableGrainGroupEnum(value)
@@ -23,7 +25,9 @@ struct FermentableGrainGroupEnum <: AbstractSchemaEnum
     value::String
     FermentableGrainGroupEnum(value) = new(_jscheckenum(FermentableGrainGroupEnum, _jsfrom(String, value)))
 end
-_SPECS[FermentableGrainGroupEnum] = (values = Any["base", "caramel", "flaked", "roasted", "specialty", "smoked", "adjunct"],)
+const _VALUES_FermentableGrainGroupEnum = ("base", "caramel", "flaked", "roasted", "specialty", "smoked", "adjunct")
+_enumvalues(::Type{FermentableGrainGroupEnum}) = _VALUES_FermentableGrainGroupEnum
+_SPECS[FermentableGrainGroupEnum] = (values = _VALUES_FermentableGrainGroupEnum,)
 
 """
     YieldType(; kwargs...)
@@ -58,7 +62,7 @@ end
 YieldType(; kwargs...) = YieldType{Int64, Float64}(; kwargs...)
 YieldType{I, T}(fine_grind, coarse_grind, fine_coarse_difference, potential) where {I <: Integer, T <: Real} = YieldType{I, T}(; fine_grind, coarse_grind, fine_coarse_difference, potential)
 YieldType(fine_grind, coarse_grind, fine_coarse_difference, potential) = YieldType{_jsnumbertypes(fine_grind, coarse_grind, fine_coarse_difference, potential)...}(; fine_grind, coarse_grind, fine_coarse_difference, potential)
-_SPECS[YieldType] = (
+const _SPEC_YieldType = (
     fields = (
         (name = :fine_grind, key = "fine_grind", required = false, nullable = false, constraints = nothing),
         (name = :coarse_grind, key = "coarse_grind", required = false, nullable = false, constraints = nothing),
@@ -71,6 +75,8 @@ _SPECS[YieldType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:YieldType}) = _SPEC_YieldType
+_SPECS[YieldType] = _SPEC_YieldType
 
 """
     FermentableInventoryType(; kwargs...)
@@ -94,7 +100,7 @@ end
 FermentableInventoryType(; kwargs...) = FermentableInventoryType{Int64, Float64}(; kwargs...)
 FermentableInventoryType{I, T}(amount) where {I <: Integer, T <: Real} = FermentableInventoryType{I, T}(; amount)
 FermentableInventoryType(amount) = FermentableInventoryType{_jsnumbertypes(amount)...}(; amount)
-_SPECS[FermentableInventoryType] = (
+const _SPEC_FermentableInventoryType = (
     fields = (
         (name = :amount, key = "amount", required = false, nullable = false, constraints = (schema = JSON.parse("""
             {
@@ -115,6 +121,8 @@ _SPECS[FermentableInventoryType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:FermentableInventoryType}) = _SPEC_FermentableInventoryType
+_SPECS[FermentableInventoryType] = _SPEC_FermentableInventoryType
 
 """
     FermentableType(; kwargs...)
@@ -227,7 +235,7 @@ end
 FermentableType(; kwargs...) = FermentableType{Int64, Float64}(; kwargs...)
 FermentableType{I, T}(name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra) where {I <: Integer, T <: Real} = FermentableType{I, T}(; name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra)
 FermentableType(name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra) = FermentableType{_jsnumbertypes(name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra)...}(; name, type, origin, producer, product_id, grain_group, yield, color, notes, moisture, alpha_amylase, diastatic_power, protein, kolbach_index, max_in_batch, recommend_mash, inventory, glassy, plump, half, mealy, thru, friability, di_ph, viscosity, dms_p, fan, fermentability, beta_glucan, _extra)
-_SPECS[FermentableType] = (
+const _SPEC_FermentableType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = true, nullable = false, constraints = nothing),
@@ -265,6 +273,8 @@ _SPECS[FermentableType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:FermentableType}) = _SPEC_FermentableType
+_SPECS[FermentableType] = _SPEC_FermentableType
 
 """
     FermentableAdditionType(; kwargs...)
@@ -320,7 +330,7 @@ end
 FermentableAdditionType(; kwargs...) = FermentableAdditionType{Int64, Float64}(; kwargs...)
 FermentableAdditionType{I, T}(name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra) where {I <: Integer, T <: Real} = FermentableAdditionType{I, T}(; name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra)
 FermentableAdditionType(name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra) = FermentableAdditionType{_jsnumbertypes(name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra)...}(; name, type, origin, producer, product_id, grain_group, yield, color, timing, amount, _extra)
-_SPECS[FermentableAdditionType] = (
+const _SPEC_FermentableAdditionType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = true, nullable = false, constraints = nothing),
@@ -350,4 +360,6 @@ _SPECS[FermentableAdditionType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:FermentableAdditionType}) = _SPEC_FermentableAdditionType
+_SPECS[FermentableAdditionType] = _SPEC_FermentableAdditionType
 

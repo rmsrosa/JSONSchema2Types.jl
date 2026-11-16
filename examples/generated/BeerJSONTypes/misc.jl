@@ -12,7 +12,9 @@ struct MiscellaneousTypeEnum <: AbstractSchemaEnum
     value::String
     MiscellaneousTypeEnum(value) = new(_jscheckenum(MiscellaneousTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[MiscellaneousTypeEnum] = (values = Any["spice", "fining", "water agent", "herb", "flavor", "wood", "other"],)
+const _VALUES_MiscellaneousTypeEnum = ("spice", "fining", "water agent", "herb", "flavor", "wood", "other")
+_enumvalues(::Type{MiscellaneousTypeEnum}) = _VALUES_MiscellaneousTypeEnum
+_SPECS[MiscellaneousTypeEnum] = (values = _VALUES_MiscellaneousTypeEnum,)
 
 """
     MiscellaneousInventoryType(; kwargs...)
@@ -36,7 +38,7 @@ end
 MiscellaneousInventoryType(; kwargs...) = MiscellaneousInventoryType{Int64, Float64}(; kwargs...)
 MiscellaneousInventoryType{I, T}(amount) where {I <: Integer, T <: Real} = MiscellaneousInventoryType{I, T}(; amount)
 MiscellaneousInventoryType(amount) = MiscellaneousInventoryType{_jsnumbertypes(amount)...}(; amount)
-_SPECS[MiscellaneousInventoryType] = (
+const _SPEC_MiscellaneousInventoryType = (
     fields = (
         (name = :amount, key = "amount", required = true, nullable = false, constraints = (schema = JSON.parse("""
             {
@@ -60,6 +62,8 @@ _SPECS[MiscellaneousInventoryType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:MiscellaneousInventoryType}) = _SPEC_MiscellaneousInventoryType
+_SPECS[MiscellaneousInventoryType] = _SPEC_MiscellaneousInventoryType
 
 """
     MiscellaneousType(; kwargs...)
@@ -106,7 +110,7 @@ end
 MiscellaneousType(; kwargs...) = MiscellaneousType{Int64, Float64}(; kwargs...)
 MiscellaneousType{I, T}(name, producer, product_id, type, use_for, notes, inventory, _extra) where {I <: Integer, T <: Real} = MiscellaneousType{I, T}(; name, producer, product_id, type, use_for, notes, inventory, _extra)
 MiscellaneousType(name, producer, product_id, type, use_for, notes, inventory, _extra) = MiscellaneousType{_jsnumbertypes(name, producer, product_id, type, use_for, notes, inventory, _extra)...}(; name, producer, product_id, type, use_for, notes, inventory, _extra)
-_SPECS[MiscellaneousType] = (
+const _SPEC_MiscellaneousType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :producer, key = "producer", required = false, nullable = false, constraints = nothing),
@@ -122,6 +126,8 @@ _SPECS[MiscellaneousType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:MiscellaneousType}) = _SPEC_MiscellaneousType
+_SPECS[MiscellaneousType] = _SPEC_MiscellaneousType
 
 """
     MiscellaneousAdditionType(; kwargs...)
@@ -165,7 +171,7 @@ end
 MiscellaneousAdditionType(; kwargs...) = MiscellaneousAdditionType{Int64, Float64}(; kwargs...)
 MiscellaneousAdditionType{I, T}(name, producer, product_id, type, timing, amount, _extra) where {I <: Integer, T <: Real} = MiscellaneousAdditionType{I, T}(; name, producer, product_id, type, timing, amount, _extra)
 MiscellaneousAdditionType(name, producer, product_id, type, timing, amount, _extra) = MiscellaneousAdditionType{_jsnumbertypes(name, producer, product_id, type, timing, amount, _extra)...}(; name, producer, product_id, type, timing, amount, _extra)
-_SPECS[MiscellaneousAdditionType] = (
+const _SPEC_MiscellaneousAdditionType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :producer, key = "producer", required = false, nullable = false, constraints = nothing),
@@ -194,4 +200,6 @@ _SPECS[MiscellaneousAdditionType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:MiscellaneousAdditionType}) = _SPEC_MiscellaneousAdditionType
+_SPECS[MiscellaneousAdditionType] = _SPEC_MiscellaneousAdditionType
 
