@@ -5,12 +5,15 @@ module EnumExample
 
 using JSON
 
-export fromjson, tojson, readjson, writejson, fromdict, todict, setfields, check_formats!
-export validate, violations, checks!, with_checks
+export fromjson, tojson, readjson, writejson, fromdict, todict, setfields
+export check_formats!, validate, violations, checks!, with_checks
 export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError
 export ComplexEnumExampleProductShippingStatusEnum, ComplexEnumExampleOrderStatusPriorityEnum, PaymentStatus, ComplexEnumExampleMixedEnumTestEnum, ComplexEnumExampleProduct, ComplexEnumExampleOrderStatus
 export ComplexEnumExample
 export RootType
+
+# the constructors of the types check the constraints of the schema
+const _INLINE_CHECKS = true
 
 # ---------------------------------------------------------------------------------------
 # Runtime support for generated types.
@@ -47,52 +50,16 @@ Base.showerror(io::IO, e::SchemaValidationError) = print(io, "SchemaValidationEr
 
 _jsfail(msg) = throw(SchemaValidationError(msg))
 
-# --- Turning the checks off ---
+# --- Checks ---
+#
+# `_INLINE_CHECKS` is a constant defined by the generated module, before this code: `true`
+# when the constructors of the generated types check the constraints of the schema
+# (`validation = :inline`), `false` when they only convert the values to the types of their
+# fields (`validation = :separate` or `:none`). The validation code (`runtime_validation.jl`),
+# when present, sets `_VALIDATOR`, which `tojson` and `writejson` use.
 
 const _CHECKS = Ref(true)
-
-"""
-    checks!(flag::Bool)
-
-Turn on or off the checks of the constraints of the schema when values of the generated
-types are created (by their constructors, [`setfields`](@ref), [`fromjson`](@ref)...).
-They are on by default (unless the module was generated with `checks = false`).
-
-With the checks off, values are only converted to the types of their fields, which still
-enforce the structure of the schema (the types of the properties, required properties,
-the properties allowed, enumeration types), but not its constraints (`minimum`, `pattern`,
-the values of enumerations, `minItems`, `oneOf`...), for speed. Check the values later
-with [`validate`](@ref), which [`tojson`](@ref) and [`writejson`](@ref) call when the
-checks are off. A JSON value read into a union of generated types (from `oneOf` or
-`anyOf`) is still checked, to choose its type.
-
-The setting is global (shared by all tasks); see [`with_checks`](@ref) to change it
-temporarily. Returns the previous setting.
-"""
-checks!(flag::Bool) = (old = _CHECKS[]; _CHECKS[] = flag; old)
-
-"""
-    checks() -> Bool
-
-Whether the checks of the constraints of the schema are on; see [`checks!`](@ref).
-"""
-checks() = _CHECKS[]
-
-"""
-    with_checks(f, flag::Bool)
-
-Call `f()` with the checks of the constraints of the schema turned on or off (see
-[`checks!`](@ref)), and restore the previous setting afterwards:
-`with_checks(false) do ... end`.
-"""
-function with_checks(f, flag::Bool)
-    old = checks!(flag)
-    try
-        return f()
-    finally
-        _CHECKS[] = old
-    end
-end
+const _VALIDATOR = Ref{Any}(nothing)
 
 # name of a type for messages, without the module, e.g. `VolumeType` or `Union{A, B}`
 _jsname(T) = T isa Union ? "Union{" * join(map(_jsname, Base.uniontypes(T)), ", ") * "}" :
@@ -113,6 +80,10 @@ Metadata of the generated types, filled in right after each type definition. For
 * `minProperties`, `maxProperties`, and `schema`, the subschema checked on the object as a
   whole at runtime (or `nothing`).
 
+In modules generated with `validation = :separate` or `:none`, it only has what reading and
+writing need: the `name`, `key`, `required` and `nullable` of the fields, and `extra`; the
+validation file then defines `_vspecs` for each struct, with all of it.
+
 For an enum type, `_SPECS[T]` holds the allowed `values`.
 """
 const _SPECS = Dict{Any, Any}()
@@ -128,18 +99,6 @@ _specs(::Type{T}) where {T <: AbstractSchemaObject} = _SPECS[Base.typename(T).wr
 
 # Metadata of each generated enum type: the allowed values.
 _enumvalues(::Type{T}) where {T <: AbstractSchemaEnum} = _SPECS[T].values
-
-# Where a value is in a document, for the messages of the errors: built only when a check
-# fails, so that valid values cost no string allocations.
-struct _JSField{T}
-    key::String
-end
-Base.print(io::IO, w::_JSField{T}) where {T} = print(io, "`", w.key, "` in `", _jsname(T), "`")
-struct _JSItem{W}
-    parent::W
-    index::Int
-end
-Base.print(io::IO, w::_JSItem) = print(io, w.parent, "[", w.index, "]")
 
 # --- Conversion from parsed JSON values into Julia values ---
 
@@ -319,7 +278,7 @@ function _jsfromunion(::Type{T}, x) where {T}
     options = Base.uniontypes(T)
     x === nothing && Nothing in options && return nothing
     # with the checks off, the options are still checked, to choose one
-    if !_CHECKS[] && count(!=(Nothing), options) > 1
+    if _INLINE_CHECKS && !_CHECKS[] && count(!=(Nothing), options) > 1
         return with_checks(() -> _jsfromunion(T, x), true)
     end
     msgs = String[]
@@ -338,6 +297,314 @@ function _jsfromunion(::Type{T}, x) where {T}
     end
     _jsfail("value does not match any of the options of `$(_jsname(T))`:\n" * join(msgs, "\n"))
 end
+
+# --- Values of enumerations ---
+
+# (used to choose an option of a union when reading, and by the checks)
+# (strings are compared directly; other values with the equality of JSON values)
+function _jsenumok(::Type{T}, value) where {T <: AbstractSchemaEnum}
+    vals = _enumvalues(T)
+    return value isa AbstractString ? any(v -> v isa AbstractString && v == value, vals) :
+                                      any(v -> _jseq(v, value), vals)
+end
+
+_jsenummsg(::Type{T}, value) where {T <: AbstractSchemaEnum} =
+    "invalid value $(repr(value)) for `$(_jsname(T))`; allowed values are $(join(repr.(_enumvalues(T)), ", "))"
+
+_jsisnumber(x) = x isa Real && !(x isa Bool)
+
+# equality of JSON values: `1 == 1.0`, but `true != 1`
+_jseq(a, b) = a isa Bool || b isa Bool ? (a isa Bool && b isa Bool && a == b) :
+              _jsisnumber(a) && _jsisnumber(b) ? a == b : isequal(a, b)
+_jseq(a::AbstractVector, b::AbstractVector) = length(a) == length(b) && all(_jseq(x, y) for (x, y) in zip(a, b))
+_jseq(a::AbstractDict, b::AbstractDict) =
+    length(a) == length(b) && all(haskey(b, k) && _jseq(v, b[k]) for (k, v) in a)
+
+# --- Conversion from Julia values into JSON-compatible values ---
+
+"""
+    _jsto(x)
+
+Convert `x` into a JSON-compatible value ("to JSON"): structs become `JSON.Object`s with the
+original JSON property names (optional fields set to `nothing` are left out, the extra
+properties are put back), enums become their values, vectors and tuples become vectors.
+The inverse of [`_jsfrom`](@ref); used by `todict`, `tojson` and `writejson`.
+"""
+function _jsto end
+
+_jsto(x) = x
+# whole numbers are written without a decimal point, as they usually appear in JSON files
+_jsto(x::Float64) = isinteger(x) && abs(x) < 2.0^53 ? Int64(x) : x
+_jsto(x::AbstractFloat) = isfinite(x) && isinteger(x) ? BigInt(x) : x
+# other real numbers (e.g. rationals) are written as floating-point numbers
+_jsto(x::Real) = x isa Integer ? x : _jsto(BigFloat(x))
+_jsto(x::AbstractSchemaEnum) = x.value
+_jsto(x::AbstractVector) = Any[_jsto(el) for el in x]
+_jsto(x::Tuple) = Any[_jsto(el) for el in x]
+_jsto(x::AbstractDict) = JSON.Object{String, Any}(String(k) => _jsto(v) for (k, v) in x)
+
+function _jsto(x::T) where {T <: AbstractSchemaObject}
+    obj = JSON.Object{String, Any}()
+    for f in _specs(T).fields
+        v = getfield(x, f.name)
+        v === nothing && !(f.required && f.nullable) && continue
+        obj[f.key] = _jsto(v)
+    end
+    spec = _specs(T)
+    if spec.extra !== nothing
+        for (k, v) in getfield(x, spec.extra)
+            obj[k] = _jsto(v)
+        end
+    end
+    return obj
+end
+
+# --- Equality, hashing and display ---
+
+function Base.:(==)(a::T, b::T) where {T <: AbstractSchemaObject}
+    return all(getfield(a, n) == getfield(b, n) for n in fieldnames(T))
+end
+function Base.hash(a::T, h::UInt) where {T <: AbstractSchemaObject}
+    for n in fieldnames(T)
+        h = hash(getfield(a, n), h)
+    end
+    return hash(T, h)
+end
+Base.:(==)(a::T, b::T) where {T <: AbstractSchemaEnum} = isequal(a.value, b.value)
+Base.hash(a::AbstractSchemaEnum, h::UInt) = hash(a.value, hash(typeof(a), h))
+Base.show(io::IO, x::AbstractSchemaEnum) = print(io, nameof(typeof(x)), "(", repr(x.value), ")")
+
+# Structs are shown as calls to their positional constructors, with the numeric types only
+# when they are not the default ones, e.g. `VolumeType(VolumeUnitType("l"), 20.0)`.
+function Base.show(io::IO, x::T) where {T <: AbstractSchemaObject}
+    print(io, nameof(T))
+    T.parameters == Core.svec(Int64, Float64) || print(io, "{", join(T.parameters, ", "), "}")
+    print(io, "(")
+    for (i, n) in enumerate(fieldnames(T))
+        i > 1 && print(io, ", ")
+        show(io, getfield(x, n))
+    end
+    print(io, ")")
+end
+
+# The numeric types of a struct built from positional arguments: those of the generated
+# structs, or of the numbers, among the arguments; by default, `Int64` and `Float64`.
+function _jsnumbertypes(args...)
+    I, F = Int64, Float64
+    for a in args
+        a isa AbstractVector && !isempty(a) && (a = first(a))
+        if a isa AbstractSchemaObject
+            return Tuple(typeof(a).parameters)
+        elseif a isa Integer && !(a isa Bool)
+            I = typeof(a)
+        elseif a isa Real && !(a isa Bool)
+            F = typeof(a)
+        end
+    end
+    return (I, F)
+end
+# `print` and `string` give the plain value, e.g. `"$(VolumeUnitType("l"))" == "l"`
+Base.print(io::IO, x::AbstractSchemaEnum) = print(io, x.value)
+
+# --- Public API ---
+
+"""
+    fromdict(T, x)
+
+Convert a parsed JSON value `x` (e.g. a `Dict` or a `JSON.Object`) into a value of type `T`,
+validating it against the constraints of the schema.
+"""
+function fromdict(::Type{T}, x) where {T}
+    value = _jsfrom(T, x)
+    # the root of the schema may have constraints that its type does not enforce
+    if _INLINE_CHECKS && _CHECKS[] && T === RootType && _ROOT_CONSTRAINTS[] !== nothing
+        _jsvalidate(value, _ROOT_CONSTRAINTS[], "the document"; null_is_value = true)
+    end
+    return value
+end
+
+"""
+    todict(x)
+
+Convert `x` into a JSON-compatible value (nested `JSON.Object`s, vectors and scalars).
+Optional fields set to `nothing` are omitted.
+"""
+todict(x) = _jsto(x)
+
+"""
+    setfields(x; kwargs...)
+
+Return a copy of the generated struct `x` with the fields given as keyword arguments
+replaced. The new values are converted and validated as by the constructor, so plain values
+work: `setfields(volume; value = 40)`, `setfields(recipe; batch_size = (unit = "l", value = 40))`.
+Use the Julia names of the fields (e.g. `first_name` for a JSON property `first-name`).
+
+For nested changes, the generated structs also work with
+[Accessors.jl](https://github.com/JuliaObjects/Accessors.jl):
+`@set recipe.batch_size.value = 40`.
+"""
+function setfields(x::T; kwargs...) where {T <: AbstractSchemaObject}
+    for k in keys(kwargs)
+        hasfield(T, k) || throw(ArgumentError("`$(_jsname(T))` has no field `$k`"))
+    end
+    current = NamedTuple{fieldnames(T)}(ntuple(i -> getfield(x, i), Val(fieldcount(T))))
+    return T(; merge(current, values(kwargs))...)
+end
+
+"""
+    fromjson(T, json::AbstractString)
+
+Parse the JSON string `json` into a value of type `T`.
+"""
+function fromjson(::Type{T}, json::AbstractString) where {T}
+    F = _jsfloattype(T)
+    # numbers are parsed as `Float64` by JSON.jl, except when another floating-point type
+    # is asked for: then they are parsed with full precision
+    return fromdict(T, F === Float64 ? JSON.parse(json) : _jsparsebig(JSON.lazy(json)))
+end
+
+_jsfloattype(::Type) = Float64
+_jsfloattype(::Type{T}) where {T <: AbstractSchemaObject} =
+    T isa DataType && length(T.parameters) == 2 ? T.parameters[2] : Float64
+_jsfloattype(::Type{Vector{T}}) where {T} = _jsfloattype(T)
+
+# Materialize a lazily parsed JSON value, parsing non-integer numbers as `BigFloat` (at the
+# current precision of `BigFloat`), so that they can be converted to any real type.
+function _jsparsebig(x)
+    t = JSON.gettype(x)
+    if t == JSON.JSONTypes.OBJECT
+        obj = JSON.Object{String, Any}()
+        JSON.applyobject((k, v) -> (obj[String(k)] = _jsparsebig(v); nothing), x)
+        return obj
+    elseif t == JSON.JSONTypes.ARRAY
+        arr = Any[]
+        JSON.applyarray((i, v) -> (push!(arr, _jsparsebig(v)); nothing), x)
+        return arr
+    elseif t == JSON.JSONTypes.NUMBER
+        v = JSON.parse(x)
+        return v isa Integer ? v : JSON.parse(x, BigFloat)
+    end
+    return JSON.parse(x)
+end
+
+"""
+    readjson(T, filename)
+
+Read the JSON file `filename` into a value of type `T`.
+"""
+readjson(::Type{T}, filename::AbstractString) where {T} = fromjson(T, read(filename, String))
+
+"""
+    tojson(x; pretty=false, validate)
+
+Convert `x` into a JSON string. With `validate = true`, `x` is first checked against the
+schema with `validate`. That is the default when the values are not checked when they are
+created: when the checks are off (see `checks!`), or when the module was generated with
+`validation = :separate` (and its validation file is present).
+"""
+function tojson(x; pretty::Bool = false, validate::Bool = _jsvalidatedefault())
+    validate && _jsvalidatebeforewrite(x)
+    return JSON.json(todict(x); pretty)
+end
+
+_jsvalidatedefault() = _INLINE_CHECKS ? !_CHECKS[] : _VALIDATOR[] !== nothing
+
+function _jsvalidatebeforewrite(x)
+    v = _VALIDATOR[]
+    v === nothing && throw(ArgumentError("this module has no validation code: it was generated " *
+        "with `validation = :none`, or its validation file is missing; use `validate = false`"))
+    return v(x)
+end
+
+"""
+    writejson(filename, x; pretty=true, validate)
+
+Write `x` as JSON to the file `filename`. With `validate = true`, `x` is first checked
+against the schema, as by [`tojson`](@ref), whose default it shares.
+"""
+function writejson(filename::AbstractString, x; pretty::Bool = true, validate::Bool = _jsvalidatedefault())
+    json = tojson(x; pretty, validate)
+    open(filename, "w") do io
+        write(io, json)
+        pretty && write(io, "\n")
+    end
+    return filename
+end
+
+# ---------------------------------------------------------------------------------------
+# End of runtime support. Generated types follow.
+# ---------------------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------------------
+# Runtime support for validating values of the generated types against their schema.
+#
+# This code is copied verbatim into the modules generated by JSONSchema2Types, after the
+# runtime support for reading and writing (`runtime.jl`). With `validation = :inline` (the
+# default), the constructors of the generated types call these checks; with
+# `validation = :separate`, it is in a separate file, which provides `validate`.
+# ---------------------------------------------------------------------------------------
+
+# --- Turning the checks off (with `validation = :inline`) ---
+
+"""
+    checks!(flag::Bool)
+
+Turn on or off the checks of the constraints of the schema when values of the generated
+types are created (by their constructors, [`setfields`](@ref), [`fromjson`](@ref)...).
+They are on by default (unless the module was generated with `checks = false`).
+
+With the checks off, values are only converted to the types of their fields, which still
+enforce the structure of the schema (the types of the properties, required properties,
+the properties allowed, enumeration types), but not its constraints (`minimum`, `pattern`,
+the values of enumerations, `minItems`, `oneOf`...), for speed. Check the values later
+with [`validate`](@ref), which [`tojson`](@ref) and [`writejson`](@ref) call when the
+checks are off. A JSON value read into a union of generated types (from `oneOf` or
+`anyOf`) is still checked, to choose its type.
+
+The setting is global (shared by all tasks); see [`with_checks`](@ref) to change it
+temporarily. Returns the previous setting.
+"""
+checks!(flag::Bool) = (old = _CHECKS[]; _CHECKS[] = flag; old)
+
+"""
+    checks() -> Bool
+
+Whether the checks of the constraints of the schema are on; see [`checks!`](@ref).
+"""
+checks() = _CHECKS[]
+
+"""
+    with_checks(f, flag::Bool)
+
+Call `f()` with the checks of the constraints of the schema turned on or off (see
+[`checks!`](@ref)), and restore the previous setting afterwards:
+`with_checks(false) do ... end`.
+"""
+function with_checks(f, flag::Bool)
+    old = checks!(flag)
+    try
+        return f()
+    finally
+        _CHECKS[] = old
+    end
+end
+
+# The metadata of the structs used by the checks, with their constraints: the same as
+# `_specs` when the constructors check (`validation = :inline`); otherwise the validation
+# file defines a method for each struct.
+_vspecs(::Type{T}) where {T <: AbstractSchemaObject} = _specs(T)
+
+# Where a value is in a document, for the messages of the errors: built only when a check
+# fails, so that valid values cost no string allocations.
+struct _JSField{T}
+    key::String
+end
+Base.print(io::IO, w::_JSField{T}) where {T} = print(io, "`", w.key, "` in `", _jsname(T), "`")
+struct _JSItem{W}
+    parent::W
+    index::Int
+end
+Base.print(io::IO, w::_JSItem) = print(io, w.parent, "[", w.index, "]")
 
 # --- Validation of constraints ---
 
@@ -396,7 +663,7 @@ constraints on the object as a whole (`minProperties`, `if`/`then`/`else`...).
 """
 function _jscheck(::Type{T}, values::Tuple, extra) where {T <: AbstractSchemaObject}
     _CHECKS[] || return nothing
-    spec = _specs(T)
+    spec = _vspecs(T)
     nprops = (extra === nothing ? 0 : length(extra)) + _jscheckfields(T, spec.fields, values)
     spec.minProperties !== nothing && nprops < spec.minProperties &&
         _jsfail("`$(_jsname(T))` must have at least $(spec.minProperties) properties set, got $nprops")
@@ -428,17 +695,6 @@ end
     set = v !== nothing || (f.required && f.nullable)
     return Int(set) + _jscheckfields(T, Base.tail(fields), Base.tail(values))
 end
-
-# Called by the inner constructors of the generated enum types.
-# (strings are compared directly; other values with the equality of JSON values)
-function _jsenumok(::Type{T}, value) where {T <: AbstractSchemaEnum}
-    vals = _enumvalues(T)
-    return value isa AbstractString ? any(v -> v isa AbstractString && v == value, vals) :
-                                      any(v -> _jseq(v, value), vals)
-end
-
-_jsenummsg(::Type{T}, value) where {T <: AbstractSchemaEnum} =
-    "invalid value $(repr(value)) for `$(_jsname(T))`; allowed values are $(join(repr.(_enumvalues(T)), ", "))"
 
 function _jscheckenum(::Type{T}, value) where {T <: AbstractSchemaEnum}
     _CHECKS[] || return value
@@ -720,7 +976,6 @@ const _FORMATS = Dict{String, Function}(
 )
 
 _jsisinteger(x) = x isa Real && !(x isa Bool) && isinteger(x)
-_jsisnumber(x) = x isa Real && !(x isa Bool)
 
 function _jstypeok(t::AbstractString, x)
     t == "null" && return x === nothing
@@ -732,13 +987,6 @@ function _jstypeok(t::AbstractString, x)
     t == "object" && return x isa AbstractDict
     return true
 end
-
-# equality of JSON values: `1 == 1.0`, but `true != 1`
-_jseq(a, b) = a isa Bool || b isa Bool ? (a isa Bool && b isa Bool && a == b) :
-              _jsisnumber(a) && _jsisnumber(b) ? a == b : isequal(a, b)
-_jseq(a::AbstractVector, b::AbstractVector) = length(a) == length(b) && all(_jseq(x, y) for (x, y) in zip(a, b))
-_jseq(a::AbstractDict, b::AbstractDict) =
-    length(a) == length(b) && all(haskey(b, k) && _jseq(v, b[k]) for (k, v) in a)
 
 function _jsallunique(x)
     v = Any[_jsto(el) for el in x]
@@ -789,11 +1037,16 @@ function _jsvalidann(s, x)
         T = getfield(@__MODULE__, Symbol(s["\$type"]))
         msg = x isa AbstractDict ? _jsmismatch(T, x) : nothing
         msg === nothing || return _jsbad(msg)
-        try
+        v = try
             _jsfrom(T, x)
         catch err
             err isa SchemaValidationError || rethrow()
             return _jsbad(err.msg)
+        end
+        # (constructors that do not check only convert: check the converted value)
+        if !_INLINE_CHECKS
+            errs = with_checks(() -> _jscollect!(String[], v, Any[]), true)
+            isempty(errs) || return _jsbad(first(errs))
         end
         x isa AbstractDict && union!(props, String.(keys(x)))
         x isa AbstractVector && union!(items, eachindex(x))
@@ -966,29 +1219,6 @@ function _jsvalidann(s, x)
     return (nothing, props, items)
 end
 
-# --- Conversion from Julia values into JSON-compatible values ---
-
-"""
-    _jsto(x)
-
-Convert `x` into a JSON-compatible value ("to JSON"): structs become `JSON.Object`s with the
-original JSON property names (optional fields set to `nothing` are left out, the extra
-properties are put back), enums become their values, vectors and tuples become vectors.
-The inverse of [`_jsfrom`](@ref); used by `todict`, `tojson` and `writejson`.
-"""
-function _jsto end
-
-_jsto(x) = x
-# whole numbers are written without a decimal point, as they usually appear in JSON files
-_jsto(x::Float64) = isinteger(x) && abs(x) < 2.0^53 ? Int64(x) : x
-_jsto(x::AbstractFloat) = isfinite(x) && isinteger(x) ? BigInt(x) : x
-# other real numbers (e.g. rationals) are written as floating-point numbers
-_jsto(x::Real) = x isa Integer ? x : _jsto(BigFloat(x))
-_jsto(x::AbstractSchemaEnum) = x.value
-_jsto(x::AbstractVector) = Any[_jsto(el) for el in x]
-_jsto(x::Tuple) = Any[_jsto(el) for el in x]
-_jsto(x::AbstractDict) = JSON.Object{String, Any}(String(k) => _jsto(v) for (k, v) in x)
-
 # the JSON names of the properties of a value of a generated type
 function _jskeys(x::T) where {T <: AbstractSchemaObject}
     spec = _specs(T)
@@ -1001,183 +1231,6 @@ function _jskeys(x::T) where {T <: AbstractSchemaObject}
         union!(ks, keys(getfield(x, spec.extra)))
     end
     return ks
-end
-
-function _jsto(x::T) where {T <: AbstractSchemaObject}
-    obj = JSON.Object{String, Any}()
-    for f in _specs(T).fields
-        v = getfield(x, f.name)
-        v === nothing && !(f.required && f.nullable) && continue
-        obj[f.key] = _jsto(v)
-    end
-    spec = _specs(T)
-    if spec.extra !== nothing
-        for (k, v) in getfield(x, spec.extra)
-            obj[k] = _jsto(v)
-        end
-    end
-    return obj
-end
-
-# --- Equality, hashing and display ---
-
-function Base.:(==)(a::T, b::T) where {T <: AbstractSchemaObject}
-    return all(getfield(a, n) == getfield(b, n) for n in fieldnames(T))
-end
-function Base.hash(a::T, h::UInt) where {T <: AbstractSchemaObject}
-    for n in fieldnames(T)
-        h = hash(getfield(a, n), h)
-    end
-    return hash(T, h)
-end
-Base.:(==)(a::T, b::T) where {T <: AbstractSchemaEnum} = isequal(a.value, b.value)
-Base.hash(a::AbstractSchemaEnum, h::UInt) = hash(a.value, hash(typeof(a), h))
-Base.show(io::IO, x::AbstractSchemaEnum) = print(io, nameof(typeof(x)), "(", repr(x.value), ")")
-
-# Structs are shown as calls to their positional constructors, with the numeric types only
-# when they are not the default ones, e.g. `VolumeType(VolumeUnitType("l"), 20.0)`.
-function Base.show(io::IO, x::T) where {T <: AbstractSchemaObject}
-    print(io, nameof(T))
-    T.parameters == Core.svec(Int64, Float64) || print(io, "{", join(T.parameters, ", "), "}")
-    print(io, "(")
-    for (i, n) in enumerate(fieldnames(T))
-        i > 1 && print(io, ", ")
-        show(io, getfield(x, n))
-    end
-    print(io, ")")
-end
-
-# The numeric types of a struct built from positional arguments: those of the generated
-# structs, or of the numbers, among the arguments; by default, `Int64` and `Float64`.
-function _jsnumbertypes(args...)
-    I, F = Int64, Float64
-    for a in args
-        a isa AbstractVector && !isempty(a) && (a = first(a))
-        if a isa AbstractSchemaObject
-            return Tuple(typeof(a).parameters)
-        elseif a isa Integer && !(a isa Bool)
-            I = typeof(a)
-        elseif a isa Real && !(a isa Bool)
-            F = typeof(a)
-        end
-    end
-    return (I, F)
-end
-# `print` and `string` give the plain value, e.g. `"$(VolumeUnitType("l"))" == "l"`
-Base.print(io::IO, x::AbstractSchemaEnum) = print(io, x.value)
-
-# --- Public API ---
-
-"""
-    fromdict(T, x)
-
-Convert a parsed JSON value `x` (e.g. a `Dict` or a `JSON.Object`) into a value of type `T`,
-validating it against the constraints of the schema.
-"""
-function fromdict(::Type{T}, x) where {T}
-    value = _jsfrom(T, x)
-    # the root of the schema may have constraints that its type does not enforce
-    if _CHECKS[] && T === RootType && _ROOT_CONSTRAINTS[] !== nothing
-        _jsvalidate(value, _ROOT_CONSTRAINTS[], "the document"; null_is_value = true)
-    end
-    return value
-end
-
-"""
-    todict(x)
-
-Convert `x` into a JSON-compatible value (nested `JSON.Object`s, vectors and scalars).
-Optional fields set to `nothing` are omitted.
-"""
-todict(x) = _jsto(x)
-
-"""
-    setfields(x; kwargs...)
-
-Return a copy of the generated struct `x` with the fields given as keyword arguments
-replaced. The new values are converted and validated as by the constructor, so plain values
-work: `setfields(volume; value = 40)`, `setfields(recipe; batch_size = (unit = "l", value = 40))`.
-Use the Julia names of the fields (e.g. `first_name` for a JSON property `first-name`).
-
-For nested changes, the generated structs also work with
-[Accessors.jl](https://github.com/JuliaObjects/Accessors.jl):
-`@set recipe.batch_size.value = 40`.
-"""
-function setfields(x::T; kwargs...) where {T <: AbstractSchemaObject}
-    for k in keys(kwargs)
-        hasfield(T, k) || throw(ArgumentError("`$(_jsname(T))` has no field `$k`"))
-    end
-    current = NamedTuple{fieldnames(T)}(ntuple(i -> getfield(x, i), Val(fieldcount(T))))
-    return T(; merge(current, values(kwargs))...)
-end
-
-"""
-    fromjson(T, json::AbstractString)
-
-Parse the JSON string `json` into a value of type `T`.
-"""
-function fromjson(::Type{T}, json::AbstractString) where {T}
-    F = _jsfloattype(T)
-    # numbers are parsed as `Float64` by JSON.jl, except when another floating-point type
-    # is asked for: then they are parsed with full precision
-    return fromdict(T, F === Float64 ? JSON.parse(json) : _jsparsebig(JSON.lazy(json)))
-end
-
-_jsfloattype(::Type) = Float64
-_jsfloattype(::Type{T}) where {T <: AbstractSchemaObject} =
-    T isa DataType && length(T.parameters) == 2 ? T.parameters[2] : Float64
-_jsfloattype(::Type{Vector{T}}) where {T} = _jsfloattype(T)
-
-# Materialize a lazily parsed JSON value, parsing non-integer numbers as `BigFloat` (at the
-# current precision of `BigFloat`), so that they can be converted to any real type.
-function _jsparsebig(x)
-    t = JSON.gettype(x)
-    if t == JSON.JSONTypes.OBJECT
-        obj = JSON.Object{String, Any}()
-        JSON.applyobject((k, v) -> (obj[String(k)] = _jsparsebig(v); nothing), x)
-        return obj
-    elseif t == JSON.JSONTypes.ARRAY
-        arr = Any[]
-        JSON.applyarray((i, v) -> (push!(arr, _jsparsebig(v)); nothing), x)
-        return arr
-    elseif t == JSON.JSONTypes.NUMBER
-        v = JSON.parse(x)
-        return v isa Integer ? v : JSON.parse(x, BigFloat)
-    end
-    return JSON.parse(x)
-end
-
-"""
-    readjson(T, filename)
-
-Read the JSON file `filename` into a value of type `T`.
-"""
-readjson(::Type{T}, filename::AbstractString) where {T} = fromjson(T, read(filename, String))
-
-"""
-    tojson(x; pretty=false, validate=!checks())
-
-Convert `x` into a JSON string. With `validate = true` (the default when the checks are
-off, see [`checks!`](@ref)), `x` is first checked with [`validate`](@ref).
-"""
-function tojson(x; pretty::Bool = false, validate::Bool = !_CHECKS[])
-    validate && _jsvalidateall(x)
-    return JSON.json(todict(x); pretty)
-end
-
-"""
-    writejson(filename, x; pretty=true, validate=!checks())
-
-Write `x` as JSON to the file `filename`. With `validate = true` (the default when the
-checks are off, see [`checks!`](@ref)), `x` is first checked with [`validate`](@ref).
-"""
-function writejson(filename::AbstractString, x; pretty::Bool = true, validate::Bool = !_CHECKS[])
-    json = tojson(x; pretty, validate)
-    open(filename, "w") do io
-        write(io, json)
-        pretty && write(io, "\n")
-    end
-    return filename
 end
 
 # --- Validation of whole values ---
@@ -1242,7 +1295,7 @@ function _jsat(path::Vector{Any}, msg)
 end
 
 function _jscollect!(out, x::T, path) where {T <: AbstractSchemaObject}
-    spec = _specs(T)
+    spec = _vspecs(T)
     values = ntuple(i -> getfield(x, spec.fields[i].name), Val(length(spec.fields)))
     extra = spec.extra === nothing ? nothing : getfield(x, spec.extra)
     try
@@ -1292,9 +1345,8 @@ function _jscollect!(out, x::AbstractDict, path)
 end
 _jscollect!(out, x, path) = out
 
-# ---------------------------------------------------------------------------------------
-# End of runtime support. Generated types follow.
-# ---------------------------------------------------------------------------------------
+# the validation of values before writing them (see `tojson`)
+_VALIDATOR[] = _jsvalidateall
 
 # ---------------------------------------------------------------------------------------
 # Types from `enum_schema.json`

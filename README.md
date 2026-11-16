@@ -97,6 +97,10 @@ The generated module exports:
   `nothing`. Defaults to `false`, since the defaults are then written out.
 * `checks`: whether the checks of the constraints are on when the module is loaded.
   Defaults to `true` (see [Turning the checks off](#turning-the-checks-off)).
+* `validation`: `:inline` (the default), the constructors check the constraints of the
+  schema; `:separate`, minimal types whose constructors do not, with the checks in a
+  separate, optional file; `:none`, minimal types without any checks (see
+  [Minimal types](#minimal-types-with-the-validation-in-a-separate-file)).
 
 ### Splitting into several files
 
@@ -185,6 +189,33 @@ recipe2 = setfields(recipe; batch_size = (unit = "litre", value = 20))   # not c
 violations(recipe2)   # ["batch_size.unit: invalid value \"litre\" for `VolumeUnitType`; ..."]
 writejson("recipe.json", recipe2)                                       # SchemaValidationError
 ```
+
+### Minimal types, with the validation in a separate file
+
+With `validation = :separate`, the generated types are minimal: the same structs, with the
+same constructors, which convert the values to the types of their fields but do not check
+the constraints of the schema. Everything needed to check them (the constraints of each
+type, the subschemas checked at runtime and the validator) goes in a separate file,
+`validation.jl` (or `<name>_validation.jl` next to the module file, without `split`), which
+the module includes only if it is present:
+
+```julia
+isfile(joinpath(@__DIR__, "validation.jl")) && include("validation.jl")
+```
+
+Without that file, the module only reads and writes. With it, it also has `validate(x)`,
+`violations(x)` and `isvalid(x)`, and `tojson` and `writejson` validate before writing
+(unless given `validate = false`). Reading is not checked: use `validate(readjson(T, file))`
+for that. With `validation = :none`, the validation file is not written at all.
+
+The types still enforce the structure of the schema: the types of the properties, required
+properties, the properties allowed and the enumeration types. A JSON value read into a
+union of generated types (from `oneOf` or `anyOf`) gets the first option that fits by its
+properties and the values of its enumerations (e.g. a `unit` that is `"l"` for a volume, `"kg"`
+for a mass); options that only differ by other constraints cannot be told apart.
+
+For BeerJSON, the minimal module is 221 KiB of code, instead of 280 KiB, and the
+validation file 90 KiB.
 
 ### Type names
 

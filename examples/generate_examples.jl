@@ -16,6 +16,10 @@ generate_module(ex("acme_schemas", "acme_flatschema.json"), joinpath(OUT, "AcmeF
     module_name = "AcmeFlat")
 generate_module(ex("acme_schemas", "acme_nestedschema.json"), joinpath(OUT, "AcmeNested.jl");
     module_name = "AcmeNested")
+# the same, with minimal types (constructors that only convert values) and the checks of the
+# constraints in a separate, optional file, `AcmeNestedMinimal_validation.jl`
+generate_module(ex("acme_schemas", "acme_nestedschema.json"), joinpath(OUT, "AcmeNestedMinimal.jl");
+    module_name = "AcmeNestedMinimal", validation = :separate)
 generate_module(ex("acme_schemas", "acme_nestedschema_mod.json"), joinpath(OUT, "AcmeNestedMod.jl");
     module_name = "AcmeNestedMod")
 generate_module(ex("acme_schemas", "acme_withreferenceschema.json"), joinpath(OUT, "AcmeWithReference.jl");

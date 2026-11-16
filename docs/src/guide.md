@@ -119,6 +119,33 @@ checks off, building a `VolumeType` about 3 times less, and `setfields` on a hop
 (whose `amount` is `oneOf` a volume or a mass) about 7 times less. Validating the whole
 document takes about a quarter of the time it takes to read it.
 
+## Minimal types, with the validation in a separate file
+
+With `validation = :separate`, the generated types are minimal: the same structs, with the
+same constructors, which convert the values to the types of their fields but do not check
+the constraints of the schema. Everything needed to check them (the constraints of each
+type, the subschemas checked at runtime and the validator) goes in a separate file,
+`validation.jl` (or `<name>_validation.jl` next to the module file, without `split`), which
+the module includes only if it is present:
+
+```julia
+isfile(joinpath(@__DIR__, "validation.jl")) && include("validation.jl")
+```
+
+Without that file, the module only reads and writes. With it, it also has `validate(x)`,
+`violations(x)` and `isvalid(x)`, and `tojson` and `writejson` validate before writing
+(unless given `validate = false`). Reading is not checked: use `validate(readjson(T, file))`
+for that. With `validation = :none`, the validation file is not written at all.
+
+The types still enforce the structure of the schema: the types of the properties, required
+properties, the properties allowed and the enumeration types. A JSON value read into a
+union of generated types (from `oneOf` or `anyOf`) gets the first option that fits by its
+properties and the values of its enumerations (e.g. a `unit` that is `"l"` for a volume, `"kg"`
+for a mass); options that only differ by other constraints cannot be told apart.
+
+For BeerJSON, the minimal module is 221 KiB of code, instead of 280 KiB, and the
+validation file 90 KiB.
+
 ## Type names
 
 Type names come from the definition names: `#/definitions/VolumeType` (or

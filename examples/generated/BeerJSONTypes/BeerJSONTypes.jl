@@ -5,8 +5,8 @@ module BeerJSONTypes
 
 using JSON
 
-export fromjson, tojson, readjson, writejson, fromdict, todict, setfields, check_formats!
-export validate, violations, checks!, with_checks
+export fromjson, tojson, readjson, writejson, fromdict, todict, setfields
+export check_formats!, validate, violations, checks!, with_checks
 export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError
 export TimeUnitType, GravityUnitType, AcidityUnitType, PercentUnitType, ColorUnitType, DiastaticPowerUnitType
 export VolumeUnitType, MassUnitType, ViscosityUnitType, ConcentrationUnitType, UnitUnitType, TemperatureUnitType
@@ -26,7 +26,11 @@ export TasteType, RecipeType, EquipmentFormEnum, EquipmentItemType, EquipmentTyp
 export BeerJSON
 export RootType
 
+# the constructors of the types check the constraints of the schema
+const _INLINE_CHECKS = true
+
 include("runtime.jl")
+include("runtime_validation.jl")
 
 # Generated types, one file per schema file, in dependency order
 include("measureable_units.jl")

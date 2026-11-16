@@ -10,7 +10,9 @@ generate_module
 ## Generated modules
 
 Every generated module defines the types of the schema, `RootType` (the type of the root of
-the schema), and the following functions and types. They are documented in the generated
+the schema), and the following functions and types (with `validation = :separate`,
+`validate`, `violations`, `isvalid` and `check_formats!` only when its validation file is
+present, and `checks!` and `with_checks` not at all; with `validation = :none`, none of them). They are documented in the generated
 code, so in the REPL, `?readjson` shows their documentation once the module is loaded.
 
 | Name | Description |
