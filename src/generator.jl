@@ -5,6 +5,9 @@
 const RUNTIME_FILE = joinpath(@__DIR__, "runtime.jl")
 include_dependency(RUNTIME_FILE)
 const RUNTIME_CODE = read(RUNTIME_FILE, String)
+const VALIDATION_FILE = joinpath(@__DIR__, "runtime_validation.jl")
+include_dependency(VALIDATION_FILE)
+const VALIDATION_CODE = read(VALIDATION_FILE, String)
 const FORMATS_FILE = joinpath(@__DIR__, "runtime_formats.jl")
 include_dependency(FORMATS_FILE)
 const FORMATS_CODE = read(FORMATS_FILE, String)
@@ -107,6 +110,7 @@ mutable struct Generator
     used_formats::Bool                             # whether any typed format was used
     use_defaults::Bool                             # optional fields default to the schema `default`
     checks::Bool                                   # the checks of the constraints are on by default
+    validation::Symbol                             # `:inline`, `:separate` or `:none`
     types::Dict{String, Union{ObjectDef, EnumDef}} # location => definition
     names::Dict{String, String}                    # location => type name
     taken::Dict{String, String}                    # type name => location
@@ -117,7 +121,7 @@ end
 
 Generator(root_file::String, root_name::String) = Generator(
     root_file, root_name, Dict{String, Any}(), Dict{String, Tuple{String, String}}(),
-    Dict{String, Vector{Pair{String, String}}}(), Dict{String, String}(), nothing, false, false, false, true,
+    Dict{String, Vector{Pair{String, String}}}(), Dict{String, String}(), nothing, false, false, false, true, :inline,
     Dict{String, Union{ObjectDef, EnumDef}}(),
     Dict{String, String}(), Dict{String, String}(), String[], Dict{String, String}(),
     Set{String}(),
@@ -1275,7 +1279,7 @@ function constraints_literal(c)
     return "(" * join(parts, ", ") * ",)"
 end
 
-function emit_enum(io::IO, d::EnumDef)
+function emit_enum(io::IO, d::EnumDef, inline::Bool = true)
     println(io, "\"\"\"")
     println(io, "    ", d.name, "(value)")
     println(io)
@@ -1284,7 +1288,11 @@ function emit_enum(io::IO, d::EnumDef)
     println(io, "\"\"\"")
     println(io, "struct ", d.name, " <: AbstractSchemaEnum")
     println(io, "    value::", d.valuetype)
-    println(io, "    ", d.name, "(value) = new(_jscheckenum(", d.name, ", _jsfrom(", d.valuetype, ", value)))")
+    if inline
+        println(io, "    ", d.name, "(value) = new(_jscheckenum(", d.name, ", _jsfrom(", d.valuetype, ", value)))")
+    else
+        println(io, "    ", d.name, "(value) = new(_jsfrom(", d.valuetype, ", value))")
+    end
     println(io, "end")
     # the allowed values, as a constant tuple (fast to check), also recorded in `_SPECS`
     println(io, "const _VALUES_", d.name, " = (", join(julia_literal.(d.values), ", "), length(d.values) == 1 ? ",)" : ")")
@@ -1293,7 +1301,7 @@ function emit_enum(io::IO, d::EnumDef)
     println(io)
 end
 
-function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
+function emit_struct(io::IO, d::ObjectDef, defined::Set{String}, inline::Bool = true, vio::Union{Nothing, IO} = nothing)
     # The type parameters are named `I` and `T`, unless the struct is named so or uses a type
     # named so; in the constructors, whose arguments are named after the fields, they must
     # not clash with the field names either.
@@ -1368,8 +1376,8 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
     end
     extra === nothing || println(io, "        ", extra, " = _jsfrom(Dict{String, ", sub(d.extra_type.expr), "}, ", extra, ")")
     vals = join([f.name for f in d.fields], ", ")
-    println(io, "        _jscheck(", self, "{$pI, $pT}, (", vals, isempty(d.fields) || length(d.fields) > 1 ? "" : ",", "), ",
-            something(extra, "nothing"), ")")
+    inline && println(io, "        _jscheck(", self, "{$pI, $pT}, (", vals, isempty(d.fields) || length(d.fields) > 1 ? "" : ",", "), ",
+                      something(extra, "nothing"), ")")
     println(io, "        return new(", join(vcat([f.name for f in d.fields], extra === nothing ? String[] : [extra]), ", "), ")")
     println(io, "    end")
     println(io, "end")
@@ -1387,27 +1395,43 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
 
     # metadata
     # (a constant, returned by a method specialized on the type, so the checks are type-stable)
-    println(io, "const _SPEC_", d.name, " = (")
-    println(io, "    fields = (")
-    for f in d.fields
-        println(io, "        (name = :", f.name, ", key = ", repr(f.key), ", required = ", f.required,
-                ", nullable = ", f.nullable, ", constraints = ", constraints_literal(f.constraints), "),")
-    end
-    println(io, "    ),")
-    println(io, "    additionalProperties = ", d.additional_properties, ",")
-    println(io, "    extra = ", extra === nothing ? "nothing" : ":" * extra, ",")
-    println(io, "    minProperties = ", something(d.min_properties, "nothing"), ",")
-    println(io, "    maxProperties = ", something(d.max_properties, "nothing"), ",")
-    println(io, "    schema = ", schema_literal(d.schema, "    "), ",")
-    println(io, ")")
+    # (without the checks in the constructors, only what reading and writing need; all of it
+    # goes in the validation file, if any)
+    emit_spec(io, d, "_SPEC_", inline)
     println(io, "_specs(::Type{<:", d.name, "}) = _SPEC_", d.name)
     println(io, "_SPECS[", d.name, "] = _SPEC_", d.name)
     println(io)
+    if vio !== nothing
+        emit_spec(vio, d, "_VSPEC_", true)
+        println(vio, "_vspecs(::Type{<:", d.name, "}) = _VSPEC_", d.name)
+        println(vio)
+    end
+end
+
+function emit_spec(io::IO, d::ObjectDef, prefix::String, full::Bool)
+    extra = d.extra_field
+    println(io, "const ", prefix, d.name, " = (")
+    println(io, "    fields = (")
+    for f in d.fields
+        print(io, "        (name = :", f.name, ", key = ", repr(f.key), ", required = ", f.required,
+              ", nullable = ", f.nullable)
+        full && print(io, ", constraints = ", constraints_literal(f.constraints))
+        println(io, "),")
+    end
+    println(io, "    ),")
+    full && println(io, "    additionalProperties = ", d.additional_properties, ",")
+    println(io, "    extra = ", extra === nothing ? "nothing" : ":" * extra, ",")
+    if full
+        println(io, "    minProperties = ", something(d.min_properties, "nothing"), ",")
+        println(io, "    maxProperties = ", something(d.max_properties, "nothing"), ",")
+        println(io, "    schema = ", schema_literal(d.schema, "    "), ",")
+    end
+    println(io, ")")
 end
 
 """
     generate_module(schema_file, output; root_name, module_name, schemas, split, type_names,
-                    download, typed_formats, use_defaults, checks) -> String
+                    download, typed_formats, use_defaults, checks, validation) -> String
 
 Read the JSON Schema in `schema_file` (and every schema file it references through
 `\$ref`) and write to `output_file` a Julia module defining types for all the objects and
@@ -1437,6 +1461,15 @@ With `checks = false`, the module starts with the checks of the constraints of t
 turned off, for speed: values are only converted to the types of their fields, and checked
 by `validate(x)`, and by `tojson` and `writejson` before writing. The checks can be turned
 on and off at any time with `checks!(flag)` and `with_checks(f, flag)`.
+
+With `validation = :separate`, the types are minimal: their constructors only convert the
+values to the types of their fields, without checking the constraints of the schema, and
+the code for checking them (the constraints of each type, and the validator) is written
+to a separate file, `validation.jl` (or `<name>_validation.jl` next to `output`, without
+`split`), which the module includes only if it is present. It provides `validate(x)`,
+`violations(x)` and `isvalid(x)`, and makes `tojson` and `writejson` validate before
+writing. With `validation = :none`, that file is not written. The default,
+`validation = :inline`, puts the checks in the constructors.
 
 The name of the root type is `root_name`, which defaults to the `title` of the schema or
 else to the name of the schema file. The module name defaults to the root type name
@@ -1468,12 +1501,18 @@ function generate_module(
     typed_formats::Bool = false,
     use_defaults::Bool = false,
     checks::Bool = true,
+    validation::Symbol = :inline,
 )
     root_file = abspath(normpath(schema_file))
     gen = Generator(root_file, "")
     gen.typed_formats = typed_formats
     gen.use_defaults = use_defaults
+    validation in (:inline, :separate, :none) ||
+        throw(ArgumentError("`validation` must be `:inline`, `:separate` or `:none`, got `:$validation`"))
+    checks || validation === :inline ||
+        throw(ArgumentError("`checks = false` only applies with `validation = :inline`"))
     gen.checks = checks
+    gen.validation = validation
     gen.fetch = download === true ? download_schema : download === false ? nothing : download
     for (k, v) in type_names
         key = startswith(k, "#") ? basename(root_file) * k : String(k)
@@ -1503,7 +1542,9 @@ function generate_module(
         @warn "`type_names` entry `$k` does not name a generated type; it was ignored"
     end
 
-    files = generate_files(gen, module_name, root_type, basename(schema_file), split; root_constraints)
+    validation_file = split ? "validation.jl" : splitext(basename(output_file))[1] * "_validation.jl"
+    files = generate_files(gen, module_name, root_type, basename(schema_file), split;
+                           root_constraints, validation_file)
     if split
         mkpath(output_file)
         for (name, code) in files
@@ -1512,7 +1553,10 @@ function generate_module(
         return joinpath(output_file, first(first(files)))
     end
     mkpath(dirname(abspath(output_file)))
-    write(output_file, only(files)[2])
+    write(output_file, first(files)[2])
+    for (name, code) in files[2:end]     # the validation file, with `validation = :separate`
+        write(joinpath(dirname(abspath(output_file)), name), code)
+    end
     return output_file
 end
 
@@ -1525,7 +1569,8 @@ Generate the code of the module, as a list of `filename => code`, the main file 
 Without `split`, everything goes into the single main file.
 """
 function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
-                        schema_name::String, split::Bool; root_constraints = nothing)
+                        schema_name::String, split::Bool; root_constraints = nothing,
+                        validation_file::String = "validation.jl")
     groups = group_types(gen)
     names = [d.name for (_, ds) in groups for d in ds]
     if module_name in names
@@ -1534,23 +1579,28 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
                             "type; choose another `module_name` (e.g. `$(module_name)Types`)"))
     end
     main_file = module_name * ".jl"
+    inline = gen.validation === :inline
+    separate = gen.validation === :separate
+    reserved = (main_file, "runtime.jl", "runtime_formats.jl", "runtime_validation.jl", validation_file)
 
-    # code of each group
+    # code of each group, and the metadata for the validation file, if any
     defined = Set{String}()
     group_code = Pair{String, String}[]
+    vio = separate ? IOBuffer() : nothing
     for (group, defs) in groups
         io = IOBuffer()
         for d in defs
-            d isa EnumDef ? emit_enum(io, d) : emit_struct(io, d, defined)
+            d isa EnumDef ? emit_enum(io, d, inline) : emit_struct(io, d, defined, inline, vio)
             push!(defined, d.name)
         end
         filename = group * ".jl"
-        while filename in (main_file, "runtime.jl", "runtime_formats.jl") || any(p -> p[1] == filename, group_code)
+        while filename in reserved || any(p -> p[1] == filename, group_code)
             filename = splitext(filename)[1] * "_types.jl"
         end
         push!(group_code, filename => String(take!(io)))
     end
     sources(group) = join(["`$(basename(f))`" for f in unique(schema_file_of.(last(groups[group])))], ", ")
+    root_line = root_constraints === nothing ? nothing : "_ROOT_CONSTRAINTS[] = " * constraints_literal(root_constraints)
 
     io = IOBuffer()
     println(io, "# This file was generated by JSONSchema2Types.jl from the JSON Schema")
@@ -1560,16 +1610,25 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
     println(io)
     println(io, "using JSON")
     println(io)
-    println(io, "export fromjson, tojson, readjson, writejson, fromdict, todict, setfields, check_formats!")
-    println(io, "export validate, violations, checks!, with_checks")
+    println(io, "export fromjson, tojson, readjson, writejson, fromdict, todict, setfields")
+    inline && println(io, "export check_formats!, validate, violations, checks!, with_checks")
     println(io, "export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError")
     for chunk in Iterators.partition(names, 6)
         println(io, "export ", join(chunk, ", "))
     end
     println(io, "export RootType")
     println(io)
+    if inline
+        println(io, "# the constructors of the types check the constraints of the schema")
+    else
+        println(io, "# the constructors of the types do not check the constraints of the schema (generated")
+        println(io, "# with `validation = :", gen.validation, "`)")
+    end
+    println(io, "const _INLINE_CHECKS = ", inline)
+    println(io)
     if split
         println(io, "include(\"runtime.jl\")")
+        inline && println(io, "include(\"runtime_validation.jl\")")
         gen.used_formats && println(io, "include(\"runtime_formats.jl\")")
         println(io)
         println(io, "# Generated types, one file per schema file, in dependency order")
@@ -1578,6 +1637,7 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
         end
     else
         print(io, RUNTIME_CODE)
+        inline && (println(io); print(io, VALIDATION_CODE))
         gen.used_formats && (println(io); print(io, FORMATS_CODE))
         for (i, (_, code)) in enumerate(group_code)
             println(io)
@@ -1600,28 +1660,44 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
     end
     println(io, "\"\"\"")
     println(io, "const RootType = ", root_expr)
-    if root_constraints !== nothing
+    if inline && root_line !== nothing
         println(io)
         println(io, "# constraints on the root of the schema, checked when reading a document")
-        println(io, "_ROOT_CONSTRAINTS[] = ", constraints_literal(root_constraints))
+        println(io, root_line)
     end
-    if !gen.checks
+    if inline && !gen.checks
         println(io)
         println(io, "# generated with `checks = false`: the constraints of the schema are checked by")
         println(io, "# `validate` (and when writing), not when values are created; see `checks!`")
         println(io, "checks!(false)")
     end
+    if separate
+        println(io)
+        println(io, "# The checks of the constraints of the schema, by `validate`, `violations` and `isvalid`,")
+        println(io, "# and before writing. Optional: without the file `", validation_file, "`, the module only")
+        println(io, "# reads and writes.")
+        println(io, "isfile(joinpath(@__DIR__, ", repr(validation_file), ")) && include(", repr(validation_file), ")")
+    end
     println(io)
     println(io, "end # module ", module_name)
     files = [main_file => String(take!(io))]
-    split || return files
 
     included = "# This file is included by `$main_file`, generated by JSONSchema2Types.jl from the JSON\n" *
                      "# Schema `$schema_name`. $GENERATED_NOTICE\n"
-    push!(files, "runtime.jl" => included * "\n" * RUNTIME_CODE)
-    gen.used_formats && push!(files, "runtime_formats.jl" => included * "\n" * FORMATS_CODE)
-    for (i, (filename, code)) in enumerate(group_code)
-        push!(files, filename => included * "#\n# Types from " * sources(i) * ".\n\n" * code)
+    if split
+        push!(files, "runtime.jl" => included * "\n" * RUNTIME_CODE)
+        inline && push!(files, "runtime_validation.jl" => included * "\n" * VALIDATION_CODE)
+        gen.used_formats && push!(files, "runtime_formats.jl" => included * "\n" * FORMATS_CODE)
+        for (i, (filename, code)) in enumerate(group_code)
+            push!(files, filename => included * "#\n# Types from " * sources(i) * ".\n\n" * code)
+        end
+    end
+    if separate
+        vcode = included * "#\n# The checks of the constraints of the schema: optional, see the end of `$main_file`.\n\n" *
+                "export validate, violations, check_formats!\n\n" * VALIDATION_CODE *
+                "\n# Metadata of the types, with their constraints\n\n" * String(take!(vio)) *
+                (root_line === nothing ? "" : "# constraints on the root of the schema\n" * root_line * "\n")
+        push!(files, validation_file => vcode)
     end
     return files
 end

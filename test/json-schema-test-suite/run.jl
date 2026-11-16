@@ -11,12 +11,16 @@
 # Writes a report with the results by file (to `report.md`, if given) and prints a summary.
 # With `--min-passed=N`, exits with an error if fewer than N tests pass (used in CI, with
 # the number in `test/json-schema-test-suite/BASELINE`, to catch regressions).
+# With `--validation=separate`, the modules are generated with `validation = :separate`
+# (constructors that do not check), and each instance is read and then checked with
+# `validate`.
 
 using JSONSchema2Types
 using JSON
 
 const DIALECT = 2020
 const METASCHEMA = "https://json-schema.org/draft/2020-12/schema"
+const VALIDATION = Ref(:inline)
 
 # whether a test case applies to `version` (see the README of the test suite)
 function compatible(compat, version = DIALECT)
@@ -55,7 +59,7 @@ function run_case(file, case)
     tags = get(case, "tags", String[])
     M = try
         file_jl = generate_module(schema_file, joinpath(dir, "Generated.jl"); root_name = "Root",
-                                  module_name = "Generated", download = fetch)
+                                  module_name = "Generated", download = fetch, validation = VALIDATION[])
         Base.include(Module(), file_jl)
     catch err
         msg = first(sprint(showerror, err), 300)
@@ -69,9 +73,10 @@ function run_case(file, case)
     fromdict, RootType = binding(:fromdict), binding(:RootType)
     ValidationError = binding(:SchemaValidationError)
     Base.invokelatest(binding(:check_formats!), !("format-annotation" in tags))
+    validate = VALIDATION[] === :inline ? identity : binding(:validate)
     for t in case["tests"]
         result, msg = try
-            Base.invokelatest(fromdict, RootType, t["data"])
+            Base.invokelatest(validate, Base.invokelatest(fromdict, RootType, t["data"]))
             t["valid"] ? (:pass, "") : (:fail, "accepted an invalid instance")
         catch err
             if err isa ValidationError
@@ -122,6 +127,7 @@ end
 if abspath(PROGRAM_FILE) == @__FILE__
     options = filter(startswith("--"), ARGS)
     paths = filter(!startswith("--"), ARGS)
+    "--validation=separate" in options && (VALIDATION[] = :separate)
     outcomes = run_suite(paths[1])
     if length(paths) >= 2
         open(io -> report(io, outcomes), paths[2], "w")

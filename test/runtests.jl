@@ -369,6 +369,83 @@ end
     @test occursin("\nchecks!(false)\n", code)
 end
 
+# (called with `invokelatest`, after loading a generated module)
+function check_separate(M, vfile, file, sample)
+    @test !M._INLINE_CHECKS && isdefined(M, :validate) && :validate in names(M)
+    # reading and writing every sample, unchanged
+    for f in readdir(joinpath(SAMPLES, "converted"); join = true)
+        endswith(f, ".json") || continue
+        doc = M.readjson(M.RootType, f)
+        @test approx(canon(JSON.parse(M.tojson(doc))), canon(JSON.parse(read(f, String))))
+        @test isvalid(doc)
+    end
+    doc = M.readjson(M.RootType, sample)
+    recipe = only(doc.beerjson.recipes)
+    # the constructors do not check the constraints...
+    v = M.VolumeType(unit = "litre", value = 20)
+    @test v.unit.value == "litre" && !isvalid(v)
+    bad = M.setfields(recipe; batch_size = v)
+    @test M.violations(bad) == ["batch_size.unit: " * M._jsenummsg(M.VolumeUnitType, "litre")]
+    @test_throws M.SchemaValidationError M.validate(bad)
+    # ...but writing does, by default
+    @test_throws M.SchemaValidationError M.tojson(bad)
+    @test_throws M.SchemaValidationError M.writejson(joinpath(mktempdir(), "r.json"), bad)
+    @test JSON.parse(M.tojson(bad; validate = false))["batch_size"]["unit"] == "litre"
+    # the structure is still enforced, and unions are chosen by structure and enum values
+    @test_throws UndefKeywordError M.VolumeType(unit = "l")
+    @test_throws M.SchemaValidationError M.VolumeType(unit = "l", value = "x")
+    hop = recipe.ingredients.hop_additions[1]
+    @test M.setfields(hop; amount = (unit = "l", value = 1)).amount isa M.VolumeType
+    @test M.setfields(hop; amount = (unit = "kg", value = 1)).amount isa M.MassType
+    @test_throws M.SchemaValidationError M.setfields(hop; amount = (unit = "litre", value = 1))
+    # a `oneOf` checked by `validate` with values of generated types built without checks
+    @test isvalid(M.setfields(hop; amount = M.MassType(unit = "kg", value = 1)))
+    # without the validation file, the module only reads and writes
+    rm(vfile)
+    N = Base.include(Module(), file)
+    Base.invokelatest(check_without_validation, N, sample)
+end
+
+function check_without_validation(N, sample)
+    @test !isdefined(N, :validate) && !isdefined(N, :violations)
+    doc = N.readjson(N.RootType, sample)
+    @test approx(canon(JSON.parse(N.tojson(doc))), canon(JSON.parse(read(sample, String))))
+    bad = N.setfields(only(doc.beerjson.recipes); batch_size = (unit = "litre", value = 20))
+    @test occursin("litre", N.tojson(bad))
+    @test_throws ArgumentError N.tojson(bad; validate = true)
+end
+
+@testset "Minimal types, with the validation in a separate file" begin
+    beer = joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json")
+    sample = joinpath(SAMPLES, "converted", "punk-ipa-2010-current.json")
+    @test_throws ArgumentError generate_module(beer, joinpath(mktempdir(), "x.jl"); validation = :other)
+    @test_throws ArgumentError generate_module(beer, joinpath(mktempdir(), "x.jl"); validation = :none, checks = false)
+    for split in (true, false)
+        out = joinpath(mktempdir(), split ? "Beer" : "Beer.jl")
+        file = generate_module(beer, out; root_name = "BeerJSON", split, validation = :separate)
+        vfile = split ? joinpath(out, "validation.jl") : joinpath(dirname(out), "Beer_validation.jl")
+        @test isfile(vfile)
+        main = read(file, String)
+        @test !occursin("_jscheck", main) && occursin("const _INLINE_CHECKS = false", main)
+        split && @test !isfile(joinpath(out, "runtime_validation.jl"))
+        M = Base.include(Module(), file)
+        Base.invokelatest(check_separate, M, vfile, file, sample)
+    end
+    # `:none`: no validation file at all
+    out = joinpath(mktempdir(), "Beer")
+    file = generate_module(beer, out; root_name = "BeerJSON", split = true, validation = :none)
+    @test sort(filter(f -> occursin("valid", f), readdir(out))) == String[]
+    @test !occursin("validation.jl", read(file, String))
+    M = Base.include(Module(), file)
+    @test !isdefined(M, :validate) && !isdefined(M, :check_formats!)
+    @test M.readjson(M.RootType, sample) isa M.RootType
+    # the committed example
+    A = Base.include(Module(), joinpath(EXAMPLES, "generated", "AcmeNestedMinimal.jl"))
+    p = A.Product(productId = 1, productName = "x", price = -1)
+    @test A.violations(p) == ["`price` in `Product` must be > 0, got -1.0"]
+end
+
+
 @testset "Defaults" begin
     schema = joinpath(@__DIR__, "schemas", "defaults.json")
     # by default, optional fields are `nothing`
@@ -537,7 +614,7 @@ end
     main = generate_module(schema, dir; split = true)
     @test main == joinpath(dir, "LibraryTypes.jl")
     # `author.json` and `book.json` use each other, so they share a file, after `common.json`
-    @test sort(readdir(dir)) == ["LibraryTypes.jl", "author_and_book.jl", "common.jl", "root.jl", "runtime.jl"]
+    @test sort(readdir(dir)) == ["LibraryTypes.jl", "author_and_book.jl", "common.jl", "root.jl", "runtime.jl", "runtime_validation.jl"]
     code = read(main, String)
     @test findfirst("include(\"common.jl\")", code) < findfirst("include(\"author_and_book.jl\")", code) <
           findfirst("include(\"root.jl\")", code)
@@ -584,6 +661,7 @@ end
 
 @testset "Committed examples load" begin
     for file in readdir(joinpath(EXAMPLES, "generated"); join = true)
+        endswith(file, "_validation.jl") && continue     # (included by its module)
         isdir(file) && (file = joinpath(file, basename(file) * ".jl"))
         @test Base.include(Module(), file) isa Module
     end
