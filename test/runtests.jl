@@ -361,9 +361,10 @@ end
                                             "timing": {}, "amount": {"unit": "g", "value": 2}}""")
     @test M.HopAdditionType(getfield.(Ref(hop), fieldnames(M.HopAdditionType))...) == hop
     @test M.setfields(hop; amount = (unit = "kg", value = 1)).amount isa M.MassType
-    # constructing and modifying small objects is type stable and does not allocate (on
-    # Julia 1.10, forwarding the keyword arguments still allocates a few bytes)
-    if VERSION >= v"1.11"
+    # constructing and modifying small objects is type stable and does not allocate (not
+    # measurable with code coverage on, which changes the compiled code, and on Julia 1.10,
+    # forwarding the keyword arguments still allocates a few bytes)
+    if VERSION >= v"1.11" && Base.JLOptions().code_coverage == 0
         construct(::Type{T}, u, x) where {T} = T(unit = u, value = x)
         modify(setfields::F, v, x) where {F} = setfields(v; value = x)
         allocations(f::F, a, b, c) where {F} = (f(a, b, c); @allocated f(a, b, c))
