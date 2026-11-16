@@ -189,10 +189,9 @@ function _jsfrom(::Type{T}, x) where {T <: AbstractSchemaObject}
     x = _jsobject(x)
     x isa AbstractDict || _jsfail("expected an object for `$(_jsname(T))`, got $(repr(x))")
     spec = _specs(T)
-    known = Set(f.key for f in spec.fields)
     extra = Dict{String, Any}()
     for k in keys(x)
-        String(k) in known && continue
+        any(f -> f.key == k, spec.fields) && continue
         spec.extra === nothing && _jsfail("unknown property `$k` for `$(_jsname(T))`")
         extra[String(k)] = x[k]
     end
@@ -208,6 +207,46 @@ function _jsfrom(::Type{T}, x) where {T <: AbstractSchemaObject}
     return T(; kwargs...)
 end
 
+"""
+    _jsmismatch(T, x) -> Union{Nothing, String}
+
+A quick check, without converting it, of whether the JSON object `x` surely cannot be
+converted to the generated type `T`: a required property is missing, a property is
+unknown, or the value of a property whose type is an enumeration is not one of its
+values. Returns the reason, or `nothing` if `x` may be convertible (which only the
+conversion decides). Used to skip, without the cost of an exception, the options of a
+union, or of a `oneOf`/`anyOf`, that do not match, e.g. a volume for a mass.
+"""
+function _jsmismatch(::Type{T}, x::AbstractDict) where {T <: AbstractSchemaObject}
+    spec = _specs(T)
+    D = Base.unwrap_unionall(T)
+    for f in spec.fields
+        if haskey(x, f.key)
+            E = _jsnonnothing(fieldtype(D, f.name))
+            v = x[f.key]
+            if E isa DataType && E <: AbstractSchemaEnum && !(v isa AbstractSchemaEnum) && !_jsenumok(E, v)
+                return _jsenummsg(E, v)
+            end
+        elseif f.required
+            return "missing required property `$(f.key)` for `$(_jsname(T))`"
+        end
+    end
+    if spec.extra === nothing
+        for k in keys(x)
+            any(f -> f.key == k, spec.fields) || return "unknown property `$k` for `$(_jsname(T))`"
+        end
+    end
+    return nothing
+end
+_jsmismatch(::Type, x) = nothing
+
+# the type of a field, without `Nothing` (a field type may be a type parameter, for numbers)
+function _jsnonnothing(FT)
+    FT isa Union || return FT
+    ts = filter(!=(Nothing), Base.uniontypes(FT))
+    return length(ts) == 1 ? only(ts) : Any
+end
+
 # Unions come from `oneOf`/`anyOf`, from lists of types and from optional fields.
 function _jsfrom(::Type{T}, x) where {T}
     T isa Union || _jsfail("cannot convert $(repr(x)) to `$(_jsname(T))`")
@@ -221,6 +260,10 @@ function _jsfromunion(::Type{T}, x) where {T}
     msgs = String[]
     for S in options
         S === Nothing && continue
+        if S isa DataType && S <: AbstractSchemaObject && (x isa AbstractDict || x isa NamedTuple)
+            msg = _jsmismatch(S, _jsobject(x))
+            msg === nothing || (push!(msgs, "  `$S`: $msg"); continue)
+        end
         try
             return _jsfrom(S, x)
         catch err
@@ -244,7 +287,7 @@ function _jsvalidate(x, c, where_; null_is_value::Bool = false)
     x === nothing && !null_is_value && return nothing
     x = _jsscalar(x)
     if haskey(c, :schema)
-        err = _jsvalid(c.schema, _jsto(x))
+        err = _jsvalid(c.schema, x isa AbstractSchemaObject ? x : _jsto(x))
         err === nothing || _jsfail("$where_ is invalid: $err")
     end
     if x isa Real && !(x isa Bool)
@@ -321,12 +364,18 @@ end
 end
 
 # Called by the inner constructors of the generated enum types.
-function _jscheckenum(::Type{T}, value) where {T <: AbstractSchemaEnum}
+# (strings are compared directly; other values with the equality of JSON values)
+function _jsenumok(::Type{T}, value) where {T <: AbstractSchemaEnum}
     vals = _enumvalues(T)
-    # (strings are compared directly; other values with the equality of JSON values)
-    ok = value isa AbstractString ? any(v -> v isa AbstractString && v == value, vals) :
-                                    any(v -> _jseq(v, value), vals)
-    ok || _jsfail("invalid value $(repr(value)) for `$(_jsname(T))`; allowed values are $(join(repr.(vals), ", "))")
+    return value isa AbstractString ? any(v -> v isa AbstractString && v == value, vals) :
+                                      any(v -> _jseq(v, value), vals)
+end
+
+_jsenummsg(::Type{T}, value) where {T <: AbstractSchemaEnum} =
+    "invalid value $(repr(value)) for `$(_jsname(T))`; allowed values are $(join(repr.(_enumvalues(T)), ", "))"
+
+function _jscheckenum(::Type{T}, value) where {T <: AbstractSchemaEnum}
+    _jsenumok(T, value) || _jsfail(_jsenummsg(T, value))
     return value
 end
 
@@ -653,6 +702,17 @@ function _jsvalidann(s, x)
     s === true && return _jsok()
     s === false && return _jsbad("no value is allowed here")
     s isa AbstractDict || return _jsok()
+    # A value of a generated type (from a field of a generated struct) is valid against
+    # `{"\$type": "Name"}` when it is a value of that type. It is kept as it is through
+    # `oneOf`, `anyOf` and `allOf`, and converted to its JSON form for anything else.
+    if x isa AbstractSchemaObject
+        if haskey(s, "\$type") && length(s) == 1
+            x isa getfield(@__MODULE__, Symbol(s["\$type"])) && return _jsok(_jskeys(x))
+            x = _jsto(x)
+        elseif !all(in(("oneOf", "anyOf", "allOf")), keys(s))
+            x = _jsto(x)
+        end
+    end
     props = Set{String}()
     items = Set{Int}()
     addann!(ann) = (union!(props, ann[2]); union!(items, ann[3]))
@@ -660,6 +720,8 @@ function _jsvalidann(s, x)
     if haskey(s, "\$type")
         # a generated type: the value must be convertible to it, which checks all of it
         T = getfield(@__MODULE__, Symbol(s["\$type"]))
+        msg = x isa AbstractDict ? _jsmismatch(T, x) : nothing
+        msg === nothing || return _jsbad(msg)
         try
             _jsfrom(T, x)
         catch err
@@ -734,18 +796,20 @@ function _jsvalidann(s, x)
         for k in get(s, "required", ())
             haskey(x, k) || return _jsbad("missing required property `$k`")
         end
-        defined = get(s, "properties", Dict{String, Any}())
-        patterns = get(s, "patternProperties", Dict{String, Any}())
+        defined = get(s, "properties", nothing)
+        patterns = get(s, "patternProperties", nothing)
         extra = get(s, "additionalProperties", nothing)
+        names = get(s, "propertyNames", nothing)
+        (defined === nothing && patterns === nothing && extra === nothing && names === nothing) ||
         for (k, v) in x
             k = String(k)
             matched = false
-            if haskey(defined, k)
+            if defined !== nothing && haskey(defined, k)
                 matched = true
                 err = _jsvalid(defined[k], v)
                 err === nothing || return _jsbad("property `$k`: $err")
             end
-            for (p, sub) in patterns
+            for (p, sub) in something(patterns, ())
                 occursin(_jsregex(p), k) || continue
                 matched = true
                 err = _jsvalid(sub, v)
@@ -757,17 +821,19 @@ function _jsvalidann(s, x)
                 matched = true
             end
             matched && push!(props, k)
-            if haskey(s, "propertyNames")
-                err = _jsvalid(s["propertyNames"], k)
+            if names !== nothing
+                err = _jsvalid(names, k)
                 err === nothing || return _jsbad("property name `$k`: $err")
             end
         end
+        (haskey(s, "dependentRequired") || haskey(s, "dependencies")) &&
         for (k, deps) in merge(get(s, "dependentRequired", Dict()), filter(p -> p[2] isa AbstractVector, get(s, "dependencies", Dict())))
             haskey(x, k) || continue
             for d in deps
                 haskey(x, d) || return _jsbad("property `$k` requires property `$d`")
             end
         end
+        (haskey(s, "dependentSchemas") || haskey(s, "dependencies")) &&
         for (k, sub) in merge(get(s, "dependentSchemas", Dict()), filter(p -> !(p[2] isa AbstractVector), get(s, "dependencies", Dict())))
             haskey(x, k) || continue
             ann = _jsvalidann(sub, x)
@@ -855,6 +921,20 @@ _jsto(x::AbstractSchemaEnum) = x.value
 _jsto(x::AbstractVector) = Any[_jsto(el) for el in x]
 _jsto(x::Tuple) = Any[_jsto(el) for el in x]
 _jsto(x::AbstractDict) = JSON.Object{String, Any}(String(k) => _jsto(v) for (k, v) in x)
+
+# the JSON names of the properties of a value of a generated type
+function _jskeys(x::T) where {T <: AbstractSchemaObject}
+    spec = _specs(T)
+    ks = Set{String}()
+    for f in spec.fields
+        v = getfield(x, f.name)
+        (v !== nothing || (f.required && f.nullable)) && push!(ks, f.key)
+    end
+    if spec.extra !== nothing
+        union!(ks, keys(getfield(x, spec.extra)))
+    end
+    return ks
+end
 
 function _jsto(x::T) where {T <: AbstractSchemaObject}
     obj = JSON.Object{String, Any}()
