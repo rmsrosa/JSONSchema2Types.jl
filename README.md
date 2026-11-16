@@ -72,7 +72,10 @@ The generated module exports:
 * `setfields(x; kwargs...)`, a copy of a value with some fields changed (the structs also
   work with Accessors.jl's `@set`);
 * `SchemaValidationError`, the error thrown when a value does not conform to the schema;
-* `check_formats!(flag)` to turn the validation of `format` off or on (see below).
+* `check_formats!(flag)` to turn the validation of `format` off or on (see below);
+* `checks!(flag)` and `with_checks(f, flag)` to turn the checks of the constraints off or
+  on, and `validate(x)`, `violations(x)` and `isvalid(x)` to check a value later (see
+  [Turning the checks off](#turning-the-checks-off)).
 
 ### Options
 
@@ -92,6 +95,8 @@ The generated module exports:
   values are written back in a normalized form.
 * `use_defaults`: optional fields default to the `default` of their schema, instead of
   `nothing`. Defaults to `false`, since the defaults are then written out.
+* `checks`: whether the checks of the constraints are on when the module is loaded.
+  Defaults to `true` (see [Turning the checks off](#turning-the-checks-off)).
 
 ### Splitting into several files
 
@@ -157,6 +162,29 @@ them. These keywords are:
   (`idn-hostname` loosely: the IDNA2008 rules are not), and other formats are ignored. JSON Schema treats `format` as an
   annotation by default, so the checks can be turned off with `check_formats!(false)` (and
   back on with `check_formats!(true)`).
+
+### Turning the checks off
+
+For speed, the checks of the constraints of the schema can be turned off with
+`checks!(false)`, or only for some code with `with_checks(false) do ... end` (or in the
+generated module from the start, with `generate_module(...; checks = false)`). Values are
+then only converted to the types of their fields, which still enforce the structure of
+the schema (the types of the properties, required properties, enumeration types), but not
+its constraints (`minimum`, `pattern`, the values of enumerations, `oneOf`...). A value
+read into a union of generated types is still checked, to choose its type.
+
+Values can be checked later, e.g. after processing them, with `validate(x)`, which throws a
+`SchemaValidationError` listing the problems found in `x` and the values nested in it, with
+their locations (`violations(x)` returns them, and `isvalid(x)` says whether there are
+none). With the checks off, `tojson` and `writejson` validate before writing (or not, with
+`validate = false`):
+
+```julia
+checks!(false)
+recipe2 = setfields(recipe; batch_size = (unit = "litre", value = 20))   # not checked
+violations(recipe2)   # ["batch_size.unit: invalid value \"litre\" for `VolumeUnitType`; ..."]
+writejson("recipe.json", recipe2)                                       # SchemaValidationError
+```
 
 ### Type names
 

@@ -6,6 +6,7 @@ module BeerJSONTypes
 using JSON
 
 export fromjson, tojson, readjson, writejson, fromdict, todict, setfields, check_formats!
+export validate, violations, checks!, with_checks
 export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError
 export TimeUnitType, GravityUnitType, AcidityUnitType, PercentUnitType, ColorUnitType, DiastaticPowerUnitType
 export VolumeUnitType, MassUnitType, ViscosityUnitType, ConcentrationUnitType, UnitUnitType, TemperatureUnitType

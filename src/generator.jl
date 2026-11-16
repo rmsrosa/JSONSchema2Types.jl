@@ -106,6 +106,7 @@ mutable struct Generator
     typed_formats::Bool                            # translate some string formats into Julia types
     used_formats::Bool                             # whether any typed format was used
     use_defaults::Bool                             # optional fields default to the schema `default`
+    checks::Bool                                   # the checks of the constraints are on by default
     types::Dict{String, Union{ObjectDef, EnumDef}} # location => definition
     names::Dict{String, String}                    # location => type name
     taken::Dict{String, String}                    # type name => location
@@ -116,7 +117,7 @@ end
 
 Generator(root_file::String, root_name::String) = Generator(
     root_file, root_name, Dict{String, Any}(), Dict{String, Tuple{String, String}}(),
-    Dict{String, Vector{Pair{String, String}}}(), Dict{String, String}(), nothing, false, false, false,
+    Dict{String, Vector{Pair{String, String}}}(), Dict{String, String}(), nothing, false, false, false, true,
     Dict{String, Union{ObjectDef, EnumDef}}(),
     Dict{String, String}(), Dict{String, String}(), String[], Dict{String, String}(),
     Set{String}(),
@@ -1406,7 +1407,7 @@ end
 
 """
     generate_module(schema_file, output; root_name, module_name, schemas, split, type_names,
-                    download, typed_formats, use_defaults) -> String
+                    download, typed_formats, use_defaults, checks) -> String
 
 Read the JSON Schema in `schema_file` (and every schema file it references through
 `\$ref`) and write to `output_file` a Julia module defining types for all the objects and
@@ -1431,6 +1432,11 @@ stored as `Dates.Date`, `Dates.DateTime` (in UTC) and `UUIDs.UUID`. With
 `use_defaults = true`, optional fields default to the `default` given in the schema, instead
 of `nothing`. Both are off by default, since documents are then written back in a different
 form (normalized dates, defaults filled in).
+
+With `checks = false`, the module starts with the checks of the constraints of the schema
+turned off, for speed: values are only converted to the types of their fields, and checked
+by `validate(x)`, and by `tojson` and `writejson` before writing. The checks can be turned
+on and off at any time with `checks!(flag)` and `with_checks(f, flag)`.
 
 The name of the root type is `root_name`, which defaults to the `title` of the schema or
 else to the name of the schema file. The module name defaults to the root type name
@@ -1461,11 +1467,13 @@ function generate_module(
     download::Union{Bool, Function} = false,
     typed_formats::Bool = false,
     use_defaults::Bool = false,
+    checks::Bool = true,
 )
     root_file = abspath(normpath(schema_file))
     gen = Generator(root_file, "")
     gen.typed_formats = typed_formats
     gen.use_defaults = use_defaults
+    gen.checks = checks
     gen.fetch = download === true ? download_schema : download === false ? nothing : download
     for (k, v) in type_names
         key = startswith(k, "#") ? basename(root_file) * k : String(k)
@@ -1553,6 +1561,7 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
     println(io, "using JSON")
     println(io)
     println(io, "export fromjson, tojson, readjson, writejson, fromdict, todict, setfields, check_formats!")
+    println(io, "export validate, violations, checks!, with_checks")
     println(io, "export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError")
     for chunk in Iterators.partition(names, 6)
         println(io, "export ", join(chunk, ", "))
@@ -1595,6 +1604,12 @@ function generate_files(gen::Generator, module_name::String, root_type::TypeRef,
         println(io)
         println(io, "# constraints on the root of the schema, checked when reading a document")
         println(io, "_ROOT_CONSTRAINTS[] = ", constraints_literal(root_constraints))
+    end
+    if !gen.checks
+        println(io)
+        println(io, "# generated with `checks = false`: the constraints of the schema are checked by")
+        println(io, "# `validate` (and when writing), not when values are created; see `checks!`")
+        println(io, "checks!(false)")
     end
     println(io)
     println(io, "end # module ", module_name)
