@@ -57,7 +57,7 @@ end
 FermentationStepType(; kwargs...) = FermentationStepType{Int64, Float64}(; kwargs...)
 FermentationStepType{I, T}(name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel) where {I <: Integer, T <: Real} = FermentationStepType{I, T}(; name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel)
 FermentationStepType(name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel) = FermentationStepType{_jsnumbertypes(name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel)...}(; name, description, start_temperature, end_temperature, step_time, free_rise, start_gravity, end_gravity, start_ph, end_ph, vessel)
-_SPECS[FermentationStepType] = (
+const _SPEC_FermentationStepType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :description, key = "description", required = false, nullable = false, constraints = nothing),
@@ -77,4 +77,6 @@ _SPECS[FermentationStepType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:FermentationStepType}) = _SPEC_FermentationStepType
+_SPECS[FermentationStepType] = _SPEC_FermentationStepType
 

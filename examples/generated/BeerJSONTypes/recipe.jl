@@ -12,7 +12,9 @@ struct RecipeTypeEnum <: AbstractSchemaEnum
     value::String
     RecipeTypeEnum(value) = new(_jscheckenum(RecipeTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[RecipeTypeEnum] = (values = Any["cider", "kombucha", "soda", "other", "mead", "wine", "extract", "partial mash", "all grain"],)
+const _VALUES_RecipeTypeEnum = ("cider", "kombucha", "soda", "other", "mead", "wine", "extract", "partial mash", "all grain")
+_enumvalues(::Type{RecipeTypeEnum}) = _VALUES_RecipeTypeEnum
+_SPECS[RecipeTypeEnum] = (values = _VALUES_RecipeTypeEnum,)
 
 """
     EfficiencyType(; kwargs...)
@@ -47,7 +49,7 @@ end
 EfficiencyType(; kwargs...) = EfficiencyType{Int64, Float64}(; kwargs...)
 EfficiencyType{I, T}(conversion, lauter, mash, brewhouse) where {I <: Integer, T <: Real} = EfficiencyType{I, T}(; conversion, lauter, mash, brewhouse)
 EfficiencyType(conversion, lauter, mash, brewhouse) = EfficiencyType{_jsnumbertypes(conversion, lauter, mash, brewhouse)...}(; conversion, lauter, mash, brewhouse)
-_SPECS[EfficiencyType] = (
+const _SPEC_EfficiencyType = (
     fields = (
         (name = :conversion, key = "conversion", required = false, nullable = false, constraints = nothing),
         (name = :lauter, key = "lauter", required = false, nullable = false, constraints = nothing),
@@ -60,6 +62,8 @@ _SPECS[EfficiencyType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:EfficiencyType}) = _SPEC_EfficiencyType
+_SPECS[EfficiencyType] = _SPEC_EfficiencyType
 
 """
     IngredientsType(; kwargs...)
@@ -95,7 +99,7 @@ end
 IngredientsType(; kwargs...) = IngredientsType{Int64, Float64}(; kwargs...)
 IngredientsType{I, T}(fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions) where {I <: Integer, T <: Real} = IngredientsType{I, T}(; fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions)
 IngredientsType(fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions) = IngredientsType{_jsnumbertypes(fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions)...}(; fermentable_additions, hop_additions, miscellaneous_additions, culture_additions, water_additions)
-_SPECS[IngredientsType] = (
+const _SPEC_IngredientsType = (
     fields = (
         (name = :fermentable_additions, key = "fermentable_additions", required = true, nullable = false, constraints = nothing),
         (name = :hop_additions, key = "hop_additions", required = false, nullable = false, constraints = nothing),
@@ -109,6 +113,8 @@ _SPECS[IngredientsType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:IngredientsType}) = _SPEC_IngredientsType
+_SPECS[IngredientsType] = _SPEC_IngredientsType
 
 """
     TasteType(; kwargs...)
@@ -135,7 +141,7 @@ end
 TasteType(; kwargs...) = TasteType{Int64, Float64}(; kwargs...)
 TasteType{I, T}(notes, rating) where {I <: Integer, T <: Real} = TasteType{I, T}(; notes, rating)
 TasteType(notes, rating) = TasteType{_jsnumbertypes(notes, rating)...}(; notes, rating)
-_SPECS[TasteType] = (
+const _SPEC_TasteType = (
     fields = (
         (name = :notes, key = "notes", required = true, nullable = false, constraints = nothing),
         (name = :rating, key = "rating", required = true, nullable = false, constraints = nothing),
@@ -146,6 +152,8 @@ _SPECS[TasteType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:TasteType}) = _SPEC_TasteType
+_SPECS[TasteType] = _SPEC_TasteType
 
 """
     RecipeType(; kwargs...)
@@ -240,7 +248,7 @@ end
 RecipeType(; kwargs...) = RecipeType{Int64, Float64}(; kwargs...)
 RecipeType{I, T}(name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint) where {I <: Integer, T <: Real} = RecipeType{I, T}(; name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint)
 RecipeType(name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint) = RecipeType{_jsnumbertypes(name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint)...}(; name, type, author, coauthor, created, batch_size, efficiency, style, ingredients, mash, notes, original_gravity, final_gravity, alcohol_by_volume, ibu_estimate, color_estimate, beer_pH, carbonation, apparent_attenuation, fermentation, packaging, boil, taste, calories_per_pint)
-_SPECS[RecipeType] = (
+const _SPEC_RecipeType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = true, nullable = false, constraints = nothing),
@@ -273,4 +281,6 @@ _SPECS[RecipeType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:RecipeType}) = _SPEC_RecipeType
+_SPECS[RecipeType] = _SPEC_RecipeType
 

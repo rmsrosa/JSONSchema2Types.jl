@@ -69,7 +69,7 @@ end
 WaterBase(; kwargs...) = WaterBase{Int64, Float64}(; kwargs...)
 WaterBase{I, T}(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra) where {I <: Integer, T <: Real} = WaterBase{I, T}(; name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra)
 WaterBase(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra) = WaterBase{_jsnumbertypes(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra)...}(; name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, _extra)
-_SPECS[WaterBase] = (
+const _SPEC_WaterBase = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :producer, key = "producer", required = false, nullable = false, constraints = nothing),
@@ -92,6 +92,8 @@ _SPECS[WaterBase] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:WaterBase}) = _SPEC_WaterBase
+_SPECS[WaterBase] = _SPEC_WaterBase
 
 """
     WaterAdditionType(; kwargs...)
@@ -162,7 +164,7 @@ end
 WaterAdditionType(; kwargs...) = WaterAdditionType{Int64, Float64}(; kwargs...)
 WaterAdditionType{I, T}(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra) where {I <: Integer, T <: Real} = WaterAdditionType{I, T}(; name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra)
 WaterAdditionType(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra) = WaterAdditionType{_jsnumbertypes(name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra)...}(; name, producer, calcium, bicarbonate, carbonate, potassium, iron, nitrate, nitrite, flouride, sulfate, chloride, sodium, magnesium, amount, _extra)
-_SPECS[WaterAdditionType] = (
+const _SPEC_WaterAdditionType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :producer, key = "producer", required = false, nullable = false, constraints = nothing),
@@ -186,4 +188,6 @@ _SPECS[WaterAdditionType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:WaterAdditionType}) = _SPEC_WaterAdditionType
+_SPECS[WaterAdditionType] = _SPEC_WaterAdditionType
 

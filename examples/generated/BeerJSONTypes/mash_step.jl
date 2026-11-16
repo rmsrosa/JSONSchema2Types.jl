@@ -12,7 +12,9 @@ struct MashStepTypeEnum <: AbstractSchemaEnum
     value::String
     MashStepTypeEnum(value) = new(_jscheckenum(MashStepTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[MashStepTypeEnum] = (values = Any["infusion", "temperature", "decoction", "souring mash", "souring wort", "drain mash tun", "sparge"],)
+const _VALUES_MashStepTypeEnum = ("infusion", "temperature", "decoction", "souring mash", "souring wort", "drain mash tun", "sparge")
+_enumvalues(::Type{MashStepTypeEnum}) = _VALUES_MashStepTypeEnum
+_SPECS[MashStepTypeEnum] = (values = _VALUES_MashStepTypeEnum,)
 
 """
     MashStepType(; kwargs...)
@@ -71,7 +73,7 @@ end
 MashStepType(; kwargs...) = MashStepType{Int64, Float64}(; kwargs...)
 MashStepType{I, T}(name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph) where {I <: Integer, T <: Real} = MashStepType{I, T}(; name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph)
 MashStepType(name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph) = MashStepType{_jsnumbertypes(name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph)...}(; name, type, amount, step_temperature, step_time, ramp_time, end_temperature, description, water_grain_ratio, infuse_temperature, start_ph, end_ph)
-_SPECS[MashStepType] = (
+const _SPEC_MashStepType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = true, nullable = false, constraints = nothing),
@@ -92,4 +94,6 @@ _SPECS[MashStepType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:MashStepType}) = _SPEC_MashStepType
+_SPECS[MashStepType] = _SPEC_MashStepType
 

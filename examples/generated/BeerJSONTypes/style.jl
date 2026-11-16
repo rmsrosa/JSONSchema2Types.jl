@@ -12,7 +12,9 @@ struct StyleCategories <: AbstractSchemaEnum
     value::String
     StyleCategories(value) = new(_jscheckenum(StyleCategories, _jsfrom(String, value)))
 end
-_SPECS[StyleCategories] = (values = Any["beer", "cider", "kombucha", "mead", "other", "soda", "wine"],)
+const _VALUES_StyleCategories = ("beer", "cider", "kombucha", "mead", "other", "soda", "wine")
+_enumvalues(::Type{StyleCategories}) = _VALUES_StyleCategories
+_SPECS[StyleCategories] = (values = _VALUES_StyleCategories,)
 
 """
     StyleType(; kwargs...)
@@ -98,7 +100,7 @@ end
 StyleType(; kwargs...) = StyleType{Int64, Float64}(; kwargs...)
 StyleType{I, T}(name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra) where {I <: Integer, T <: Real} = StyleType{I, T}(; name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra)
 StyleType(name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra) = StyleType{_jsnumbertypes(name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra)...}(; name, category, category_number, style_letter, style_guide, type, original_gravity, final_gravity, international_bitterness_units, color, carbonation, alcohol_by_volume, notes, aroma, appearance, flavor, mouthfeel, overall_impression, ingredients, examples, _extra)
-_SPECS[StyleType] = (
+const _SPEC_StyleType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :category, key = "category", required = true, nullable = false, constraints = nothing),
@@ -127,6 +129,8 @@ _SPECS[StyleType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:StyleType}) = _SPEC_StyleType
+_SPECS[StyleType] = _SPEC_StyleType
 
 """
     RecipeStyleType(; kwargs...)
@@ -170,7 +174,7 @@ end
 RecipeStyleType(; kwargs...) = RecipeStyleType{Int64, Float64}(; kwargs...)
 RecipeStyleType{I, T}(name, category, category_number, style_letter, style_guide, type, _extra) where {I <: Integer, T <: Real} = RecipeStyleType{I, T}(; name, category, category_number, style_letter, style_guide, type, _extra)
 RecipeStyleType(name, category, category_number, style_letter, style_guide, type, _extra) = RecipeStyleType{_jsnumbertypes(name, category, category_number, style_letter, style_guide, type, _extra)...}(; name, category, category_number, style_letter, style_guide, type, _extra)
-_SPECS[RecipeStyleType] = (
+const _SPEC_RecipeStyleType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :category, key = "category", required = true, nullable = false, constraints = nothing),
@@ -185,4 +189,6 @@ _SPECS[RecipeStyleType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:RecipeStyleType}) = _SPEC_RecipeStyleType
+_SPECS[RecipeStyleType] = _SPEC_RecipeStyleType
 

@@ -39,7 +39,7 @@ end
 PackagingProcedureType(; kwargs...) = PackagingProcedureType{Int64, Float64}(; kwargs...)
 PackagingProcedureType{I, T}(name, packaged_volume, description, notes, packaging_vessels) where {I <: Integer, T <: Real} = PackagingProcedureType{I, T}(; name, packaged_volume, description, notes, packaging_vessels)
 PackagingProcedureType(name, packaged_volume, description, notes, packaging_vessels) = PackagingProcedureType{_jsnumbertypes(name, packaged_volume, description, notes, packaging_vessels)...}(; name, packaged_volume, description, notes, packaging_vessels)
-_SPECS[PackagingProcedureType] = (
+const _SPEC_PackagingProcedureType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :packaged_volume, key = "packaged_volume", required = false, nullable = false, constraints = nothing),
@@ -53,4 +53,6 @@ _SPECS[PackagingProcedureType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:PackagingProcedureType}) = _SPEC_PackagingProcedureType
+_SPECS[PackagingProcedureType] = _SPEC_PackagingProcedureType
 

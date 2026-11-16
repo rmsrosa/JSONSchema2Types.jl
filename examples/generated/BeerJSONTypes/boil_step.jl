@@ -14,7 +14,9 @@ struct BoilStepChillingTypeEnum <: AbstractSchemaEnum
     value::String
     BoilStepChillingTypeEnum(value) = new(_jscheckenum(BoilStepChillingTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[BoilStepChillingTypeEnum] = (values = Any["batch", "inline"],)
+const _VALUES_BoilStepChillingTypeEnum = ("batch", "inline")
+_enumvalues(::Type{BoilStepChillingTypeEnum}) = _VALUES_BoilStepChillingTypeEnum
+_SPECS[BoilStepChillingTypeEnum] = (values = _VALUES_BoilStepChillingTypeEnum,)
 
 """
     BoilStepType(; kwargs...)
@@ -70,7 +72,7 @@ end
 BoilStepType(; kwargs...) = BoilStepType{Int64, Float64}(; kwargs...)
 BoilStepType{I, T}(name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type) where {I <: Integer, T <: Real} = BoilStepType{I, T}(; name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type)
 BoilStepType(name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type) = BoilStepType{_jsnumbertypes(name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type)...}(; name, description, start_temperature, end_temperature, ramp_time, step_time, start_gravity, end_gravity, start_ph, end_ph, chilling_type)
-_SPECS[BoilStepType] = (
+const _SPEC_BoilStepType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :description, key = "description", required = false, nullable = false, constraints = nothing),
@@ -90,4 +92,6 @@ _SPECS[BoilStepType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:BoilStepType}) = _SPEC_BoilStepType
+_SPECS[BoilStepType] = _SPEC_BoilStepType
 

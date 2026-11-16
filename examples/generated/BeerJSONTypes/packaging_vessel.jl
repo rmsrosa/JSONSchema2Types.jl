@@ -12,7 +12,9 @@ struct PackagingVesselTypeEnum <: AbstractSchemaEnum
     value::String
     PackagingVesselTypeEnum(value) = new(_jscheckenum(PackagingVesselTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[PackagingVesselTypeEnum] = (values = Any["keg", "bottle", "cask", "tank", "firkin", "other"],)
+const _VALUES_PackagingVesselTypeEnum = ("keg", "bottle", "cask", "tank", "firkin", "other")
+_enumvalues(::Type{PackagingVesselTypeEnum}) = _VALUES_PackagingVesselTypeEnum
+_SPECS[PackagingVesselTypeEnum] = (values = _VALUES_PackagingVesselTypeEnum,)
 
 """
     PackagingVesselType(; kwargs...)
@@ -77,7 +79,7 @@ end
 PackagingVesselType(; kwargs...) = PackagingVesselType{Int64, Float64}(; kwargs...)
 PackagingVesselType{I, T}(name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity) where {I <: Integer, T <: Real} = PackagingVesselType{I, T}(; name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity)
 PackagingVesselType(name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity) = PackagingVesselType{_jsnumbertypes(name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity)...}(; name, type, description, package_date, start_temperature, end_temperature, step_time, start_gravity, end_gravity, start_ph, end_ph, carbonation, vessel_volume, vessel_quantity)
-_SPECS[PackagingVesselType] = (
+const _SPEC_PackagingVesselType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = false, nullable = false, constraints = nothing),
@@ -100,4 +102,6 @@ _SPECS[PackagingVesselType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:PackagingVesselType}) = _SPEC_PackagingVesselType
+_SPECS[PackagingVesselType] = _SPEC_PackagingVesselType
 

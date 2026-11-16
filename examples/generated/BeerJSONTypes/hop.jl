@@ -12,7 +12,9 @@ struct HopVarietyFormEnum <: AbstractSchemaEnum
     value::String
     HopVarietyFormEnum(value) = new(_jscheckenum(HopVarietyFormEnum, _jsfrom(String, value)))
 end
-_SPECS[HopVarietyFormEnum] = (values = Any["extract", "leaf", "leaf (wet)", "pellet", "powder", "plug"],)
+const _VALUES_HopVarietyFormEnum = ("extract", "leaf", "leaf (wet)", "pellet", "powder", "plug")
+_enumvalues(::Type{HopVarietyFormEnum}) = _VALUES_HopVarietyFormEnum
+_SPECS[HopVarietyFormEnum] = (values = _VALUES_HopVarietyFormEnum,)
 
 """
     VarietyInformationTypeEnum(value)
@@ -23,7 +25,9 @@ struct VarietyInformationTypeEnum <: AbstractSchemaEnum
     value::String
     VarietyInformationTypeEnum(value) = new(_jscheckenum(VarietyInformationTypeEnum, _jsfrom(String, value)))
 end
-_SPECS[VarietyInformationTypeEnum] = (values = Any["aroma", "bittering", "flavor", "aroma/bittering", "bittering/flavor", "aroma/flavor", "aroma/bittering/flavor"],)
+const _VALUES_VarietyInformationTypeEnum = ("aroma", "bittering", "flavor", "aroma/bittering", "bittering/flavor", "aroma/flavor", "aroma/bittering/flavor")
+_enumvalues(::Type{VarietyInformationTypeEnum}) = _VALUES_VarietyInformationTypeEnum
+_SPECS[VarietyInformationTypeEnum] = (values = _VALUES_VarietyInformationTypeEnum,)
 
 """
     IBUMethodType(value)
@@ -34,7 +38,9 @@ struct IBUMethodType <: AbstractSchemaEnum
     value::String
     IBUMethodType(value) = new(_jscheckenum(IBUMethodType, _jsfrom(String, value)))
 end
-_SPECS[IBUMethodType] = (values = Any["Rager", "Tinseth", "Garetz", "Other"],)
+const _VALUES_IBUMethodType = ("Rager", "Tinseth", "Garetz", "Other")
+_enumvalues(::Type{IBUMethodType}) = _VALUES_IBUMethodType
+_SPECS[IBUMethodType] = (values = _VALUES_IBUMethodType,)
 
 """
     OilContentType(; kwargs...)
@@ -102,7 +108,7 @@ end
 OilContentType(; kwargs...) = OilContentType{Int64, Float64}(; kwargs...)
 OilContentType{I, T}(total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra) where {I <: Integer, T <: Real} = OilContentType{I, T}(; total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra)
 OilContentType(total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra) = OilContentType{_jsnumbertypes(total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra)...}(; total_oil_ml_per_100g, humulene, caryophyllene, cohumulone, myrcene, farnesene, geraniol, b_pinene, linalool, limonene, nerol, pinene, polyphenols, xanthohumol, _extra)
-_SPECS[OilContentType] = (
+const _SPEC_OilContentType = (
     fields = (
         (name = :total_oil_ml_per_100g, key = "total_oil_ml_per_100g", required = false, nullable = false, constraints = nothing),
         (name = :humulene, key = "humulene", required = false, nullable = false, constraints = nothing),
@@ -125,6 +131,8 @@ _SPECS[OilContentType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:OilContentType}) = _SPEC_OilContentType
+_SPECS[OilContentType] = _SPEC_OilContentType
 
 """
     HopInventoryType(; kwargs...)
@@ -148,7 +156,7 @@ end
 HopInventoryType(; kwargs...) = HopInventoryType{Int64, Float64}(; kwargs...)
 HopInventoryType{I, T}(amount) where {I <: Integer, T <: Real} = HopInventoryType{I, T}(; amount)
 HopInventoryType(amount) = HopInventoryType{_jsnumbertypes(amount)...}(; amount)
-_SPECS[HopInventoryType] = (
+const _SPEC_HopInventoryType = (
     fields = (
         (name = :amount, key = "amount", required = false, nullable = false, constraints = (schema = JSON.parse("""
             {
@@ -169,6 +177,8 @@ _SPECS[HopInventoryType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:HopInventoryType}) = _SPEC_HopInventoryType
+_SPECS[HopInventoryType] = _SPEC_HopInventoryType
 
 """
     VarietyInformation(; kwargs...)
@@ -236,7 +246,7 @@ end
 VarietyInformation(; kwargs...) = VarietyInformation{Int64, Float64}(; kwargs...)
 VarietyInformation{I, T}(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra) where {I <: Integer, T <: Real} = VarietyInformation{I, T}(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra)
 VarietyInformation(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra) = VarietyInformation{_jsnumbertypes(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra)...}(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, type, notes, percent_lost, substitutes, oil_content, inventory, _extra)
-_SPECS[VarietyInformation] = (
+const _SPEC_VarietyInformation = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :producer, key = "producer", required = false, nullable = false, constraints = nothing),
@@ -259,6 +269,8 @@ _SPECS[VarietyInformation] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:VarietyInformation}) = _SPEC_VarietyInformation
+_SPECS[VarietyInformation] = _SPEC_VarietyInformation
 
 """
     HopAdditionType(; kwargs...)
@@ -314,7 +326,7 @@ end
 HopAdditionType(; kwargs...) = HopAdditionType{Int64, Float64}(; kwargs...)
 HopAdditionType{I, T}(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra) where {I <: Integer, T <: Real} = HopAdditionType{I, T}(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
 HopAdditionType(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra) = HopAdditionType{_jsnumbertypes(name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)...}(; name, producer, product_id, origin, year, form, alpha_acid, beta_acid, timing, amount, _extra)
-_SPECS[HopAdditionType] = (
+const _SPEC_HopAdditionType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :producer, key = "producer", required = false, nullable = false, constraints = nothing),
@@ -344,6 +356,8 @@ _SPECS[HopAdditionType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:HopAdditionType}) = _SPEC_HopAdditionType
+_SPECS[HopAdditionType] = _SPEC_HopAdditionType
 
 """
     IBUEstimateType(; kwargs...)
@@ -372,7 +386,7 @@ end
 IBUEstimateType(; kwargs...) = IBUEstimateType{Int64, Float64}(; kwargs...)
 IBUEstimateType{I, T}(method, _extra) where {I <: Integer, T <: Real} = IBUEstimateType{I, T}(; method, _extra)
 IBUEstimateType(method, _extra) = IBUEstimateType{_jsnumbertypes(method, _extra)...}(; method, _extra)
-_SPECS[IBUEstimateType] = (
+const _SPEC_IBUEstimateType = (
     fields = (
         (name = :method, key = "method", required = false, nullable = false, constraints = nothing),
     ),
@@ -382,4 +396,6 @@ _SPECS[IBUEstimateType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:IBUEstimateType}) = _SPEC_IBUEstimateType
+_SPECS[IBUEstimateType] = _SPEC_IBUEstimateType
 

@@ -275,6 +275,9 @@ The tests include generating the BeerJSON types and checking that every one of t
 official BeerJSON 1.0.1 sample documents (in `test/beerjson-1.0.1-samples`) can be read and
 written back without changes.
 
+Benchmarks of reading, writing, constructing and modifying the generated types are in
+`benchmark/benchmarks.jl` (see the instructions at the top of that file).
+
 ## License
 
 This is licensed under the [MIT License](https://opensource.org/licenses/MIT); see [LICENSE](LICENSE).

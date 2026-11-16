@@ -12,7 +12,9 @@ struct EquipmentFormEnum <: AbstractSchemaEnum
     value::String
     EquipmentFormEnum(value) = new(_jscheckenum(EquipmentFormEnum, _jsfrom(String, value)))
 end
-_SPECS[EquipmentFormEnum] = (values = Any["HLT", "Mash Tun", "Lauter Tun", "Brew Kettle", "Fermenter", "Aging Vessel", "Packaging Vessel"],)
+const _VALUES_EquipmentFormEnum = ("HLT", "Mash Tun", "Lauter Tun", "Brew Kettle", "Fermenter", "Aging Vessel", "Packaging Vessel")
+_enumvalues(::Type{EquipmentFormEnum}) = _VALUES_EquipmentFormEnum
+_SPECS[EquipmentFormEnum] = (values = _VALUES_EquipmentFormEnum,)
 
 """
     EquipmentItemType(; kwargs...)
@@ -71,7 +73,7 @@ end
 EquipmentItemType(; kwargs...) = EquipmentItemType{Int64, Float64}(; kwargs...)
 EquipmentItemType{I, T}(name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra) where {I <: Integer, T <: Real} = EquipmentItemType{I, T}(; name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra)
 EquipmentItemType(name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra) = EquipmentItemType{_jsnumbertypes(name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra)...}(; name, type, form, maximum_volume, loss, grain_absorption_rate, boil_rate_per_hour, drain_rate_per_minute, weight, specific_heat, notes, _extra)
-_SPECS[EquipmentItemType] = (
+const _SPEC_EquipmentItemType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :type, key = "type", required = false, nullable = false, constraints = nothing),
@@ -91,6 +93,8 @@ _SPECS[EquipmentItemType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:EquipmentItemType}) = _SPEC_EquipmentItemType
+_SPECS[EquipmentItemType] = _SPEC_EquipmentItemType
 
 """
     EquipmentType(; kwargs...)
@@ -119,7 +123,7 @@ end
 EquipmentType(; kwargs...) = EquipmentType{Int64, Float64}(; kwargs...)
 EquipmentType{I, T}(name, equipment_items) where {I <: Integer, T <: Real} = EquipmentType{I, T}(; name, equipment_items)
 EquipmentType(name, equipment_items) = EquipmentType{_jsnumbertypes(name, equipment_items)...}(; name, equipment_items)
-_SPECS[EquipmentType] = (
+const _SPEC_EquipmentType = (
     fields = (
         (name = :name, key = "name", required = true, nullable = false, constraints = nothing),
         (name = :equipment_items, key = "equipment_items", required = true, nullable = false, constraints = nothing),
@@ -130,4 +134,6 @@ _SPECS[EquipmentType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:EquipmentType}) = _SPEC_EquipmentType
+_SPECS[EquipmentType] = _SPEC_EquipmentType
 

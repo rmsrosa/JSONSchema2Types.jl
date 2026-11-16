@@ -14,7 +14,9 @@ struct UseType <: AbstractSchemaEnum
     value::String
     UseType(value) = new(_jscheckenum(UseType, _jsfrom(String, value)))
 end
-_SPECS[UseType] = (values = Any["add_to_mash", "add_to_boil", "add_to_fermentation", "add_to_package"],)
+const _VALUES_UseType = ("add_to_mash", "add_to_boil", "add_to_fermentation", "add_to_package")
+_enumvalues(::Type{UseType}) = _VALUES_UseType
+_SPECS[UseType] = (values = _VALUES_UseType,)
 
 """
     TimingType(; kwargs...)
@@ -58,7 +60,7 @@ end
 TimingType(; kwargs...) = TimingType{Int64, Float64}(; kwargs...)
 TimingType{I, T}(time, duration, continuous, specific_gravity, pH, step, use) where {I <: Integer, T <: Real} = TimingType{I, T}(; time, duration, continuous, specific_gravity, pH, step, use)
 TimingType(time, duration, continuous, specific_gravity, pH, step, use) = TimingType{_jsnumbertypes(time, duration, continuous, specific_gravity, pH, step, use)...}(; time, duration, continuous, specific_gravity, pH, step, use)
-_SPECS[TimingType] = (
+const _SPEC_TimingType = (
     fields = (
         (name = :time, key = "time", required = false, nullable = false, constraints = nothing),
         (name = :duration, key = "duration", required = false, nullable = false, constraints = nothing),
@@ -74,4 +76,6 @@ _SPECS[TimingType] = (
     maxProperties = nothing,
     schema = nothing,
 )
+_specs(::Type{<:TimingType}) = _SPEC_TimingType
+_SPECS[TimingType] = _SPEC_TimingType
 

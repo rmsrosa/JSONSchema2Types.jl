@@ -1285,7 +1285,10 @@ function emit_enum(io::IO, d::EnumDef)
     println(io, "    value::", d.valuetype)
     println(io, "    ", d.name, "(value) = new(_jscheckenum(", d.name, ", _jsfrom(", d.valuetype, ", value)))")
     println(io, "end")
-    println(io, "_SPECS[", d.name, "] = (values = ", "Any[", join(julia_literal.(d.values), ", "), "],)")
+    # the allowed values, as a constant tuple (fast to check), also recorded in `_SPECS`
+    println(io, "const _VALUES_", d.name, " = (", join(julia_literal.(d.values), ", "), length(d.values) == 1 ? ",)" : ")")
+    println(io, "_enumvalues(::Type{", d.name, "}) = _VALUES_", d.name)
+    println(io, "_SPECS[", d.name, "] = (values = _VALUES_", d.name, ",)")
     println(io)
 end
 
@@ -1382,7 +1385,8 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
     end
 
     # metadata
-    println(io, "_SPECS[", d.name, "] = (")
+    # (a constant, returned by a method specialized on the type, so the checks are type-stable)
+    println(io, "const _SPEC_", d.name, " = (")
     println(io, "    fields = (")
     for f in d.fields
         println(io, "        (name = :", f.name, ", key = ", repr(f.key), ", required = ", f.required,
@@ -1395,6 +1399,8 @@ function emit_struct(io::IO, d::ObjectDef, defined::Set{String})
     println(io, "    maxProperties = ", something(d.max_properties, "nothing"), ",")
     println(io, "    schema = ", schema_literal(d.schema, "    "), ",")
     println(io, ")")
+    println(io, "_specs(::Type{<:", d.name, "}) = _SPEC_", d.name)
+    println(io, "_SPECS[", d.name, "] = _SPEC_", d.name)
     println(io)
 end
 
