@@ -361,6 +361,18 @@ end
                                             "timing": {}, "amount": {"unit": "g", "value": 2}}""")
     @test M.HopAdditionType(getfield.(Ref(hop), fieldnames(M.HopAdditionType))...) == hop
     @test M.setfields(hop; amount = (unit = "kg", value = 1)).amount isa M.MassType
+    # `oneOf` of generated types, checked with values of those types or with JSON objects
+    @test M.setfields(hop; amount = M.VolumeType(unit = "l", value = 1)).amount isa M.VolumeType
+    @test M.setfields(hop; amount = M.MassType(unit = "kg", value = 1)).amount isa M.MassType
+    @test_throws M.SchemaValidationError M.setfields(hop; amount = M.UnitType(unit = "each", value = 1))
+    @test_throws "allowed values are \"mg\"" M.setfields(hop; amount = (unit = "m", value = 1))
+    @test_throws "missing required property `value`" M.setfields(hop; amount = (unit = "g",))
+    @test M._jsvalid(Dict("oneOf" => [Dict("\$type" => "VolumeType"), Dict("\$type" => "MassType")]),
+                     Dict("unit" => "g", "value" => 2)) === nothing
+    @test M._jsvalid(Dict("oneOf" => [Dict("\$type" => "VolumeType"), Dict("\$type" => "MassType")]),
+                     Dict("unit" => "m", "value" => 2)) == "does not match any option of `oneOf`"
+    @test M._jsvalid(Dict("\$type" => "VolumeType"), M.MassType(unit = "g", value = 2)) ==
+          M._jsenummsg(M.VolumeUnitType, "g")
     # constructing and modifying small objects is type stable and does not allocate (not
     # measurable with code coverage on, which changes the compiled code, and on Julia 1.10,
     # forwarding the keyword arguments still allocates a few bytes)
