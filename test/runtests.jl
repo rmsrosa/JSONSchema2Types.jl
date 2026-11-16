@@ -322,6 +322,53 @@ end
     @test Base.invokelatest(N.Event; day = "2026-01-01").day isa Dates.Date
 end
 
+@testset "Turning the checks off" begin
+    acme = joinpath(EXAMPLES, "acme_schemas", "acme_nestedschema.json")
+    A = load_generated(acme)
+    @test A.checks() && A.checks!(false) && !A.checks()    # (returns the previous setting)
+    # values are converted to the types of their fields, but the constraints are not checked
+    p = A.Product(productId = 1, productName = "x", price = -1, tags = ["a", "a"])
+    @test p.price === -1.0 && !isvalid(p)
+    @test A.violations(p) == ["`price` in `Product` must be > 0, got -1.0"]
+    @test_throws "1 value does not conform to the schema" A.validate(p)
+    @test_throws A.SchemaValidationError A.tojson(p)             # validated before writing
+    @test JSON.parse(A.tojson(p; validate = false))["price"] == -1
+    @test_throws A.SchemaValidationError A.writejson(joinpath(mktempdir(), "p.json"), p)
+    # the structure of the schema is still enforced by the types
+    @test_throws UndefKeywordError A.Product(productId = 1, productName = "x")
+    @test_throws A.SchemaValidationError A.Product(productId = 1.5, productName = "x", price = 1)
+    @test_throws A.SchemaValidationError A.fromjson(A.Product, """{"productId": 1, "productName": "x", "price": 1,
+                                                                   "dimensions": {"length": 1, "width": 1}}""")
+    q = A.fromjson(A.Product, """{"productId": 1, "productName": "x", "price": 0, "tags": []}""")
+    @test A.violations(q) == ["`price` in `Product` must be > 0, got 0.0"]  # (the first problem of each value)
+    # back on
+    @test !A.checks!(true)
+    @test_throws A.SchemaValidationError A.Product(productId = 1, productName = "x", price = -1)
+    @test A.with_checks(() -> A.Product(productId = 1, productName = "x", price = -1).price, false) == -1
+    @test A.checks()
+    @test isvalid(A.Product(productId = 1, productName = "x", price = 1)) && A.validate(1) == 1
+
+    # nested values, enumerations, and unions of generated types (still checked to choose one)
+    M = load_generated(joinpath(EXAMPLES, "beerjson-1.0.1", "json", "beer.json"); root_name = "BeerJSON",
+                       checks = false)
+    @test !M.checks()
+    doc = M.readjson(M.RootType, joinpath(SAMPLES, "converted", "punk-ipa-2010-current.json"))
+    @test isvalid(doc) && isempty(M.violations(doc))
+    recipe = only(doc.beerjson.recipes)
+    bad = M.setfields(recipe; batch_size = (unit = "litre", value = 20))
+    @test M.violations(bad) == [M._jsenummsg(M.VolumeUnitType, "litre")] .|> (m -> "batch_size.unit: " * m)
+    baddoc = M.setfields(doc; beerjson = M.setfields(doc.beerjson; recipes = [bad]))
+    @test startswith(only(M.violations(baddoc)), "beerjson.recipes[1].batch_size.unit: invalid value")
+    @test_throws M.SchemaValidationError M.tojson(baddoc)
+    hop = recipe.ingredients.hop_additions[1]
+    @test M.setfields(hop; amount = (unit = "l", value = 1)).amount isa M.VolumeType
+    @test M.setfields(hop; amount = (unit = "kg", value = 1)).amount isa M.MassType
+    @test_throws M.SchemaValidationError M.setfields(hop; amount = (unit = "litre", value = 1))
+    @test !M.checks()                       # (still off after choosing an option of a union)
+    code = read(generate_module(acme, joinpath(mktempdir(), "a.jl"); checks = false), String)
+    @test occursin("\nchecks!(false)\n", code)
+end
+
 @testset "Defaults" begin
     schema = joinpath(@__DIR__, "schemas", "defaults.json")
     # by default, optional fields are `nothing`

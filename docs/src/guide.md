@@ -29,6 +29,8 @@ The generated module only needs JSON.jl. It exports the generated types and:
 | `RootType` | alias for the type of the root of the schema |
 | `SchemaValidationError` | error thrown when a value does not conform to the schema |
 | `check_formats!(flag)` | turn the validation of `format` off or on |
+| `checks!(flag)`, `with_checks(f, flag)` | turn the checks of the constraints off or on |
+| `validate(x)`, `violations(x)`, `isvalid(x)` | check a value, and the values nested in it, later |
 
 ## How a schema is translated
 
@@ -81,6 +83,41 @@ Schema validator checks the JSON form of the values against them:
   annotation by default, so these checks can be turned off with `check_formats!(false)`.
 
 A value that does not conform throws a `SchemaValidationError` that says where and why.
+
+### Turning the checks off
+
+For speed, the checks of the constraints can be turned off with `checks!(false)`, or only
+for some code with `with_checks(false) do ... end`, or from the start, by generating the
+module with `checks = false`. Values are then only converted to the types of their fields.
+These still enforce the structure of the schema: the types of the properties, required
+properties, the properties allowed and the enumeration types. But the constraints
+(`minimum`, `pattern`, the values of enumerations, `minItems`, `oneOf`...) are not
+checked. A JSON value read into a union of generated types (from `oneOf` or `anyOf`) is
+still checked, to choose its type.
+
+The values can be checked later, e.g. after processing them, before saving them:
+
+* `violations(x)` returns the problems found in `x` and in every value nested in it (the
+  first problem of each value), with their locations, e.g.
+  `"recipes[1].batch_size.unit: invalid value \"litre\" for ..."`;
+* `validate(x)` throws a `SchemaValidationError` listing them, if any, and returns `x`;
+* `isvalid(x)` says whether there are none.
+
+With the checks off, `tojson` and `writejson` call `validate` before writing, unless they
+are given `validate = false`.
+
+```julia
+checks!(false)
+recipe2 = setfields(recipe; batch_size = (unit = "litre", value = 20))   # not checked
+isvalid(recipe2)                     # false
+writejson("recipe.json", recipe2)   # SchemaValidationError: 1 value does not conform ...
+checks!(true)
+```
+
+In the BeerJSON example, reading the Punk IPA sample takes about 25% less time with the
+checks off, building a `VolumeType` about 3 times less, and `setfields` on a hop addition
+(whose `amount` is `oneOf` a volume or a mass) about 7 times less. Validating the whole
+document takes about a quarter of the time it takes to read it.
 
 ## Type names
 

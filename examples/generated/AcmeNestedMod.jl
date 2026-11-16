@@ -6,6 +6,7 @@ module AcmeNestedMod
 using JSON
 
 export fromjson, tojson, readjson, writejson, fromdict, todict, setfields, check_formats!
+export validate, violations, checks!, with_checks
 export AbstractSchemaObject, AbstractSchemaEnum, SchemaValidationError
 export ProductDimensions, Product
 export RootType
@@ -44,6 +45,53 @@ end
 Base.showerror(io::IO, e::SchemaValidationError) = print(io, "SchemaValidationError: ", e.msg)
 
 _jsfail(msg) = throw(SchemaValidationError(msg))
+
+# --- Turning the checks off ---
+
+const _CHECKS = Ref(true)
+
+"""
+    checks!(flag::Bool)
+
+Turn on or off the checks of the constraints of the schema when values of the generated
+types are created (by their constructors, [`setfields`](@ref), [`fromjson`](@ref)...).
+They are on by default (unless the module was generated with `checks = false`).
+
+With the checks off, values are only converted to the types of their fields, which still
+enforce the structure of the schema (the types of the properties, required properties,
+the properties allowed, enumeration types), but not its constraints (`minimum`, `pattern`,
+the values of enumerations, `minItems`, `oneOf`...), for speed. Check the values later
+with [`validate`](@ref), which [`tojson`](@ref) and [`writejson`](@ref) call when the
+checks are off. A JSON value read into a union of generated types (from `oneOf` or
+`anyOf`) is still checked, to choose its type.
+
+The setting is global (shared by all tasks); see [`with_checks`](@ref) to change it
+temporarily. Returns the previous setting.
+"""
+checks!(flag::Bool) = (old = _CHECKS[]; _CHECKS[] = flag; old)
+
+"""
+    checks() -> Bool
+
+Whether the checks of the constraints of the schema are on; see [`checks!`](@ref).
+"""
+checks() = _CHECKS[]
+
+"""
+    with_checks(f, flag::Bool)
+
+Call `f()` with the checks of the constraints of the schema turned on or off (see
+[`checks!`](@ref)), and restore the previous setting afterwards:
+`with_checks(false) do ... end`.
+"""
+function with_checks(f, flag::Bool)
+    old = checks!(flag)
+    try
+        return f()
+    finally
+        _CHECKS[] = old
+    end
+end
 
 # name of a type for messages, without the module, e.g. `VolumeType` or `Union{A, B}`
 _jsname(T) = T isa Union ? "Union{" * join(map(_jsname, Base.uniontypes(T)), ", ") * "}" :
@@ -269,6 +317,10 @@ function _jsfromunion(::Type{T}, x) where {T}
     x isa T && return x
     options = Base.uniontypes(T)
     x === nothing && Nothing in options && return nothing
+    # with the checks off, the options are still checked, to choose one
+    if !_CHECKS[] && count(!=(Nothing), options) > 1
+        return with_checks(() -> _jsfromunion(T, x), true)
+    end
     msgs = String[]
     for S in options
         S === Nothing && continue
@@ -342,6 +394,7 @@ required fields are set, the constraints of each field (`minimum`, `pattern`,
 constraints on the object as a whole (`minProperties`, `if`/`then`/`else`...).
 """
 function _jscheck(::Type{T}, values::Tuple, extra) where {T <: AbstractSchemaObject}
+    _CHECKS[] || return nothing
     spec = _specs(T)
     nprops = (extra === nothing ? 0 : length(extra)) + _jscheckfields(T, spec.fields, values)
     spec.minProperties !== nothing && nprops < spec.minProperties &&
@@ -387,6 +440,7 @@ _jsenummsg(::Type{T}, value) where {T <: AbstractSchemaEnum} =
     "invalid value $(repr(value)) for `$(_jsname(T))`; allowed values are $(join(repr.(_enumvalues(T)), ", "))"
 
 function _jscheckenum(::Type{T}, value) where {T <: AbstractSchemaEnum}
+    _CHECKS[] || return value
     _jsenumok(T, value) || _jsfail(_jsenummsg(T, value))
     return value
 end
@@ -1022,7 +1076,7 @@ validating it against the constraints of the schema.
 function fromdict(::Type{T}, x) where {T}
     value = _jsfrom(T, x)
     # the root of the schema may have constraints that its type does not enforce
-    if T === RootType && _ROOT_CONSTRAINTS[] !== nothing
+    if _CHECKS[] && T === RootType && _ROOT_CONSTRAINTS[] !== nothing
         _jsvalidate(value, _ROOT_CONSTRAINTS[], "the document"; null_is_value = true)
     end
     return value
@@ -1100,24 +1154,142 @@ Read the JSON file `filename` into a value of type `T`.
 readjson(::Type{T}, filename::AbstractString) where {T} = fromjson(T, read(filename, String))
 
 """
-    tojson(x; pretty=false)
+    tojson(x; pretty=false, validate=!checks())
 
-Convert `x` into a JSON string.
+Convert `x` into a JSON string. With `validate = true` (the default when the checks are
+off, see [`checks!`](@ref)), `x` is first checked with [`validate`](@ref).
 """
-tojson(x; pretty::Bool = false) = JSON.json(todict(x); pretty)
+function tojson(x; pretty::Bool = false, validate::Bool = !_CHECKS[])
+    validate && _jsvalidateall(x)
+    return JSON.json(todict(x); pretty)
+end
 
 """
-    writejson(filename, x; pretty=true)
+    writejson(filename, x; pretty=true, validate=!checks())
 
-Write `x` as JSON to the file `filename`.
+Write `x` as JSON to the file `filename`. With `validate = true` (the default when the
+checks are off, see [`checks!`](@ref)), `x` is first checked with [`validate`](@ref).
 """
-function writejson(filename::AbstractString, x; pretty::Bool = true)
+function writejson(filename::AbstractString, x; pretty::Bool = true, validate::Bool = !_CHECKS[])
+    json = tojson(x; pretty, validate)
     open(filename, "w") do io
-        write(io, tojson(x; pretty))
+        write(io, json)
         pretty && write(io, "\n")
     end
     return filename
 end
+
+# --- Validation of whole values ---
+
+"""
+    violations(x) -> Vector{String}
+
+Check `x` (a value of a generated type, or a vector, dict or tuple of them), and every
+value nested in it, against all the constraints of the schema, whether or not the checks
+were on when they were created (see [`checks!`](@ref)). Returns the problems found, one per
+invalid value (the first problem of each), with its location, e.g.
+`"batch_size: `value` in `VolumeType` must be ≥ 0, got -1.0"`. The location uses the JSON
+names of the properties and 1-based indices of the items: `recipes[1].batch_size`.
+"""
+function violations(x)
+    out = String[]
+    with_checks(true) do
+        _jscollect!(out, x, Any[])
+        if x isa RootType && _ROOT_CONSTRAINTS[] !== nothing
+            try
+                _jsvalidate(x, _ROOT_CONSTRAINTS[], "the document"; null_is_value = true)
+            catch err
+                err isa SchemaValidationError || rethrow()
+                push!(out, err.msg)
+            end
+        end
+    end
+    return out
+end
+
+"""
+    validate(x)
+
+Check `x` as [`violations`](@ref) does, and throw a [`SchemaValidationError`](@ref) listing
+the problems found, if any. Returns `x`.
+"""
+validate(x) = _jsvalidateall(x)
+
+function _jsvalidateall(x)
+    v = violations(x)
+    isempty(v) && return x
+    n = length(v)
+    _jsfail("$n value$(n == 1 ? " does" : "s do") not conform to the schema:\n  " * join(v, "\n  "))
+end
+
+"""
+    isvalid(x::AbstractSchemaObject) -> Bool
+
+Whether `x`, and every value nested in it, conforms to the schema; see [`violations`](@ref).
+"""
+Base.isvalid(x::Union{AbstractSchemaObject, AbstractSchemaEnum}) = isempty(violations(x))
+
+# The location of a value is kept as a stack of property names and indices, and only
+# written out (e.g. `recipes[1].batch_size`) when a problem is found.
+function _jsat(path::Vector{Any}, msg)
+    isempty(path) && return msg
+    io = IOBuffer()
+    for (i, p) in enumerate(path)
+        p isa Integer ? print(io, "[", p, "]") : print(io, i == 1 ? "" : ".", p)
+    end
+    return String(take!(io)) * ": " * msg
+end
+
+function _jscollect!(out, x::T, path) where {T <: AbstractSchemaObject}
+    spec = _specs(T)
+    values = ntuple(i -> getfield(x, spec.fields[i].name), Val(length(spec.fields)))
+    extra = spec.extra === nothing ? nothing : getfield(x, spec.extra)
+    try
+        _jscheck(T, values, extra)
+    catch err
+        err isa SchemaValidationError || rethrow()
+        push!(out, _jsat(path, err.msg))
+    end
+    _jscollectfields!(out, spec.fields, values, path)
+    extra === nothing || _jscollect!(out, extra, path)
+    return out
+end
+
+# (unrolled over the tuples of field metadata and values, as `_jscheckfields`)
+@inline _jscollectfields!(out, ::Tuple{}, ::Tuple{}, path) = out
+@inline function _jscollectfields!(out, fields::Tuple, values::Tuple, path)
+    v = first(values)
+    if v isa Union{AbstractSchemaObject, AbstractSchemaEnum, AbstractVector, Tuple, AbstractDict}
+        push!(path, first(fields).key)
+        _jscollect!(out, v, path)
+        pop!(path)
+    end
+    return _jscollectfields!(out, Base.tail(fields), Base.tail(values), path)
+end
+
+function _jscollect!(out, x::T, path) where {T <: AbstractSchemaEnum}
+    _jsenumok(T, x.value) || push!(out, _jsat(path, _jsenummsg(T, x.value)))
+    return out
+end
+function _jscollect!(out, x::Union{AbstractVector, Tuple}, path)
+    for (i, v) in enumerate(x)
+        v isa Union{AbstractSchemaObject, AbstractSchemaEnum, AbstractVector, Tuple, AbstractDict} || continue
+        push!(path, i)
+        _jscollect!(out, v, path)
+        pop!(path)
+    end
+    return out
+end
+function _jscollect!(out, x::AbstractDict, path)
+    for (k, v) in x
+        v isa Union{AbstractSchemaObject, AbstractSchemaEnum, AbstractVector, Tuple, AbstractDict} || continue
+        push!(path, String(k))
+        _jscollect!(out, v, path)
+        pop!(path)
+    end
+    return out
+end
+_jscollect!(out, x, path) = out
 
 # ---------------------------------------------------------------------------------------
 # End of runtime support. Generated types follow.
