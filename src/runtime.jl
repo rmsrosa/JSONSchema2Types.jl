@@ -443,7 +443,7 @@ function fromjson(::Type{T}, json::AbstractString) where {T}
     F = _jsfloattype(T)
     # numbers are parsed as `Float64` by JSON.jl, except when another floating-point type
     # is asked for: then they are parsed with full precision
-    return fromdict(T, F === Float64 ? JSON.parse(json) : _jsparsebig(JSON.lazy(json)))
+    return fromdict(T, F === Float64 ? JSON.parse(json) : _jsparsebig(json))
 end
 
 _jsfloattype(::Type) = Float64
@@ -451,23 +451,26 @@ _jsfloattype(::Type{T}) where {T <: AbstractSchemaObject} =
     T isa DataType && length(T.parameters) == 2 ? T.parameters[2] : Float64
 _jsfloattype(::Type{Vector{T}}) where {T} = _jsfloattype(T)
 
-# Materialize a lazily parsed JSON value, parsing non-integer numbers as `BigFloat` (at the
-# current precision of `BigFloat`), so that they can be converted to any real type.
-function _jsparsebig(x)
-    t = JSON.gettype(x)
-    if t == JSON.JSONTypes.OBJECT
+# Parse the JSON text `json`, parsing non-integer numbers as `BigFloat` (at the current
+# precision of `BigFloat`), so that they can be converted to any real type. Objects and
+# arrays are read one level at a time, keeping the raw text of their values (`JSONText`),
+# which is then parsed in turn, so only the public API of JSON.jl is used.
+function _jsparsebig(json::AbstractString)
+    s = lstrip(json)
+    c = isempty(s) ? ' ' : first(s)
+    if c == '{'
         obj = JSON.Object{String, Any}()
-        JSON.applyobject((k, v) -> (obj[String(k)] = _jsparsebig(v); nothing), x)
+        for (k, v) in JSON.parse(s, JSON.Object{String, JSON.JSONText})
+            obj[k] = _jsparsebig(v.value)
+        end
         return obj
-    elseif t == JSON.JSONTypes.ARRAY
-        arr = Any[]
-        JSON.applyarray((i, v) -> (push!(arr, _jsparsebig(v)); nothing), x)
-        return arr
-    elseif t == JSON.JSONTypes.NUMBER
-        v = JSON.parse(x)
-        return v isa Integer ? v : JSON.parse(x, BigFloat)
+    elseif c == '['
+        return Any[_jsparsebig(v.value) for v in JSON.parse(s, Vector{JSON.JSONText})]
+    elseif c == '-' || isdigit(c)
+        v = JSON.parse(s)
+        return v isa Integer ? v : JSON.parse(s, BigFloat)
     end
-    return JSON.parse(x)
+    return JSON.parse(s)
 end
 
 """
