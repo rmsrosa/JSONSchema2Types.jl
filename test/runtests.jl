@@ -13,8 +13,25 @@ module. Returns the generated module.
 function load_generated(schema; split = false, kwargs...)
     output = joinpath(mktempdir(), split ? "generated" : "generated.jl")
     file = generate_module(schema, output; split, kwargs...)
+    split || include_runtime_sources!(file)
     # the file contains a single `module ... end`, which evaluates to the module itself
     return Base.include(Module(), file)
+end
+
+# A generated file contains a copy of the runtime code of the package (`src/runtime*.jl`).
+# Replace each copy by an `include` of its source file, the same code, so that the code
+# coverage of the tests is recorded for the source files.
+const RUNTIME_SOURCES = [JSONSchema2Types.RUNTIME_CODE => "runtime.jl",
+                         JSONSchema2Types.VALIDATION_CODE => "runtime_validation.jl",
+                         JSONSchema2Types.FORMATS_CODE => "runtime_formats.jl"]
+function include_runtime_sources!(file)
+    code = read(file, String)
+    for (source, name) in RUNTIME_SOURCES
+        path = joinpath(pkgdir(JSONSchema2Types), "src", name)
+        code = replace(code, source => "include(" * repr(path) * ")\n"; count = 1)
+    end
+    write(file, code)
+    return file
 end
 
 # Compare JSON values regardless of the order of keys and of `1` vs `1.0`.
