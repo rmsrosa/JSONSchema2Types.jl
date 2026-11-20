@@ -1,6 +1,6 @@
 # JSONSchema2Types
 
-[![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://rmsrosa.github.io/JSONSchema2Types.jl/dev/) [![CI](https://github.com/rmsrosa/JSONSchema2Types.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/rmsrosa/JSONSchema2Types.jl/actions/workflows/CI.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![GitHub repo size](https://img.shields.io/github/repo-size/rmsrosa/JSONSchema2Types.jl)
+[![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://rmsrosa.github.io/JSONSchema2Types.jl/dev/) [![CI](https://github.com/rmsrosa/JSONSchema2Types.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/rmsrosa/JSONSchema2Types.jl/actions/workflows/CI.yml) [![codecov](https://codecov.io/gh/rmsrosa/JSONSchema2Types.jl/graph/badge.svg)](https://codecov.io/gh/rmsrosa/JSONSchema2Types.jl) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![GitHub repo size](https://img.shields.io/github/repo-size/rmsrosa/JSONSchema2Types.jl)
 
 Generate Julia types from a [JSON Schema](https://json-schema.org), together with functions
 to read and write JSON documents that conform to the schema.
