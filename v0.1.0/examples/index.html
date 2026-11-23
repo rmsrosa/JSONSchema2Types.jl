@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="referrer" content="no-referrer"/><title>Examples · JSONSchema2Types.jl</title><meta name="title" content="Examples · JSONSchema2Types.jl"/><meta property="og:title" content="Examples · JSONSchema2Types.jl"/><meta property="twitter:title" content="Examples · JSONSchema2Types.jl"/><meta name="description" content="Documentation for JSONSchema2Types.jl."/><meta property="og:description" content="Documentation for JSONSchema2Types.jl."/><meta property="twitter:description" content="Documentation for JSONSchema2Types.jl."/><meta property="og:url" content="https://rmsrosa.github.io/JSONSchema2Types.jl/examples/"/><meta property="twitter:url" content="https://rmsrosa.github.io/JSONSchema2Types.jl/examples/"/><link rel="canonical" href="https://rmsrosa.github.io/JSONSchema2Types.jl/examples/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">JSONSchema2Types.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../guide/">Guide</a></li><li class="is-active"><a class="tocitem" href>Examples</a><ul class="internal"><li><a class="tocitem" href="#A-product-catalog"><span>A product catalog</span></a></li><li><a class="tocitem" href="#A-schema-referenced-by-its-id"><span>A schema referenced by its <code>$id</code></span></a></li><li><a class="tocitem" href="#oneOf,-anyOf,-allOf-and-not"><span><code>oneOf</code>, <code>anyOf</code>, <code>allOf</code> and <code>not</code></span></a></li></ul></li><li><a class="tocitem" href="../beerjson/">BeerJSON</a></li><li><a class="tocitem" href="../generated/">Generated code</a></li><li><a class="tocitem" href="../conformance/">Conformance</a></li><li><a class="tocitem" href="../related/">Related packages</a></li><li><a class="tocitem" href="../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Examples</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/rmsrosa/JSONSchema2Types.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/rmsrosa/JSONSchema2Types.jl/blob/main/docs/src/examples.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h1><p>The code on this page is run when the documentation is built. The schemas are in the <code>examples/</code> directory of the repository.</p><h2 id="A-product-catalog"><a class="docs-heading-anchor" href="#A-product-catalog">A product catalog</a><a id="A-product-catalog-1"></a><a class="docs-heading-anchor-permalink" href="#A-product-catalog" title="Permalink"></a></h2><p>This schema is from the <a href="https://json-schema.org/learn/getting-started-step-by-step">Getting Started Step-By-Step</a> guide of the JSON Schema organization. It describes a product with a nested object and a few constraints:</p><pre><code class="language-julia hljs">schema = joinpath(EXAMPLES, &quot;acme_schemas&quot;, &quot;acme_nestedschema.json&quot;)
+print(read(schema, String))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">{
+    &quot;$schema&quot;: &quot;https://json-schema.org/draft/2020-12/schema&quot;,
+    &quot;$id&quot;: &quot;https://example.com/product.schema.json&quot;,
+    &quot;title&quot;: &quot;Product&quot;,
+    &quot;description&quot;: &quot;A product from Acme&#39;s catalog&quot;,
+    &quot;type&quot;: &quot;object&quot;,
+    &quot;properties&quot;: {
+      &quot;productId&quot;: {
+        &quot;description&quot;: &quot;The unique identifier for a product&quot;,
+        &quot;type&quot;: &quot;integer&quot;
+      },
+      &quot;productName&quot;: {
+        &quot;description&quot;: &quot;Name of the product&quot;,
+        &quot;type&quot;: &quot;string&quot;
+      },
+      &quot;price&quot;: {
+        &quot;description&quot;: &quot;The price of the product&quot;,
+        &quot;type&quot;: &quot;number&quot;,
+        &quot;exclusiveMinimum&quot;: 0
+      },
+      &quot;tags&quot;: {
+        &quot;description&quot;: &quot;Tags for the product&quot;,
+        &quot;type&quot;: &quot;array&quot;,
+        &quot;items&quot;: {
+          &quot;type&quot;: &quot;string&quot;
+        },
+        &quot;minItems&quot;: 1,
+        &quot;uniqueItems&quot;: true
+      },
+      &quot;dimensions&quot;: {
+        &quot;description&quot;: &quot;Dimensions of a product&quot;,
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {
+          &quot;length&quot;: {
+            &quot;type&quot;: &quot;number&quot;
+          },
+          &quot;width&quot;: {
+            &quot;type&quot;: &quot;number&quot;
+          },
+          &quot;height&quot;: {
+            &quot;type&quot;: &quot;number&quot;
+          }
+        },
+        &quot;required&quot;: [ &quot;length&quot;, &quot;width&quot;, &quot;height&quot; ]
+      }
+    },
+    &quot;required&quot;: [ &quot;productId&quot;, &quot;productName&quot;, &quot;price&quot; ]
+  }</code></pre><p>Generate a module from it, and load it:</p><pre><code class="language-julia hljs">file = generate_module(schema, joinpath(OUT, &quot;ProductTypes.jl&quot;))
+include(file)
+using .ProductTypes</code></pre><p>These are the generated types (the rest of the file is the code for reading, writing and validating, the same in every generated module):</p><pre><code class="language-julia hljs">show_types(file)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"># ---------------------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------------------
+# Runtime support for validating values of the generated types against their schema.
+#
+# This code is copied verbatim into the modules generated by JSONSchema2Types, after the
+# runtime support for reading and writing (`runtime.jl`). With `validation = :inline` (the
+# default), the constructors of the generated types call these checks; with
+# `validation = :separate`, it is in a separate file, which provides `validate`.
+# ---------------------------------------------------------------------------------------
+
+# --- Turning the checks off (with `validation = :inline`) ---
+
+&quot;&quot;&quot;
+    checks!(flag::Bool)
+
+Turn on or off the checks of the constraints of the schema when values of the generated
+types are created (by their constructors, [`setfields`](@ref), [`fromjson`](@ref)...).
+They are on by default (unless the module was generated with `checks = false`).
+
+With the checks off, values are only converted to the types of their fields, which still
+enforce the structure of the schema (the types of the properties, required properties,
+the properties allowed, enumeration types), but not its constraints (`minimum`, `pattern`,
+the values of enumerations, `minItems`, `oneOf`...), for speed. Check the values later
+with [`validate`](@ref), which [`tojson`](@ref) and [`writejson`](@ref) call when the
+checks are off. A JSON value read into a union of generated types (from `oneOf` or
+`anyOf`) is still checked, to choose its type.
+
+The setting is global (shared by all tasks); see [`with_checks`](@ref) to change it
+temporarily. Returns the previous setting.
+&quot;&quot;&quot;
+checks!(flag::Bool) = (old = _CHECKS[]; _CHECKS[] = flag; old)
+
+&quot;&quot;&quot;
+    checks() -&gt; Bool
+
+Whether the checks of the constraints of the schema are on; see [`checks!`](@ref).
+&quot;&quot;&quot;
+checks() = _CHECKS[]
+
+&quot;&quot;&quot;
+    with_checks(f, flag::Bool)
+
+Call `f()` with the checks of the constraints of the schema turned on or off (see
+[`checks!`](@ref)), and restore the previous setting afterwards:
+`with_checks(false) do ... end`.
+&quot;&quot;&quot;
+function with_checks(f, flag::Bool)
+    old = checks!(flag)
+    try
+        return f()
+    finally
+        _CHECKS[] = old
+    end
+end
+
+# The metadata of the structs used by the checks, with their constraints: the same as
+# `_specs` when the constructors check (`validation = :inline`); otherwise the validation
+# file defines a method for each struct.
+_vspecs(::Type{T}) where {T &lt;: AbstractSchemaObject} = _specs(T)
+
+# Where a value is in a document, for the messages of the errors: built only when a check
+# fails, so that valid values cost no string allocations.
+struct _JSField{T}
+    key::String
+end
+Base.print(io::IO, w::_JSField{T}) where {T} = print(io, &quot;`&quot;, w.key, &quot;` in `&quot;, _jsname(T), &quot;`&quot;)
+struct _JSItem{W}
+    parent::W
+    index::Int
+end
+Base.print(io::IO, w::_JSItem) = print(io, w.parent, &quot;[&quot;, w.index, &quot;]&quot;)
+
+# --- Validation of constraints ---
+
+_jslength(x::AbstractString) = length(x)
+
+# values of typed formats (dates, UUIDs) are validated through their string form
+_jsscalar(x) = x
+
+# `nothing` is an absent optional field, unless `null` is a value (e.g. a JSON document `null`)
+function _jsvalidate(x, c, where_; null_is_value::Bool = false)
+    c === nothing &amp;&amp; return nothing
+    x === nothing &amp;&amp; !null_is_value &amp;&amp; return nothing
+    x = _jsscalar(x)
+    if haskey(c, :schema)
+        err = _jsvalid(c.schema, x isa AbstractSchemaObject ? x : _jsto(x))
+        err === nothing || _jsfail(&quot;$where_ is invalid: $err&quot;)
+    end
+    if x isa Real &amp;&amp; !(x isa Bool)
+        haskey(c, :minimum) &amp;&amp; x &lt; c.minimum &amp;&amp; _jsfail(&quot;$where_ must be ≥ $(c.minimum), got $x&quot;)
+        haskey(c, :maximum) &amp;&amp; x &gt; c.maximum &amp;&amp; _jsfail(&quot;$where_ must be ≤ $(c.maximum), got $x&quot;)
+        haskey(c, :exclusiveMinimum) &amp;&amp; x &lt;= c.exclusiveMinimum &amp;&amp; _jsfail(&quot;$where_ must be &gt; $(c.exclusiveMinimum), got $x&quot;)
+        haskey(c, :exclusiveMaximum) &amp;&amp; x &gt;= c.exclusiveMaximum &amp;&amp; _jsfail(&quot;$where_ must be &lt; $(c.exclusiveMaximum), got $x&quot;)
+        if haskey(c, :multipleOf)
+            q = x / c.multipleOf
+            isapprox(q, round(q); atol = 1e-9) || _jsfail(&quot;$where_ must be a multiple of $(c.multipleOf), got $x&quot;)
+        end
+    elseif x isa AbstractString
+        haskey(c, :minLength) &amp;&amp; _jslength(x) &lt; c.minLength &amp;&amp; _jsfail(&quot;$where_ must have at least $(c.minLength) characters, got $(repr(x))&quot;)
+        haskey(c, :maxLength) &amp;&amp; _jslength(x) &gt; c.maxLength &amp;&amp; _jsfail(&quot;$where_ must have at most $(c.maxLength) characters, got $(repr(x))&quot;)
+        haskey(c, :pattern) &amp;&amp; !occursin(c.pattern, x) &amp;&amp; _jsfail(&quot;$where_ must match the pattern $(c.pattern.pattern), got $(repr(x))&quot;)
+    elseif x isa AbstractVector
+        haskey(c, :minItems) &amp;&amp; length(x) &lt; c.minItems &amp;&amp; _jsfail(&quot;$where_ must have at least $(c.minItems) items, got $(length(x))&quot;)
+        haskey(c, :maxItems) &amp;&amp; length(x) &gt; c.maxItems &amp;&amp; _jsfail(&quot;$where_ must have at most $(c.maxItems) items, got $(length(x))&quot;)
+        haskey(c, :uniqueItems) &amp;&amp; c.uniqueItems &amp;&amp; !_jsallunique(x) &amp;&amp; _jsfail(&quot;$where_ must have unique items&quot;)
+        if haskey(c, :items)
+            for (i, el) in enumerate(x)
+                _jsvalidate(el, c.items, _JSItem(where_, i))
+            end
+        end
+    elseif x isa AbstractDict
+        haskey(c, :minProperties) &amp;&amp; length(x) &lt; c.minProperties &amp;&amp; _jsfail(&quot;$where_ must have at least $(c.minProperties) properties&quot;)
+        haskey(c, :maxProperties) &amp;&amp; length(x) &gt; c.maxProperties &amp;&amp; _jsfail(&quot;$where_ must have at most $(c.maxProperties) properties&quot;)
+    end
+    return nothing
+end
+
+&quot;&quot;&quot;
+    _jscheck(T, values, extra)
+
+Check the constraints of the generated struct `T` (recorded in [`_SPECS`](@ref)) on the
+converted field `values` and the additional properties `extra`. Called by the inner
+constructor of `T`, after [`_jsfrom`](@ref) converted each argument: it checks that
+required fields are set, the constraints of each field (`minimum`, `pattern`,
+`minItems`...), the subschemas checked at runtime (`not`, `oneOf`, `format`...) and the
+constraints on the object as a whole (`minProperties`, `if`/`then`/`else`...).
+&quot;&quot;&quot;
+function _jscheck(::Type{T}, values::Tuple, extra) where {T &lt;: AbstractSchemaObject}
+    _CHECKS[] || return nothing
+    spec = _vspecs(T)
+    nprops = (extra === nothing ? 0 : length(extra)) + _jscheckfields(T, spec.fields, values)
+    spec.minProperties !== nothing &amp;&amp; nprops &lt; spec.minProperties &amp;&amp;
+        _jsfail(&quot;`$(_jsname(T))` must have at least $(spec.minProperties) properties set, got $nprops&quot;)
+    spec.maxProperties !== nothing &amp;&amp; nprops &gt; spec.maxProperties &amp;&amp;
+        _jsfail(&quot;`$(_jsname(T))` must have at most $(spec.maxProperties) properties set, got $nprops&quot;)
+    if spec.schema !== nothing
+        # keywords that apply to the object as a whole (`not`, `if`, `patternProperties`...)
+        obj = JSON.Object{String, Any}()
+        for (f, v) in zip(spec.fields, values)
+            v === nothing &amp;&amp; !(f.required &amp;&amp; f.nullable) &amp;&amp; continue
+            obj[f.key] = _jsto(v)
+        end
+        extra === nothing || foreach(((k, v),) -&gt; (obj[k] = _jsto(v)), extra)
+        err = _jsvalid(spec.schema, obj)
+        err === nothing || _jsfail(&quot;`$(_jsname(T))` is invalid: $err&quot;)
+    end
+    return nothing
+end
+
+# The checks of the fields, unrolled over the tuples of field metadata and values (the
+# metadata is a constant, so this is type-stable); returns the number of properties set.
+@inline _jscheckfields(::Type, ::Tuple{}, ::Tuple{}) = 0
+@inline function _jscheckfields(::Type{T}, fields::Tuple, values::Tuple) where {T}
+    f, v = first(fields), first(values)
+    if v === nothing &amp;&amp; f.required &amp;&amp; !f.nullable
+        _jsfail(&quot;required property `$(f.key)` of `$(_jsname(T))` cannot be `nothing`&quot;)
+    end
+    f.constraints === nothing || _jsvalidate(v, f.constraints, _JSField{T}(f.key))
+    set = v !== nothing || (f.required &amp;&amp; f.nullable)
+    return Int(set) + _jscheckfields(T, Base.tail(fields), Base.tail(values))
+end
+
+function _jscheckenum(::Type{T}, value) where {T &lt;: AbstractSchemaEnum}
+    _CHECKS[] || return value
+    _jsenumok(T, value) || _jsfail(_jsenummsg(T, value))
+    return value
+end
+
+# --- Validation of JSON values against (sub)schemas ---
+#
+# The generated types enforce most of a schema by themselves. The remaining keywords (`not`,
+# `if`/`then`/`else`, exclusivity of `oneOf`, `patternProperties`, `format`, ...) are
+# checked by validating the JSON form of a value against the corresponding subschemas,
+# which the generator embeds (with their `$ref`s resolved) in the metadata of the types.
+
+&quot;&quot;&quot;
+    check_formats!(flag::Bool)
+
+Enable or disable the validation of the `format` keyword. Enabled by default. The formats of
+JSON Schema 2020-12 are checked (`date-time`, `date`, `time`, `duration`, `email`,
+`idn-email`, `hostname`, `idn-hostname`, `ipv4`, `ipv6`, `uri`, `uri-reference`, `iri`,
+`iri-reference`, `uri-template`, `json-pointer`, `relative-json-pointer`, `uuid`, `regex`);
+unknown formats are not.
+&quot;&quot;&quot;
+check_formats!(flag::Bool) = (_CHECK_FORMATS[] = flag)
+const _CHECK_FORMATS = Ref(true)
+
+const _REGEX_CACHE = Dict{String, Regex}()
+
+# JSON Schema patterns are ECMAScript regular expressions. They are compiled with PCRE without
+# Unicode classes (so `\d` and `\w` are ASCII, as in ECMAScript) and with `$` matching only at
+# the end, after translating `\s` and long Unicode property names, which PCRE lacks.
+const _JS_REGEX_OPTIONS = Base.PCRE.UTF | Base.PCRE.MATCH_INVALID_UTF | Base.PCRE.ALT_BSUX |
+                          Base.PCRE.DOLLAR_ENDONLY
+_jsregex(p::AbstractString) =
+    get!(() -&gt; Regex(_jsecmaregex(p), _JS_REGEX_OPTIONS, Base.DEFAULT_MATCH_OPTS), _REGEX_CACHE, p)
+
+const _JS_SPACES = &quot;\\t\\n\\u000b\\f\\r \\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff&quot;
+const _JS_PROPERTIES = Dict(
+    &quot;Letter&quot; =&gt; &quot;L&quot;, &quot;Cased_Letter&quot; =&gt; &quot;LC&quot;, &quot;Uppercase_Letter&quot; =&gt; &quot;Lu&quot;, &quot;Lowercase_Letter&quot; =&gt; &quot;Ll&quot;,
+    &quot;Titlecase_Letter&quot; =&gt; &quot;Lt&quot;, &quot;Modifier_Letter&quot; =&gt; &quot;Lm&quot;, &quot;Other_Letter&quot; =&gt; &quot;Lo&quot;, &quot;Mark&quot; =&gt; &quot;M&quot;,
+    &quot;Nonspacing_Mark&quot; =&gt; &quot;Mn&quot;, &quot;Spacing_Mark&quot; =&gt; &quot;Mc&quot;, &quot;Enclosing_Mark&quot; =&gt; &quot;Me&quot;, &quot;Number&quot; =&gt; &quot;N&quot;,
+    &quot;Decimal_Number&quot; =&gt; &quot;Nd&quot;, &quot;digit&quot; =&gt; &quot;Nd&quot;, &quot;Letter_Number&quot; =&gt; &quot;Nl&quot;, &quot;Other_Number&quot; =&gt; &quot;No&quot;,
+    &quot;Punctuation&quot; =&gt; &quot;P&quot;, &quot;punct&quot; =&gt; &quot;P&quot;, &quot;Connector_Punctuation&quot; =&gt; &quot;Pc&quot;, &quot;Dash_Punctuation&quot; =&gt; &quot;Pd&quot;,
+    &quot;Open_Punctuation&quot; =&gt; &quot;Ps&quot;, &quot;Close_Punctuation&quot; =&gt; &quot;Pe&quot;, &quot;Initial_Punctuation&quot; =&gt; &quot;Pi&quot;,
+    &quot;Final_Punctuation&quot; =&gt; &quot;Pf&quot;, &quot;Other_Punctuation&quot; =&gt; &quot;Po&quot;, &quot;Symbol&quot; =&gt; &quot;S&quot;, &quot;Math_Symbol&quot; =&gt; &quot;Sm&quot;,
+    &quot;Currency_Symbol&quot; =&gt; &quot;Sc&quot;, &quot;Modifier_Symbol&quot; =&gt; &quot;Sk&quot;, &quot;Other_Symbol&quot; =&gt; &quot;So&quot;, &quot;Separator&quot; =&gt; &quot;Z&quot;,
+    &quot;Space_Separator&quot; =&gt; &quot;Zs&quot;, &quot;Line_Separator&quot; =&gt; &quot;Zl&quot;, &quot;Paragraph_Separator&quot; =&gt; &quot;Zp&quot;, &quot;Other&quot; =&gt; &quot;C&quot;,
+    &quot;Control&quot; =&gt; &quot;Cc&quot;, &quot;cntrl&quot; =&gt; &quot;Cc&quot;, &quot;Format&quot; =&gt; &quot;Cf&quot;, &quot;Surrogate&quot; =&gt; &quot;Cs&quot;, &quot;Private_Use&quot; =&gt; &quot;Co&quot;,
+    &quot;Unassigned&quot; =&gt; &quot;Cn&quot;,
+)
+
+function _jsecmaregex(p::AbstractString)
+    out = IOBuffer()
+    inclass = false
+    i = firstindex(p)
+    while i &lt;= lastindex(p)
+        c = p[i]
+        if c == &#39;\\&#39; &amp;&amp; i &lt; lastindex(p)
+            n = p[nextind(p, i)]
+            j = nextind(p, nextind(p, i))
+            if n == &#39;s&#39;
+                print(out, inclass ? _JS_SPACES : &quot;[&quot; * _JS_SPACES * &quot;]&quot;)
+            elseif n == &#39;S&#39; &amp;&amp; !inclass
+                print(out, &quot;[^&quot;, _JS_SPACES, &quot;]&quot;)
+            elseif (n == &#39;p&#39; || n == &#39;P&#39;) &amp;&amp; j &lt;= lastindex(p) &amp;&amp; p[j] == &#39;{&#39;
+                k = findnext(&#39;}&#39;, p, j)
+                k === nothing &amp;&amp; (print(out, c, n); i = j; continue)
+                name = replace(p[nextind(p, j):prevind(p, k)], r&quot;^(General_Category|gc)=&quot; =&gt; &quot;&quot;)
+                print(out, &#39;\\&#39;, n, &#39;{&#39;, get(_JS_PROPERTIES, name, name), &#39;}&#39;)
+                j = nextind(p, k)
+            else
+                print(out, c, n)
+            end
+            i = j
+            continue
+        end
+        # `[]` matches nothing and `[^]` anything, in ECMAScript
+        if !inclass &amp;&amp; startswith(SubString(p, i), &quot;[^]&quot;)
+            print(out, &quot;[\\s\\S]&quot;); i = nextind(p, nextind(p, nextind(p, i))); continue
+        elseif !inclass &amp;&amp; startswith(SubString(p, i), &quot;[]&quot;)
+            print(out, &quot;(?!)&quot;); i = nextind(p, nextind(p, i)); continue
+        end
+        c == &#39;[&#39; &amp;&amp; (inclass = true)
+        c == &#39;]&#39; &amp;&amp; (inclass = false)
+        print(out, c)
+        i = nextind(p, i)
+    end
+    return String(take!(out))
+end
+
+# --- Checks of the `format` keyword ---
+#
+# Following the RFCs referenced by JSON Schema; only ASCII digits are digits, and `\z` (not
+# `$`, which allows a trailing newline) anchors the patterns.
+
+_jsleap(y) = y % 4 == 0 &amp;&amp; (y % 100 != 0 || y % 400 == 0)
+
+function _jsdate(s)
+    m = match(r&quot;^([0-9]{4})-([0-9]{2})-([0-9]{2})\z&quot;, s)
+    m === nothing &amp;&amp; return false
+    y, mo, d = parse.(Int, m.captures)
+    days = (31, _jsleap(y) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    return 1 &lt;= mo &lt;= 12 &amp;&amp; 1 &lt;= d &lt;= days[mo]
+end
+
+function _jstime(s)
+    m = match(r&quot;^([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]+)?([Zz]|([+-])([0-9]{2}):([0-9]{2}))\z&quot;, s)
+    m === nothing &amp;&amp; return false
+    h, mi, se = parse(Int, m[1]), parse(Int, m[2]), parse(Int, m[3])
+    oh, om = m[6] === nothing ? (0, 0) : (parse(Int, m[7]), parse(Int, m[8]))
+    (h &lt;= 23 &amp;&amp; mi &lt;= 59 &amp;&amp; se &lt;= 60 &amp;&amp; oh &lt;= 23 &amp;&amp; om &lt;= 59) || return false
+    if se == 60
+        # a leap second is only at 23:59:60 UTC
+        utc = mod(h * 60 + mi - (m[6] == &quot;-&quot; ? -1 : 1) * (oh * 60 + om), 24 * 60)
+        utc == 23 * 60 + 59 || return false
+    end
+    return true
+end
+
+function _jsdatetime(s)
+    m = match(r&quot;^([^Tt]*)[Tt](.*)\z&quot;, s)
+    return m !== nothing &amp;&amp; _jsdate(m[1]) &amp;&amp; _jstime(m[2])
+end
+
+function _jsipv4(s)
+    m = match(r&quot;^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\z&quot;, s)
+    m === nothing &amp;&amp; return false
+    return all(c -&gt; (length(c) == 1 || c[1] != &#39;0&#39;) &amp;&amp; parse(Int, c) &lt;= 255, m.captures)
+end
+
+function _jsipv6(s)
+    (isascii(s) &amp;&amp; !isempty(s) &amp;&amp; !occursin(r&quot;[^0-9A-Fa-f:.]&quot;, s)) || return false
+    parts = split(s, &quot;::&quot;)
+    length(parts) &gt; 2 &amp;&amp; return false
+    groups(p) = isempty(p) ? String[] : split(p, &#39;:&#39;)
+    gs = vcat([groups(p) for p in parts]...)
+    n = 0
+    for (i, g) in enumerate(gs)
+        if occursin(&#39;.&#39;, g)
+            # an IPv4 address can only be the last group
+            (i == length(gs) &amp;&amp; last(parts) != &quot;&quot; &amp;&amp; _jsipv4(g)) || return false
+            n += 2
+        else
+            occursin(r&quot;^[0-9A-Fa-f]{1,4}\z&quot;, g) || return false
+            n += 1
+        end
+    end
+    return length(parts) == 2 ? n &lt;= 7 : n == 8
+end
+
+function _jshostname(s)
+    isascii(s) || return false
+    s = endswith(s, &quot;.&quot;) &amp;&amp; length(s) &gt; 1 ? chop(s) : s
+    (1 &lt;= length(s) &lt;= 253) || return false
+    for label in split(s, &#39;.&#39;)
+        occursin(r&quot;^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\z&quot;, label) || return false
+        # &quot;--&quot; in the 3rd and 4th positions is reserved (RFC 5891), except for &quot;xn--&quot; labels
+        length(label) &gt;= 4 &amp;&amp; label[3:4] == &quot;--&quot; &amp;&amp; lowercase(label[1:2]) != &quot;xn&quot; &amp;&amp; return false
+    end
+    return true
+end
+
+# Internationalized hostnames: checked as hostnames, allowing non-ASCII letters; the
+# IDNA2008 rules are not checked.
+const _JS_IDN_DOTS = Regex(&quot;[\u3002\uFF0E\uFF61]&quot;)
+const _JS_IDN_LABEL = Regex(&quot;^[\\p{L}\\p{N}\\p{M}\\-\u00B7\u0375\u05F3\u05F4\u30FB\u200C\u200D]+\\z&quot;)
+
+function _jsidnhostname(s)
+    s = replace(s, _JS_IDN_DOTS =&gt; &quot;.&quot;)
+    (1 &lt;= length(s) &lt;= 253) || return false
+    occursin(Regex(&quot;[\\s\u302E]&quot;), s) &amp;&amp; return false
+    for label in split(endswith(s, &quot;.&quot;) &amp;&amp; length(s) &gt; 1 ? chop(s) : s, &#39;.&#39;)
+        (1 &lt;= length(label) &lt;= 63) || return false
+        (startswith(label, &quot;-&quot;) || endswith(label, &quot;-&quot;)) &amp;&amp; return false
+        occursin(_JS_IDN_LABEL, label) || return false
+        occursin(r&quot;^\p{M}&quot;, label) &amp;&amp; return false
+    end
+    return true
+end
+
+const _JS_ATEXT = raw&quot;[A-Za-z0-9!#$%&amp;&#39;*+/=?^_`{|}~-]&quot;
+
+function _jsemail(s; idn = false)
+    i = findlast(&#39;@&#39;, s)
+    i === nothing &amp;&amp; return false
+    local_part, domain = s[1:prevind(s, i)], s[nextind(s, i):end]
+    atext = idn ? raw&quot;(?:[A-Za-z0-9!#$%&amp;&#39;*+/=?^_`{|}~-]|[^\x00-\x7F])&quot; : _JS_ATEXT
+    dotatom = Regex(&quot;^&quot; * atext * &quot;+(\\.&quot; * atext * &quot;+)*\\z&quot;)
+    quoted = idn ? r&quot;^\&quot;([\x20\x21\x23-\x5B\x5D-\x7E]|[^\x00-\x7F]|\\[\x20-\x7E])*\&quot;\z&quot; :
+                   r&quot;^\&quot;([\x20\x21\x23-\x5B\x5D-\x7E]|\\[\x20-\x7E])*\&quot;\z&quot;
+    (occursin(dotatom, local_part) || occursin(quoted, local_part)) || return false
+    if startswith(domain, &quot;[&quot;) &amp;&amp; endswith(domain, &quot;]&quot;)
+        lit = domain[2:end-1]
+        return startswith(lowercase(lit), &quot;ipv6:&quot;) ? _jsipv6(lit[6:end]) : _jsipv4(lit)
+    end
+    endswith(domain, &quot;.&quot;) &amp;&amp; return false
+    return idn ? _jsidnhostname(domain) : _jshostname(domain)
+end
+
+# URIs and IRIs (RFC 3986 and 3987): the characters, percent-encodings, scheme and authority
+const _JS_URI_CHARS = raw&quot;A-Za-z0-9\-._~:/?#\[\]@!$&amp;&#39;()*+,;=&quot;
+function _jsuri(s; absolute = true, iri = false)
+    chars = iri ? &quot;[&quot; * _JS_URI_CHARS * &quot;\u00A0-\U10FFFF]&quot; : &quot;[&quot; * _JS_URI_CHARS * &quot;]&quot;
+    occursin(Regex(&quot;^(&quot; * chars * &quot;|%[0-9A-Fa-f]{2})*\\z&quot;), s) || return false
+    m = match(r&quot;^(?:([A-Za-z][A-Za-z0-9+.-]*):)?(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?\z&quot;, s)
+    m === nothing &amp;&amp; return false
+    absolute &amp;&amp; m[1] === nothing &amp;&amp; return false
+    # without a scheme, a first path segment with &#39;:&#39; would be read as a scheme
+    m[1] === nothing &amp;&amp; m[2] === nothing &amp;&amp; occursin(r&quot;^[^/]*:&quot;, m[3]) &amp;&amp; return false
+    for part in (m[3], m[4], m[5])
+        part === nothing || !occursin(r&quot;[\[\]]&quot;, part) || return false
+    end
+    count(&#39;#&#39;, s) &lt;= 1 || return false
+    if m[2] !== nothing
+        auth = m[2]
+        hm = match(r&quot;^(?:[^@\[\]]*@)?(\[[^\]]*\]|[^:\[\]@]*)(?::([0-9]*))?\z&quot;, auth)
+        hm === nothing &amp;&amp; return false
+        if startswith(hm[1], &quot;[&quot;)
+            h = hm[1][2:end-1]
+            (occursin(r&quot;^[vV][0-9A-Fa-f]+\.&quot;, h) || _jsipv6(h)) || return false
+        end
+    end
+    return true
+end
+
+_jsjsonpointer(s) = occursin(r&quot;^(/([^~/]|~[01])*)*\z&quot;, s)
+_jsreljsonpointer(s) = occursin(r&quot;^(0|[1-9][0-9]*)(#|(/([^~/]|~[01])*)*)\z&quot;, s)
+
+# RFC 6570: literals, and expressions `{[operator]varspec,...}`
+const _JS_URI_TEMPLATE = Regex(&quot;^(?:[^\\x00-\\x20\&quot;&#39;%&lt;&gt;\\\\^`{|}\\x7F]|%[0-9A-Fa-f]{2}|&quot; *
+    &quot;\\{[+#./;?&amp;=,!@|]?(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2})(?:\\.?(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2}))*&quot; *
+    &quot;(?::[1-9][0-9]{0,3}|\\*)?(?:,(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2})(?:\\.?(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2}))*&quot; *
+    &quot;(?::[1-9][0-9]{0,3}|\\*)?)*\\})*\\z&quot;)
+_jsuritemplate(s) = occursin(_JS_URI_TEMPLATE, s)
+
+# RFC 3339, appendix A: &quot;P&quot; (date [time] / time / week), where e.g. years and days need months
+const _JS_DURATION = let D = &quot;[0-9]+&quot;,
+        time = &quot;T(?:$(D)H(?:$(D)M(?:$(D)S)?)?|$(D)M(?:$(D)S)?|$(D)S)&quot;,
+        date = &quot;(?:$(D)Y(?:$(D)M(?:$(D)D)?)?|$(D)M(?:$(D)D)?|$(D)D)&quot;
+    Regex(&quot;^P(?:$(date)(?:$(time))?|$(time)|$(D)W)\\z&quot;)
+end
+_jsduration(s) = occursin(_JS_DURATION, s)
+
+_jsuuid(s) = occursin(r&quot;^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z&quot;, s)
+
+function _jsregexformat(s)
+    # syntax of PCRE (or Python) that ECMAScript does not have
+    occursin(r&quot;\(\?(P[&lt;=&gt;]|#|[a-zA-Z]+\))|\\a&quot;, s) &amp;&amp; return false
+    try
+        _jsregex(s)
+        return true
+    catch
+        # some ECMAScript forms are not supported by PCRE: accept what PCRE rejects only
+        # for lookbehinds, which ECMAScript allows with variable width
+        return occursin(&quot;(?&lt;&quot;, s)
+    end
+end
+
+const _FORMATS = Dict{String, Function}(
+    &quot;date-time&quot; =&gt; _jsdatetime,
+    &quot;date&quot; =&gt; _jsdate,
+    &quot;time&quot; =&gt; _jstime,
+    &quot;duration&quot; =&gt; _jsduration,
+    &quot;email&quot; =&gt; _jsemail,
+    &quot;idn-email&quot; =&gt; s -&gt; _jsemail(s; idn = true),
+    &quot;hostname&quot; =&gt; _jshostname,
+    &quot;idn-hostname&quot; =&gt; _jsidnhostname,
+    &quot;ipv4&quot; =&gt; _jsipv4,
+    &quot;ipv6&quot; =&gt; _jsipv6,
+    &quot;uri&quot; =&gt; _jsuri,
+    &quot;uri-reference&quot; =&gt; s -&gt; _jsuri(s; absolute = false),
+    &quot;iri&quot; =&gt; s -&gt; _jsuri(s; iri = true),
+    &quot;iri-reference&quot; =&gt; s -&gt; _jsuri(s; absolute = false, iri = true),
+    &quot;uri-template&quot; =&gt; _jsuritemplate,
+    &quot;json-pointer&quot; =&gt; _jsjsonpointer,
+    &quot;relative-json-pointer&quot; =&gt; _jsreljsonpointer,
+    &quot;uuid&quot; =&gt; _jsuuid,
+    &quot;regex&quot; =&gt; _jsregexformat,
+)
+
+_jsisinteger(x) = x isa Real &amp;&amp; !(x isa Bool) &amp;&amp; isinteger(x)
+
+function _jstypeok(t::AbstractString, x)
+    t == &quot;null&quot; &amp;&amp; return x === nothing
+    t == &quot;boolean&quot; &amp;&amp; return x isa Bool
+    t == &quot;integer&quot; &amp;&amp; return _jsisinteger(x)
+    t == &quot;number&quot; &amp;&amp; return _jsisnumber(x)
+    t == &quot;string&quot; &amp;&amp; return x isa AbstractString
+    t == &quot;array&quot; &amp;&amp; return x isa AbstractVector
+    t == &quot;object&quot; &amp;&amp; return x isa AbstractDict
+    return true
+end
+
+function _jsallunique(x)
+    v = Any[_jsto(el) for el in x]
+    return !any(_jseq(v[i], v[j]) for i in eachindex(v) for j in firstindex(v):i-1)
+end
+
+&quot;&quot;&quot;
+    _jsvalid(schema, x) -&gt; Union{Nothing, String}
+
+Validate the JSON value `x` against `schema`; return `nothing` if it is valid, or a
+message describing the first problem found.
+&quot;&quot;&quot;
+_jsvalid(s, x) = first(_jsvalidann(s, x))
+
+# Annotations collected while validating: the properties and array items that were
+# evaluated by a (sub)schema, for `unevaluatedProperties` and `unevaluatedItems`.
+_jsok(props = Set{String}(), items = Set{Int}()) = (nothing, props, items)
+_jsbad(msg) = (msg, Set{String}(), Set{Int}())
+
+&quot;&quot;&quot;
+    _jsvalidann(schema, x) -&gt; (error, evaluated_properties, evaluated_items)
+
+Validate `x` against `schema` as [`_jsvalid`](@ref), and also return the names of the
+properties and the (1-based) indices of the items that the schema evaluated, as defined by
+JSON Schema 2020-12 for `unevaluatedProperties` and `unevaluatedItems`.
+&quot;&quot;&quot;
+function _jsvalidann(s, x)
+    s === true &amp;&amp; return _jsok()
+    s === false &amp;&amp; return _jsbad(&quot;no value is allowed here&quot;)
+    s isa AbstractDict || return _jsok()
+    # A value of a generated type (from a field of a generated struct) is valid against
+    # `{&quot;\$type&quot;: &quot;Name&quot;}` when it is a value of that type. It is kept as it is through
+    # `oneOf`, `anyOf` and `allOf`, and converted to its JSON form for anything else.
+    if x isa AbstractSchemaObject
+        if haskey(s, &quot;\$type&quot;) &amp;&amp; length(s) == 1
+            x isa getfield(@__MODULE__, Symbol(s[&quot;\$type&quot;])) &amp;&amp; return _jsok(_jskeys(x))
+            x = _jsto(x)
+        elseif !all(in((&quot;oneOf&quot;, &quot;anyOf&quot;, &quot;allOf&quot;)), keys(s))
+            x = _jsto(x)
+        end
+    end
+    props = Set{String}()
+    items = Set{Int}()
+    addann!(ann) = (union!(props, ann[2]); union!(items, ann[3]))
+
+    if haskey(s, &quot;\$type&quot;)
+        # a generated type: the value must be convertible to it, which checks all of it
+        T = getfield(@__MODULE__, Symbol(s[&quot;\$type&quot;]))
+        msg = x isa AbstractDict ? _jsmismatch(T, x) : nothing
+        msg === nothing || return _jsbad(msg)
+        v = try
+            _jsfrom(T, x)
+        catch err
+            err isa SchemaValidationError || rethrow()
+            return _jsbad(err.msg)
+        end
+        # (constructors that do not check only convert: check the converted value)
+        if !_INLINE_CHECKS
+            errs = with_checks(() -&gt; _jscollect!(String[], v, Any[]), true)
+            isempty(errs) || return _jsbad(first(errs))
+        end
+        x isa AbstractDict &amp;&amp; union!(props, String.(keys(x)))
+        x isa AbstractVector &amp;&amp; union!(items, eachindex(x))
+    end
+
+    if haskey(s, &quot;type&quot;)
+        ts = s[&quot;type&quot;] isa AbstractVector ? s[&quot;type&quot;] : (s[&quot;type&quot;],)
+        any(t -&gt; _jstypeok(t, x), ts) || return _jsbad(&quot;expected $(join(ts, &quot; or &quot;)), got $(repr(x))&quot;)
+    end
+    haskey(s, &quot;enum&quot;) &amp;&amp; !any(v -&gt; _jseq(v, x), s[&quot;enum&quot;]) &amp;&amp; return _jsbad(&quot;$(repr(x)) is not one of $(s[&quot;enum&quot;])&quot;)
+    haskey(s, &quot;const&quot;) &amp;&amp; !_jseq(s[&quot;const&quot;], x) &amp;&amp; return _jsbad(&quot;expected $(repr(s[&quot;const&quot;])), got $(repr(x))&quot;)
+
+    if _jsisnumber(x)
+        haskey(s, &quot;minimum&quot;) &amp;&amp; x &lt; s[&quot;minimum&quot;] &amp;&amp; return _jsbad(&quot;$x is less than $(s[&quot;minimum&quot;])&quot;)
+        haskey(s, &quot;maximum&quot;) &amp;&amp; x &gt; s[&quot;maximum&quot;] &amp;&amp; return _jsbad(&quot;$x is greater than $(s[&quot;maximum&quot;])&quot;)
+        haskey(s, &quot;exclusiveMinimum&quot;) &amp;&amp; s[&quot;exclusiveMinimum&quot;] isa Real &amp;&amp; !(s[&quot;exclusiveMinimum&quot;] isa Bool) &amp;&amp;
+            x &lt;= s[&quot;exclusiveMinimum&quot;] &amp;&amp; return _jsbad(&quot;$x is not greater than $(s[&quot;exclusiveMinimum&quot;])&quot;)
+        haskey(s, &quot;exclusiveMaximum&quot;) &amp;&amp; s[&quot;exclusiveMaximum&quot;] isa Real &amp;&amp; !(s[&quot;exclusiveMaximum&quot;] isa Bool) &amp;&amp;
+            x &gt;= s[&quot;exclusiveMaximum&quot;] &amp;&amp; return _jsbad(&quot;$x is not less than $(s[&quot;exclusiveMaximum&quot;])&quot;)
+        if haskey(s, &quot;multipleOf&quot;)
+            q = x / s[&quot;multipleOf&quot;]
+            isapprox(q, round(q); atol = 1e-9) || return _jsbad(&quot;$x is not a multiple of $(s[&quot;multipleOf&quot;])&quot;)
+        end
+    elseif x isa AbstractString
+        haskey(s, &quot;minLength&quot;) &amp;&amp; length(x) &lt; s[&quot;minLength&quot;] &amp;&amp; return _jsbad(&quot;$(repr(x)) is shorter than $(s[&quot;minLength&quot;])&quot;)
+        haskey(s, &quot;maxLength&quot;) &amp;&amp; length(x) &gt; s[&quot;maxLength&quot;] &amp;&amp; return _jsbad(&quot;$(repr(x)) is longer than $(s[&quot;maxLength&quot;])&quot;)
+        haskey(s, &quot;pattern&quot;) &amp;&amp; !occursin(_jsregex(s[&quot;pattern&quot;]), x) &amp;&amp;
+            return _jsbad(&quot;$(repr(x)) does not match the pattern $(s[&quot;pattern&quot;])&quot;)
+        if haskey(s, &quot;format&quot;) &amp;&amp; _CHECK_FORMATS[]
+            check = get(_FORMATS, s[&quot;format&quot;], nothing)
+            check === nothing || check(x) || return _jsbad(&quot;$(repr(x)) is not a valid $(s[&quot;format&quot;])&quot;)
+        end
+    elseif x isa AbstractVector
+        haskey(s, &quot;minItems&quot;) &amp;&amp; length(x) &lt; s[&quot;minItems&quot;] &amp;&amp; return _jsbad(&quot;fewer than $(s[&quot;minItems&quot;]) items&quot;)
+        haskey(s, &quot;maxItems&quot;) &amp;&amp; length(x) &gt; s[&quot;maxItems&quot;] &amp;&amp; return _jsbad(&quot;more than $(s[&quot;maxItems&quot;]) items&quot;)
+        if get(s, &quot;uniqueItems&quot;, false) === true
+            for i in eachindex(x), j in firstindex(x):i-1
+                _jseq(x[i], x[j]) &amp;&amp; return _jsbad(&quot;items are not unique&quot;)
+            end
+        end
+        prefix = get(s, &quot;prefixItems&quot;, get(s, &quot;items&quot;, nothing) isa AbstractVector ? s[&quot;items&quot;] : Any[])
+        for (i, sub) in enumerate(prefix)
+            i &lt;= length(x) || break
+            err = _jsvalid(sub, x[i])
+            err === nothing || return _jsbad(&quot;item $i: $err&quot;)
+            push!(items, i)
+        end
+        rest = haskey(s, &quot;prefixItems&quot;) ? get(s, &quot;items&quot;, nothing) :
+               get(s, &quot;items&quot;, nothing) isa AbstractVector ? get(s, &quot;additionalItems&quot;, nothing) : get(s, &quot;items&quot;, nothing)
+        if rest !== nothing
+            for i in (length(prefix) + 1):length(x)
+                err = _jsvalid(rest, x[i])
+                err === nothing || return _jsbad(&quot;item $i: $err&quot;)
+                push!(items, i)
+            end
+        end
+        if haskey(s, &quot;contains&quot;)
+            matching = [i for i in eachindex(x) if _jsvalid(s[&quot;contains&quot;], x[i]) === nothing]
+            n = length(matching)
+            lo = get(s, &quot;minContains&quot;, 1); hi = get(s, &quot;maxContains&quot;, typemax(Int))
+            lo &lt;= n &lt;= hi || return _jsbad(&quot;$n items match `contains`; expected between $lo and $hi&quot;)
+            union!(items, matching)
+        end
+    elseif x isa AbstractDict
+        haskey(s, &quot;minProperties&quot;) &amp;&amp; length(x) &lt; s[&quot;minProperties&quot;] &amp;&amp; return _jsbad(&quot;fewer than $(s[&quot;minProperties&quot;]) properties&quot;)
+        haskey(s, &quot;maxProperties&quot;) &amp;&amp; length(x) &gt; s[&quot;maxProperties&quot;] &amp;&amp; return _jsbad(&quot;more than $(s[&quot;maxProperties&quot;]) properties&quot;)
+        for k in get(s, &quot;required&quot;, ())
+            haskey(x, k) || return _jsbad(&quot;missing required property `$k`&quot;)
+        end
+        defined = get(s, &quot;properties&quot;, nothing)
+        patterns = get(s, &quot;patternProperties&quot;, nothing)
+        extra = get(s, &quot;additionalProperties&quot;, nothing)
+        names = get(s, &quot;propertyNames&quot;, nothing)
+        (defined === nothing &amp;&amp; patterns === nothing &amp;&amp; extra === nothing &amp;&amp; names === nothing) ||
+        for (k, v) in x
+            k = String(k)
+            matched = false
+            if defined !== nothing &amp;&amp; haskey(defined, k)
+                matched = true
+                err = _jsvalid(defined[k], v)
+                err === nothing || return _jsbad(&quot;property `$k`: $err&quot;)
+            end
+            for (p, sub) in something(patterns, ())
+                occursin(_jsregex(p), k) || continue
+                matched = true
+                err = _jsvalid(sub, v)
+                err === nothing || return _jsbad(&quot;property `$k`: $err&quot;)
+            end
+            if !matched &amp;&amp; extra !== nothing
+                err = _jsvalid(extra, v)
+                err === nothing || return _jsbad(extra === false ? &quot;property `$k` is not allowed&quot; : &quot;property `$k`: $err&quot;)
+                matched = true
+            end
+            matched &amp;&amp; push!(props, k)
+            if names !== nothing
+                err = _jsvalid(names, k)
+                err === nothing || return _jsbad(&quot;property name `$k`: $err&quot;)
+            end
+        end
+        (haskey(s, &quot;dependentRequired&quot;) || haskey(s, &quot;dependencies&quot;)) &amp;&amp;
+        for (k, deps) in merge(get(s, &quot;dependentRequired&quot;, Dict()), filter(p -&gt; p[2] isa AbstractVector, get(s, &quot;dependencies&quot;, Dict())))
+            haskey(x, k) || continue
+            for d in deps
+                haskey(x, d) || return _jsbad(&quot;property `$k` requires property `$d`&quot;)
+            end
+        end
+        (haskey(s, &quot;dependentSchemas&quot;) || haskey(s, &quot;dependencies&quot;)) &amp;&amp;
+        for (k, sub) in merge(get(s, &quot;dependentSchemas&quot;, Dict()), filter(p -&gt; !(p[2] isa AbstractVector), get(s, &quot;dependencies&quot;, Dict())))
+            haskey(x, k) || continue
+            ann = _jsvalidann(sub, x)
+            ann[1] === nothing || return _jsbad(&quot;when `$k` is present: $(ann[1])&quot;)
+            addann!(ann)
+        end
+    end
+
+    for sub in get(s, &quot;allOf&quot;, ())
+        ann = _jsvalidann(sub, x)
+        ann[1] === nothing || return ann
+        addann!(ann)
+    end
+    if haskey(s, &quot;anyOf&quot;)
+        anns = [_jsvalidann(sub, x) for sub in s[&quot;anyOf&quot;]]
+        valid = filter(a -&gt; a[1] === nothing, anns)
+        isempty(valid) &amp;&amp; return _jsbad(&quot;does not match any option of `anyOf` (&quot; * join(first.(anns), &quot;; &quot;) * &quot;)&quot;)
+        foreach(addann!, valid)
+    end
+    if haskey(s, &quot;oneOf&quot;)
+        valid = filter(a -&gt; a[1] === nothing, [_jsvalidann(sub, x) for sub in s[&quot;oneOf&quot;]])
+        n = length(valid)
+        n == 1 || return _jsbad(n == 0 ? &quot;does not match any option of `oneOf`&quot; :
+                                         &quot;matches $n options of `oneOf`, but must match exactly one&quot;)
+        addann!(only(valid))
+    end
+    haskey(s, &quot;not&quot;) &amp;&amp; _jsvalid(s[&quot;not&quot;], x) === nothing &amp;&amp; return _jsbad(&quot;must not match the schema in `not`&quot;)
+    if haskey(s, &quot;if&quot;)
+        cond = _jsvalidann(s[&quot;if&quot;], x)
+        if cond[1] === nothing
+            addann!(cond)
+            if haskey(s, &quot;then&quot;)
+                ann = _jsvalidann(s[&quot;then&quot;], x)
+                ann[1] === nothing || return _jsbad(&quot;`then`: &quot; * ann[1])
+                addann!(ann)
+            end
+        elseif haskey(s, &quot;else&quot;)
+            ann = _jsvalidann(s[&quot;else&quot;], x)
+            ann[1] === nothing || return _jsbad(&quot;`else`: &quot; * ann[1])
+            addann!(ann)
+        end
+    end
+
+    # `unevaluatedItems` and `unevaluatedProperties` apply to what no other keyword of this
+    # schema, or of its valid subschemas, evaluated
+    if x isa AbstractVector &amp;&amp; haskey(s, &quot;unevaluatedItems&quot;)
+        for i in eachindex(x)
+            i in items &amp;&amp; continue
+            err = _jsvalid(s[&quot;unevaluatedItems&quot;], x[i])
+            err === nothing || return _jsbad(s[&quot;unevaluatedItems&quot;] === false ? &quot;item $i is not allowed&quot; : &quot;item $i: $err&quot;)
+            push!(items, i)
+        end
+    end
+    if x isa AbstractDict &amp;&amp; haskey(s, &quot;unevaluatedProperties&quot;)
+        for (k, v) in x
+            String(k) in props &amp;&amp; continue
+            err = _jsvalid(s[&quot;unevaluatedProperties&quot;], v)
+            err === nothing || return _jsbad(s[&quot;unevaluatedProperties&quot;] === false ?
+                                             &quot;property `$k` is not allowed&quot; : &quot;property `$k`: $err&quot;)
+            push!(props, String(k))
+        end
+    end
+    return (nothing, props, items)
+end
+
+# the JSON names of the properties of a value of a generated type
+function _jskeys(x::T) where {T &lt;: AbstractSchemaObject}
+    spec = _specs(T)
+    ks = Set{String}()
+    for f in spec.fields
+        v = getfield(x, f.name)
+        (v !== nothing || (f.required &amp;&amp; f.nullable)) &amp;&amp; push!(ks, f.key)
+    end
+    if spec.extra !== nothing
+        union!(ks, keys(getfield(x, spec.extra)))
+    end
+    return ks
+end
+
+# --- Validation of whole values ---
+
+&quot;&quot;&quot;
+    violations(x) -&gt; Vector{String}
+
+Check `x` (a value of a generated type, or a vector, dict or tuple of them), and every
+value nested in it, against all the constraints of the schema, whether or not the checks
+were on when they were created (see [`checks!`](@ref)). Returns the problems found, one per
+invalid value (the first problem of each), with its location, e.g.
+`&quot;batch_size: `value` in `VolumeType` must be ≥ 0, got -1.0&quot;`. The location uses the JSON
+names of the properties and 1-based indices of the items: `recipes[1].batch_size`.
+&quot;&quot;&quot;
+function violations(x)
+    out = String[]
+    with_checks(true) do
+        _jscollect!(out, x, Any[])
+        if x isa RootType &amp;&amp; _ROOT_CONSTRAINTS[] !== nothing
+            try
+                _jsvalidate(x, _ROOT_CONSTRAINTS[], &quot;the document&quot;; null_is_value = true)
+            catch err
+                err isa SchemaValidationError || rethrow()
+                push!(out, err.msg)
+            end
+        end
+    end
+    return out
+end
+
+&quot;&quot;&quot;
+    validate(x)
+
+Check `x` as [`violations`](@ref) does, and throw a [`SchemaValidationError`](@ref) listing
+the problems found, if any. Returns `x`.
+&quot;&quot;&quot;
+validate(x) = _jsvalidateall(x)
+
+function _jsvalidateall(x)
+    v = violations(x)
+    isempty(v) &amp;&amp; return x
+    n = length(v)
+    _jsfail(&quot;$n value$(n == 1 ? &quot; does&quot; : &quot;s do&quot;) not conform to the schema:\n  &quot; * join(v, &quot;\n  &quot;))
+end
+
+&quot;&quot;&quot;
+    isvalid(x::AbstractSchemaObject) -&gt; Bool
+
+Whether `x`, and every value nested in it, conforms to the schema; see [`violations`](@ref).
+&quot;&quot;&quot;
+Base.isvalid(x::Union{AbstractSchemaObject, AbstractSchemaEnum}) = isempty(violations(x))
+
+# The location of a value is kept as a stack of property names and indices, and only
+# written out (e.g. `recipes[1].batch_size`) when a problem is found.
+function _jsat(path::Vector{Any}, msg)
+    isempty(path) &amp;&amp; return msg
+    io = IOBuffer()
+    for (i, p) in enumerate(path)
+        p isa Integer ? print(io, &quot;[&quot;, p, &quot;]&quot;) : print(io, i == 1 ? &quot;&quot; : &quot;.&quot;, p)
+    end
+    return String(take!(io)) * &quot;: &quot; * msg
+end
+
+function _jscollect!(out, x::T, path) where {T &lt;: AbstractSchemaObject}
+    spec = _vspecs(T)
+    values = ntuple(i -&gt; getfield(x, spec.fields[i].name), Val(length(spec.fields)))
+    extra = spec.extra === nothing ? nothing : getfield(x, spec.extra)
+    try
+        _jscheck(T, values, extra)
+    catch err
+        err isa SchemaValidationError || rethrow()
+        push!(out, _jsat(path, err.msg))
+    end
+    _jscollectfields!(out, spec.fields, values, path)
+    extra === nothing || _jscollect!(out, extra, path)
+    return out
+end
+
+# (unrolled over the tuples of field metadata and values, as `_jscheckfields`)
+@inline _jscollectfields!(out, ::Tuple{}, ::Tuple{}, path) = out
+@inline function _jscollectfields!(out, fields::Tuple, values::Tuple, path)
+    v = first(values)
+    if v isa Union{AbstractSchemaObject, AbstractSchemaEnum, AbstractVector, Tuple, AbstractDict}
+        push!(path, first(fields).key)
+        _jscollect!(out, v, path)
+        pop!(path)
+    end
+    return _jscollectfields!(out, Base.tail(fields), Base.tail(values), path)
+end
+
+function _jscollect!(out, x::T, path) where {T &lt;: AbstractSchemaEnum}
+    _jsenumok(T, x.value) || push!(out, _jsat(path, _jsenummsg(T, x.value)))
+    return out
+end
+function _jscollect!(out, x::Union{AbstractVector, Tuple}, path)
+    for (i, v) in enumerate(x)
+        v isa Union{AbstractSchemaObject, AbstractSchemaEnum, AbstractVector, Tuple, AbstractDict} || continue
+        push!(path, i)
+        _jscollect!(out, v, path)
+        pop!(path)
+    end
+    return out
+end
+function _jscollect!(out, x::AbstractDict, path)
+    for (k, v) in x
+        v isa Union{AbstractSchemaObject, AbstractSchemaEnum, AbstractVector, Tuple, AbstractDict} || continue
+        push!(path, String(k))
+        _jscollect!(out, v, path)
+        pop!(path)
+    end
+    return out
+end
+_jscollect!(out, x, path) = out
+
+# the validation of values before writing them (see `tojson`)
+_VALIDATOR[] = _jsvalidateall
+
+# ---------------------------------------------------------------------------------------
+# Types from `acme_nestedschema.json`
+# ---------------------------------------------------------------------------------------
+
+&quot;&quot;&quot;
+    ProductDimensions(; kwargs...)
+    ProductDimensions{I, T}(; kwargs...)
+
+Dimensions of a product
+
+Integers are stored as `I &lt;: Integer` and other numbers as `T &lt;: Real`; by default, `Int64`
+and `Float64`.
+
+# Fields
+
+- `length::T` (required)
+- `width::T` (required)
+- `height::T` (required)
+- `_extra::Dict{String, Any}`: additional properties, not described in the schema
+&quot;&quot;&quot;
+struct ProductDimensions{I &lt;: Integer, T &lt;: Real} &lt;: AbstractSchemaObject
+    length::T
+    width::T
+    height::T
+    _extra::Dict{String, Any}
+    function ProductDimensions{I, T}(; length, width, height, _extra = Dict{String, Any}()) where {I &lt;: Integer, T &lt;: Real}
+        length = _jsfrom(T, length)
+        width = _jsfrom(T, width)
+        height = _jsfrom(T, height)
+        _extra = _jsfrom(Dict{String, Any}, _extra)
+        _jscheck(ProductDimensions{I, T}, (length, width, height), _extra)
+        return new(length, width, height, _extra)
+    end
+end
+ProductDimensions(; kwargs...) = ProductDimensions{Int64, Float64}(; kwargs...)
+ProductDimensions{I, T}(length, width, height, _extra) where {I &lt;: Integer, T &lt;: Real} = ProductDimensions{I, T}(; length, width, height, _extra)
+ProductDimensions(length, width, height, _extra) = ProductDimensions{_jsnumbertypes(length, width, height, _extra)...}(; length, width, height, _extra)
+const _SPEC_ProductDimensions = (
+    fields = (
+        (name = :length, key = &quot;length&quot;, required = true, nullable = false, constraints = nothing),
+        (name = :width, key = &quot;width&quot;, required = true, nullable = false, constraints = nothing),
+        (name = :height, key = &quot;height&quot;, required = true, nullable = false, constraints = nothing),
+    ),
+    additionalProperties = true,
+    extra = :_extra,
+    minProperties = nothing,
+    maxProperties = nothing,
+    schema = nothing,
+)
+_specs(::Type{&lt;:ProductDimensions}) = _SPEC_ProductDimensions
+_SPECS[ProductDimensions] = _SPEC_ProductDimensions
+
+&quot;&quot;&quot;
+    Product(; kwargs...)
+    Product{I, T}(; kwargs...)
+
+A product from Acme&#39;s catalog
+
+Integers are stored as `I &lt;: Integer` and other numbers as `T &lt;: Real`; by default, `Int64`
+and `Float64`.
+
+# Fields
+
+- `productId::I` (required): The unique identifier for a product
+- `productName::String` (required): Name of the product
+- `price::T` (required): The price of the product
+- `tags::Union{Nothing, Vector{String}}`: Tags for the product
+- `dimensions::Union{Nothing, ProductDimensions{I, T}}`: Dimensions of a product
+- `_extra::Dict{String, Any}`: additional properties, not described in the schema
+&quot;&quot;&quot;
+struct Product{I &lt;: Integer, T &lt;: Real} &lt;: AbstractSchemaObject
+    productId::I
+    productName::String
+    price::T
+    tags::Union{Nothing, Vector{String}}
+    dimensions::Union{Nothing, ProductDimensions{I, T}}
+    _extra::Dict{String, Any}
+    function Product{I, T}(; productId, productName, price, tags = nothing, dimensions = nothing, _extra = Dict{String, Any}()) where {I &lt;: Integer, T &lt;: Real}
+        productId = _jsfrom(I, productId)
+        productName = _jsfrom(String, productName)
+        price = _jsfrom(T, price)
+        tags = _jsfrom(Union{Nothing, Vector{String}}, tags)
+        dimensions = _jsfrom(Union{Nothing, ProductDimensions{I, T}}, dimensions)
+        _extra = _jsfrom(Dict{String, Any}, _extra)
+        _jscheck(Product{I, T}, (productId, productName, price, tags, dimensions), _extra)
+        return new(productId, productName, price, tags, dimensions, _extra)
+    end
+end
+Product(; kwargs...) = Product{Int64, Float64}(; kwargs...)
+Product{I, T}(productId, productName, price, tags, dimensions, _extra) where {I &lt;: Integer, T &lt;: Real} = Product{I, T}(; productId, productName, price, tags, dimensions, _extra)
+Product(productId, productName, price, tags, dimensions, _extra) = Product{_jsnumbertypes(productId, productName, price, tags, dimensions, _extra)...}(; productId, productName, price, tags, dimensions, _extra)
+const _SPEC_Product = (
+    fields = (
+        (name = :productId, key = &quot;productId&quot;, required = true, nullable = false, constraints = nothing),
+        (name = :productName, key = &quot;productName&quot;, required = true, nullable = false, constraints = nothing),
+        (name = :price, key = &quot;price&quot;, required = true, nullable = false, constraints = (exclusiveMinimum = 0,)),
+        (name = :tags, key = &quot;tags&quot;, required = false, nullable = false, constraints = (minItems = 1, uniqueItems = true,)),
+        (name = :dimensions, key = &quot;dimensions&quot;, required = false, nullable = false, constraints = nothing),
+    ),
+    additionalProperties = true,
+    extra = :_extra,
+    minProperties = nothing,
+    maxProperties = nothing,
+    schema = nothing,
+)
+_specs(::Type{&lt;:Product}) = _SPEC_Product
+_SPECS[Product] = _SPEC_Product
+
+
+&quot;&quot;&quot;
+    RootType
+
+Alias of `Product`, the type of the root of the schema.
+&quot;&quot;&quot;
+const RootType = Product
+
+end # module ProductTypes</code></pre><p>Values are built with keyword constructors. Plain values are converted, and optional fields can be left out:</p><pre><code class="language-julia hljs">p = Product(productId = 1, productName = &quot;An ice sculpture&quot;, price = 12.5,
+            dimensions = Dict(&quot;length&quot; =&gt; 7, &quot;width&quot; =&gt; 12, &quot;height&quot; =&gt; 9.5))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Product(1, &quot;An ice sculpture&quot;, 12.5, nothing, ProductDimensions(7.0, 12.0, 9.5, Dict{String, Any}()), Dict{String, Any}())</code></pre><pre><code class="language-julia hljs">p.dimensions</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ProductDimensions(7.0, 12.0, 9.5, Dict{String, Any}())</code></pre><p>and are written as JSON, without the fields that are not set:</p><pre><code class="language-julia hljs">print(tojson(p; pretty = true))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">{
+  &quot;productId&quot;: 1,
+  &quot;productName&quot;: &quot;An ice sculpture&quot;,
+  &quot;price&quot;: 12.5,
+  &quot;dimensions&quot;: {
+    &quot;length&quot;: 7,
+    &quot;width&quot;: 12,
+    &quot;height&quot;: 9.5
+  }
+}</code></pre><p>Reading a document validates it against the schema:</p><pre><code class="language-julia hljs">json = &quot;&quot;&quot;{&quot;productId&quot;: 1, &quot;productName&quot;: &quot;An ice sculpture&quot;, &quot;price&quot;: 0}&quot;&quot;&quot;
+try
+    fromjson(Product, json)
+catch err
+    showerror(stdout, err)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SchemaValidationError: `price` in `Product` must be &gt; 0, got 0.0</code></pre><pre><code class="language-julia hljs">json = &quot;&quot;&quot;{&quot;productId&quot;: 1, &quot;productName&quot;: &quot;Ice&quot;, &quot;price&quot;: 1, &quot;tags&quot;: [&quot;cold&quot;, &quot;cold&quot;]}&quot;&quot;&quot;
+try
+    fromjson(Product, json)
+catch err
+    showerror(stdout, err)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SchemaValidationError: `tags` in `Product` must have unique items</code></pre><h2 id="A-schema-referenced-by-its-id"><a class="docs-heading-anchor" href="#A-schema-referenced-by-its-id">A schema referenced by its <code>$id</code></a><a id="A-schema-referenced-by-its-id-1"></a><a class="docs-heading-anchor-permalink" href="#A-schema-referenced-by-its-id" title="Permalink"></a></h2><p>Another version of the product schema refers to a separate schema for the location of the warehouse by its <code>$id</code>, <code>https://example.com/geographical-location.schema.json</code>. The file with that schema is given with the <code>schemas</code> keyword:</p><pre><code class="language-julia hljs">file = generate_module(joinpath(EXAMPLES, &quot;acme_schemas&quot;, &quot;acme_withreferenceschema.json&quot;),
+    joinpath(OUT, &quot;WarehouseTypes.jl&quot;); module_name = &quot;WarehouseTypes&quot;,
+    schemas = [joinpath(EXAMPLES, &quot;acme_schemas&quot;, &quot;acme_tobereferredschema.json&quot;)])
+include(file)
+using .WarehouseTypes: Product as WarehouseProduct, LongitudeAndLatitude
+data = joinpath(EXAMPLES, &quot;acme_schemas&quot;, &quot;acme_data.json&quot;)
+print(read(data, String))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">{
+    &quot;productId&quot;: 1,
+    &quot;productName&quot;: &quot;An ice sculpture&quot;,
+    &quot;price&quot;: 12.50,
+    &quot;tags&quot;: [ &quot;cold&quot;, &quot;ice&quot; ],
+    &quot;dimensions&quot;: {
+        &quot;length&quot;: 7.0,
+        &quot;width&quot;: 12.0,
+        &quot;height&quot;: 9.5
+    },
+    &quot;warehouseLocation&quot;: {
+        &quot;latitude&quot;: -78.75,
+        &quot;longitude&quot;: 20.4
+    }
+}</code></pre><pre><code class="language-julia hljs">product = WarehouseTypes.readjson(WarehouseProduct, data)
+product.warehouseLocation</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">LongitudeAndLatitude(-78.75, 20.4, Dict{String, Any}())</code></pre><p>The referenced schema has the title &quot;Longitude and Latitude&quot;, which gives the name of its type, <code>LongitudeAndLatitude</code>.</p><h2 id="oneOf,-anyOf,-allOf-and-not"><a class="docs-heading-anchor" href="#oneOf,-anyOf,-allOf-and-not"><code>oneOf</code>, <code>anyOf</code>, <code>allOf</code> and <code>not</code></a><a id="oneOf,-anyOf,-allOf-and-not-1"></a><a class="docs-heading-anchor-permalink" href="#oneOf,-anyOf,-allOf-and-not" title="Permalink"></a></h2><p>This schema shows the keywords for combining schemas:</p><pre><code class="language-julia hljs">schema = joinpath(EXAMPLES, &quot;more_schemas&quot;, &quot;combined_schema.json&quot;)
+print(read(schema, String))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">{
+  &quot;$schema&quot;: &quot;http://json-schema.org/draft-07/schema#&quot;,
+  &quot;title&quot;: &quot;CombinedSchemaExample&quot;,
+  &quot;description&quot;: &quot;A single schema demonstrating oneOf, anyOf, allOf, and not.&quot;,
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;one_of_user&quot;: {
+      &quot;description&quot;: &quot;Demonstrates &#39;oneOf&#39; for a user that is either a Person or a Company.&quot;,
+      &quot;oneOf&quot;: [
+        {
+          &quot;title&quot;: &quot;Person&quot;,
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;user_type&quot;: {
+              &quot;type&quot;: &quot;string&quot;,
+              &quot;const&quot;: &quot;person&quot;
+            },
+            &quot;first_name&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            },
+            &quot;last_name&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            }
+          },
+          &quot;required&quot;: [&quot;user_type&quot;, &quot;first_name&quot;, &quot;last_name&quot;]
+        },
+        {
+          &quot;title&quot;: &quot;Company&quot;,
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;user_type&quot;: {
+              &quot;type&quot;: &quot;string&quot;,
+              &quot;const&quot;: &quot;company&quot;
+            },
+            &quot;company_name&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            }
+          },
+          &quot;required&quot;: [&quot;user_type&quot;, &quot;company_name&quot;]
+        }
+      ]
+    },
+    &quot;any_of_identifier&quot;: {
+      &quot;description&quot;: &quot;Demonstrates &#39;anyOf&#39; for a product identifier.&quot;,
+      &quot;anyOf&quot;: [
+        {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;sku&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            }
+          },
+          &quot;required&quot;: [&quot;sku&quot;]
+        },
+        {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;product_code&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            }
+          },
+          &quot;required&quot;: [&quot;product_code&quot;]
+        }
+      ]
+    },
+    &quot;all_of_request&quot;: {
+      &quot;description&quot;: &quot;Demonstrates &#39;allOf&#39; to combine schemas for a request with authentication.&quot;,
+      &quot;allOf&quot;: [
+        {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;payload&quot;: {
+              &quot;type&quot;: &quot;object&quot;
+            }
+          },
+          &quot;required&quot;: [&quot;payload&quot;]
+        },
+        {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;api_key&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            },
+            &quot;timestamp&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            }
+          },
+          &quot;required&quot;: [&quot;api_key&quot;, &quot;timestamp&quot;]
+        }
+      ]
+    },
+    &quot;not_a_password&quot;: {
+      &quot;description&quot;: &quot;A password that cannot be the literal string &#39;password&#39;.&quot;,
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;not&quot;: {
+        &quot;const&quot;: &quot;password&quot;
+      }
+    }
+  },
+  &quot;required&quot;: [
+    &quot;one_of_user&quot;,
+    &quot;any_of_identifier&quot;,
+    &quot;all_of_request&quot;,
+    &quot;not_a_password&quot;
+  ]
+}</code></pre><pre><code class="language-julia hljs">file = generate_module(schema, joinpath(OUT, &quot;CombinedTypes.jl&quot;); module_name = &quot;CombinedTypes&quot;)
+include(file)
+using .CombinedTypes
+fieldtypes(CombinedSchemaExample{Int64, Float64})</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(Union{Main.CombinedTypes.Company{Int64, Float64}, Main.CombinedTypes.Person{Int64, Float64}}, Union{Main.CombinedTypes.CombinedSchemaExampleAnyOfIdentifierOption1{Int64, Float64}, Main.CombinedTypes.CombinedSchemaExampleAnyOfIdentifierOption2{Int64, Float64}}, Main.CombinedTypes.CombinedSchemaExampleAllOfRequest{Int64, Float64}, String, Dict{String, Any})</code></pre><p>The options of <code>oneOf</code> have titles, so they are the types <code>Person</code> and <code>Company</code>. The options of <code>anyOf</code> have none, so their names are made from the parent and the property. The <code>allOf</code> is merged into a single type, and the <code>not</code> is checked at runtime. When reading, the option that fits is chosen:</p><pre><code class="language-julia hljs">json = &quot;&quot;&quot;
+{
+  &quot;one_of_user&quot;: {&quot;user_type&quot;: &quot;company&quot;, &quot;company_name&quot;: &quot;Acme&quot;},
+  &quot;any_of_identifier&quot;: {&quot;sku&quot;: &quot;A-1&quot;},
+  &quot;all_of_request&quot;: {&quot;payload&quot;: {}, &quot;api_key&quot;: &quot;k&quot;, &quot;timestamp&quot;: &quot;2026-11-13&quot;},
+  &quot;not_a_password&quot;: &quot;s3cret&quot;
+}
+&quot;&quot;&quot;
+x = fromjson(RootType, json)
+x.one_of_user</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Company(CompanyUserTypeEnum(&quot;company&quot;), &quot;Acme&quot;, Dict{String, Any}())</code></pre><p>and the <code>not</code> is enforced:</p><pre><code class="language-julia hljs">try
+    fromjson(RootType, replace(json, &quot;s3cret&quot; =&gt; &quot;password&quot;))
+catch err
+    showerror(stdout, err)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">SchemaValidationError: `not_a_password` in `CombinedSchemaExample` is invalid: must not match the schema in `not`</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../guide/">« Guide</a><a class="docs-footer-nextpage" href="../beerjson/">BeerJSON »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Monday 23 November 2026 17:15">Monday 23 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
